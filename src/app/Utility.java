@@ -24,40 +24,10 @@ import uk.ac.ox.cs.pdq.regression.utils.CommonToPDQTranslator;
  */
 public class Utility {
 
-	static Collection<ConjunctiveQuery> readQueries(String basePath, Schema schema) {
-		File queriesDir = new File(basePath + "queries");
-		Collection<ConjunctiveQuery> queries = new ArrayList<>();
-		Map<String, Relation> relations2 = new HashMap<>();
-		for (Relation r : schema.getRelations())
-			relations2.put(r.getName(), r);
-
-		if (queriesDir.exists())
-			for (File f : queriesDir.listFiles())
-				if (f.getName().endsWith(".txt"))
-					try {
-						queries.add(CommonToPDQTranslator.parseQuery(relations2, f.getAbsolutePath()));
-					} catch (IOException e) {
-						e.printStackTrace();
-					}
-		return queries;
-	}
-
-	static Collection<Atom> readFacts(String basePath, Schema schema) {
-		File dataDir = new File(basePath + "data");
-		Collection<Atom> facts = new ArrayList<>();
-		if (dataDir.exists())
-			for (File f : dataDir.listFiles())
-				if (f.getName().endsWith(".csv")) {
-					String name = f.getName().substring(0, f.getName().indexOf("."));
-					if (schema.getRelation(name) == null)
-						System.out.println("Can't process file: " + f.getAbsolutePath());
-					else
-						facts.addAll(CommonToPDQTranslator.importFacts(schema, name, f.getAbsolutePath()));
-				}
-		return facts;
-	}
-
-	static Schema readSchema(String basePath, String testName) {
+	/**
+	 * From PDQ testing code, slightly modified
+	 */
+	static Schema readSchemaAndDependenciesChaseBench(String basePath, String testName) {
 		File schemaDir = new File(basePath + "schema");
 		File dependencyDir = new File(basePath + "dependencies");
 		Map<String, Relation> tables = CommonToPDQTranslator
@@ -76,7 +46,49 @@ public class Utility {
 				dependencies.toArray(new Dependency[dependencies.size()]));
 		return schema;
 	}
+	
+	/**
+	 * From PDQ testing code, slightly modified
+	 */
+	static Collection<Atom> readFactsChaseBench(String basePath, Schema schema) {
+		File dataDir = new File(basePath + "data");
+		Collection<Atom> facts = new ArrayList<>();
+		if (dataDir.exists())
+			for (File f : dataDir.listFiles())
+				if (f.getName().endsWith(".csv")) {
+					String name = f.getName().substring(0, f.getName().indexOf("."));
+					if (schema.getRelation(name) == null)
+						System.out.println("Can't process file: " + f.getAbsolutePath());
+					else
+						facts.addAll(CommonToPDQTranslator.importFacts(schema, name, f.getAbsolutePath()));
+				}
+		return facts;
+	}
 
+	/**
+	 * From PDQ testing code, slightly modified
+	 */
+	static Collection<ConjunctiveQuery> readQueriesChaseBench(String basePath, Schema schema) {
+		File queriesDir = new File(basePath + "queries");
+		Collection<ConjunctiveQuery> queries = new ArrayList<>();
+		Map<String, Relation> relations2 = new HashMap<>();
+		for (Relation r : schema.getRelations())
+			relations2.put(r.getName(), r);
+
+		if (queriesDir.exists())
+			for (File f : queriesDir.listFiles())
+				if (f.getName().endsWith(".txt"))
+					try {
+						queries.add(CommonToPDQTranslator.parseQuery(relations2, f.getAbsolutePath()));
+					} catch (IOException e) {
+						e.printStackTrace();
+					}
+		return queries;
+	}
+
+	/**
+	 * From PDQ code, slightly modified
+	 */
 	static Formula applySubstitution(Formula formula, Map<Term, Term> substitution) {
 		if (formula instanceof Conjunction) {
 			Formula child1 = applySubstitution(((Conjunction) formula).getChildren()[0], substitution);
@@ -130,6 +142,18 @@ public class Utility {
 				if (v.equals(va))
 					return true;
 		return false;
+	}
+
+	public static void writeDatalogRules(Collection<Dependency> guardedSaturation) {
+		// TODO
+	}
+
+	public static void writeDatalogFacts(Collection<Atom> facts) {
+		// TODO
+	}
+
+	public static void writeDatalogQueries(Collection<ConjunctiveQuery> queries) {
+		// TODO
 	}
 
 }

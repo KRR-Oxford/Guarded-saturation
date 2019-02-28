@@ -31,17 +31,17 @@ public class App {
 
 		logger.info("Reading from: '" + basePath + "'");
 
-		Schema schema = Utility.readSchema(basePath, "tgds5");
+		Schema schema = Utility.readSchemaAndDependenciesChaseBench(basePath, "tgds5");
 		Dependency[] allDependencies = schema.getAllDependencies();
 
 		logger.info("# Dependencies: " + allDependencies.length);
 		logger.debug(schema);
 
-		Collection<Atom> facts = Utility.readFacts(basePath, schema);
+		Collection<Atom> facts = Utility.readFactsChaseBench(basePath, schema);
 		logger.info("# Facts: " + facts.size());
 		logger.debug(facts);
 
-		Collection<ConjunctiveQuery> queries = Utility.readQueries(basePath, schema);
+		Collection<ConjunctiveQuery> queries = Utility.readQueriesChaseBench(basePath, schema);
 		logger.info("# Queries: " + queries.size());
 		logger.debug(queries);
 
@@ -51,6 +51,10 @@ public class App {
 		System.out.println("=========================================");
 		guardedSaturation.forEach(System.out::println);
 		System.out.println("=========================================");
+
+		Utility.writeDatalogRules(guardedSaturation);
+		Utility.writeDatalogFacts(facts);
+		Utility.writeDatalogQueries(queries);
 
 	}
 
