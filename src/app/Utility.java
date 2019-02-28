@@ -1,8 +1,12 @@
 import java.io.File;
 import java.io.IOException;
+import java.nio.charset.Charset;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 
@@ -11,6 +15,7 @@ import uk.ac.ox.cs.pdq.db.Schema;
 import uk.ac.ox.cs.pdq.fol.Atom;
 import uk.ac.ox.cs.pdq.fol.Conjunction;
 import uk.ac.ox.cs.pdq.fol.ConjunctiveQuery;
+import uk.ac.ox.cs.pdq.fol.Constant;
 import uk.ac.ox.cs.pdq.fol.Dependency;
 import uk.ac.ox.cs.pdq.fol.Disjunction;
 import uk.ac.ox.cs.pdq.fol.Formula;
@@ -40,13 +45,14 @@ public class Utility {
 		relations.putAll(tables1);
 		List<Dependency> dependencies = CommonToPDQTranslator.parseDependencies(relations,
 				dependencyDir.getAbsolutePath() + File.separator + testName + ".st-tgds.txt");
-		dependencies.addAll(CommonToPDQTranslator.parseDependencies(relations,
-				dependencyDir.getAbsolutePath() + File.separator + testName + ".t-tgds.txt"));
+		if (new File(dependencyDir.getAbsolutePath() + File.separator + testName + ".t-tgds.txt").exists())
+			dependencies.addAll(CommonToPDQTranslator.parseDependencies(relations,
+					dependencyDir.getAbsolutePath() + File.separator + testName + ".t-tgds.txt"));
 		Schema schema = new Schema(relations.values().toArray(new Relation[relations.size()]),
 				dependencies.toArray(new Dependency[dependencies.size()]));
 		return schema;
 	}
-	
+
 	/**
 	 * From PDQ testing code, slightly modified
 	 */
@@ -144,16 +150,112 @@ public class Utility {
 		return false;
 	}
 
-	public static void writeDatalogRules(Collection<Dependency> guardedSaturation) {
-		// TODO
+	public static void writeDatalogRules(Collection<Dependency> guardedSaturation, String path) {
+
+		Collection<String> datalogRules = new LinkedList<>();
+
+		for (Dependency dependency : guardedSaturation)
+			datalogRules.addAll(getDatalogRules(dependency));
+
+		try {
+			Files.write(Paths.get(path), datalogRules, Charset.forName("UTF-8"));
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+
 	}
 
-	public static void writeDatalogFacts(Collection<Atom> facts) {
-		// TODO
+	private static Collection<? extends String> getDatalogRules(Dependency dependency) {
+
+		assert !App.isFull(dependency);
+
+		StringBuilder body = new StringBuilder();
+		String to_append = ":-";
+		for (Atom atom : dependency.getBodyAtoms()) {
+			body.append(to_append);
+			if (to_append == ":-")
+				to_append = ",";
+			App.logger.debug("Atom:" + renameVariablesAndConstantsDatalog(atom));
+			body.append(renameVariablesAndConstantsDatalog(atom).toString());
+		}
+		body.append(".");
+
+		String bodyString = body.toString();
+
+		Collection<String> rules = new LinkedList<>();
+		// if multiple atoms in the head, we have to return multiple rules
+		for (Atom atom : dependency.getHeadAtoms()) {
+			App.logger.debug("Atom:" + renameVariablesAndConstantsDatalog(atom));
+			rules.add(renameVariablesAndConstantsDatalog(atom).toString() + bodyString);
+		}
+
+		return rules;
+
 	}
 
-	public static void writeDatalogQueries(Collection<ConjunctiveQuery> queries) {
-		// TODO
+	public static Atom renameVariablesAndConstantsDatalog(Atom atom) {
+
+		Map<Term, Term> substitution = new HashMap<>();
+		for (Variable v : atom.getVariables())
+			substitution.put(v, Variable.create(v.getSymbol().toUpperCase()));
+		for (Constant c : atom.getTypedAndUntypedConstants())
+			substitution.put(c, Variable.create(c.toString().toLowerCase()));
+
+		return (Atom) Utility.applySubstitution(atom, substitution);
+
+	}
+
+	public static void writeDatalogFacts(Collection<Atom> facts, String path) {
+
+		Collection<String> datalogFacts = new LinkedList<>();
+
+		for (Atom atom : facts)
+			datalogFacts.add(renameVariablesAndConstantsDatalog(atom).toString() + '.');
+
+		try {
+			Files.write(Paths.get(path), datalogFacts, Charset.forName("UTF-8"));
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+
+	}
+
+	public static void writeDatalogQueries(Collection<ConjunctiveQuery> queries, String path) {
+
+		Collection<String> datalogQueries = new LinkedList<>();
+
+		for (ConjunctiveQuery query : queries)
+			// System.out.println(query);
+			datalogQueries.add(getDatalogQuery(query));
+
+		try {
+			Files.write(Paths.get(path), datalogQueries, Charset.forName("UTF-8"));
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+
+	}
+
+	private static String getDatalogQuery(ConjunctiveQuery query) {
+
+		StringBuilder querySB = new StringBuilder();
+		String to_append = "";
+		for (Formula f : query.getChildren()) {
+			assert !(f instanceof Conjunction);
+			for (Atom atom : ((Conjunction) f).getAtoms()) {
+				querySB.append(to_append);
+				if (to_append == "")
+					to_append = ",";
+				querySB.append(renameVariablesAndConstantsDatalog(atom).toString());
+			}
+		}
+		querySB.append(" ?");
+
+		return querySB.toString();
+
 	}
 
 }

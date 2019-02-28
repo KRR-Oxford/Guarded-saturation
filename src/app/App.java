@@ -15,23 +15,31 @@ import uk.ac.ox.cs.pdq.db.Schema;
 import uk.ac.ox.cs.pdq.fol.Atom;
 import uk.ac.ox.cs.pdq.fol.ConjunctiveQuery;
 import uk.ac.ox.cs.pdq.fol.Dependency;
+import uk.ac.ox.cs.pdq.fol.EGD;
+import uk.ac.ox.cs.pdq.fol.TGD;
 import uk.ac.ox.cs.pdq.fol.Term;
 import uk.ac.ox.cs.pdq.fol.Variable;
 
 public class App {
 
-	private static final Logger logger = LogManager.getLogger("Guarded saturation");
+	static final Logger logger = LogManager.getLogger("Guarded saturation");
 
 	public static void main(String[] args) throws Exception {
 
 		System.out.println("Starting GSat...");
 
-		String basePath = "test" + File.separator + "ChaseBench" + File.separator + "scenarios" + File.separator
-				+ "correctness" + File.separator + "tgds5" + File.separator;
+		// String baseTest = "weak";
+		String baseTest = "deep";
+
+		// String basePath = "test" + File.separator + "ChaseBench" + File.separator + "scenarios" + File.separator
+		// 		+ "correctness" + File.separator + baseTest + File.separator;
+		String basePath = ".." + File.separator + "pdq" + File.separator +
+		"regression" + File.separator + "test" + File.separator + "chaseBench" +
+		File.separator + baseTest + File.separator + "100" + File.separator;
 
 		logger.info("Reading from: '" + basePath + "'");
 
-		Schema schema = Utility.readSchemaAndDependenciesChaseBench(basePath, "tgds5");
+		Schema schema = Utility.readSchemaAndDependenciesChaseBench(basePath, baseTest);
 		Dependency[] allDependencies = schema.getAllDependencies();
 
 		logger.info("# Dependencies: " + allDependencies.length);
@@ -52,9 +60,11 @@ public class App {
 		guardedSaturation.forEach(System.out::println);
 		System.out.println("=========================================");
 
-		Utility.writeDatalogRules(guardedSaturation);
-		Utility.writeDatalogFacts(facts);
-		Utility.writeDatalogQueries(queries);
+		String baseOutputPath = "test" + File.separator + "datalog" + File.separator;
+		new File(baseOutputPath).mkdirs();
+		Utility.writeDatalogRules(guardedSaturation, baseOutputPath + baseTest + ".rul");
+		Utility.writeDatalogFacts(facts, baseOutputPath + baseTest + ".data");
+		Utility.writeDatalogQueries(queries, baseOutputPath + baseTest + "_queries.rul");
 
 	}
 
@@ -65,7 +75,9 @@ public class App {
 		Collection<Dependency> newDependencies = new HashSet<>();
 
 		for (Dependency d : allDependencies)
-			newDependencies.addAll(VNF(HNF(d)));
+			// if (d instanceof TGD && ((TGD) d).isGuarded()) // Adding only Guarded TGDs
+			if (!(d instanceof EGD))
+				newDependencies.addAll(VNF(HNF(d)));
 
 		logger.debug("# initial dependencies: " + newDependencies.size());
 		newDependencies.forEach(logger::debug);
@@ -100,8 +112,8 @@ public class App {
 		// newDependencies.addAll(fullTGDs);
 
 		while (!newDependencies.isEmpty()) {
-			logger.info("# new dependencies: " + newDependencies.size());
-			newDependencies.forEach(logger::info);
+			logger.debug("# new dependencies: " + newDependencies.size());
+			newDependencies.forEach(logger::debug);
 
 			Dependency currentDependency = newDependencies.iterator().next();
 			newDependencies.remove(currentDependency);
