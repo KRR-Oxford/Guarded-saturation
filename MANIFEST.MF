@@ -1,0 +1,5 @@
+Manifest-Version: 1.0
+Created-By: 11.0.2 (Oracle Corporation)
+Class-Path: lib/pdq-common-1.0.0-Beta-jar-with-dependencies.jar lib/pdq-regression-1.0.0-Beta-jar-with-dependencies.jar
+Main-Class: App
+
