@@ -20,6 +20,7 @@ import uk.ac.ox.cs.pdq.fol.Dependency;
 import uk.ac.ox.cs.pdq.fol.Disjunction;
 import uk.ac.ox.cs.pdq.fol.Formula;
 import uk.ac.ox.cs.pdq.fol.Implication;
+import uk.ac.ox.cs.pdq.fol.TGD;
 import uk.ac.ox.cs.pdq.fol.Term;
 import uk.ac.ox.cs.pdq.fol.Variable;
 import uk.ac.ox.cs.pdq.regression.utils.CommonToPDQTranslator;
@@ -114,16 +115,16 @@ public class Utility {
 			for (int atomIndex = 0; atomIndex < atoms.length; ++atomIndex)
 				bodyAtoms[atomIndex] = applySubstitution(atoms[atomIndex], substitution);
 			return Conjunction.create(bodyAtoms);
-		} else if (formula instanceof Dependency) {
-			Atom[] headAtoms = ((Dependency) formula).getHeadAtoms();
+		} else if (formula instanceof TGD) {
+			Atom[] headAtoms = ((TGD) formula).getHeadAtoms();
 			Atom[] headAtomsF = new Atom[headAtoms.length];
-			Atom[] bodyAtoms = ((Dependency) formula).getBodyAtoms();
+			Atom[] bodyAtoms = ((TGD) formula).getBodyAtoms();
 			Atom[] bodyAtomsF = new Atom[bodyAtoms.length];
 			for (int atomIndex = 0; atomIndex < headAtoms.length; ++atomIndex)
 				headAtomsF[atomIndex] = (Atom) applySubstitution(headAtoms[atomIndex], substitution);
 			for (int atomIndex = 0; atomIndex < bodyAtoms.length; ++atomIndex)
 				bodyAtomsF[atomIndex] = (Atom) applySubstitution(bodyAtoms[atomIndex], substitution);
-			return Dependency.create(bodyAtomsF, headAtomsF);
+			return TGD.create(bodyAtomsF, headAtomsF);
 		} else if (formula instanceof Atom) {
 			Term[] nterms = new Term[((Atom) formula).getNumberOfTerms()];
 			for (int termIndex = 0; termIndex < ((Atom) formula).getNumberOfTerms(); ++termIndex) {
@@ -150,12 +151,12 @@ public class Utility {
 		return false;
 	}
 
-	public static void writeDatalogRules(Collection<Dependency> guardedSaturation, String path) {
+	public static void writeDatalogRules(Collection<TGD> guardedSaturation, String path) {
 
 		Collection<String> datalogRules = new LinkedList<>();
 
-		for (Dependency dependency : guardedSaturation)
-			datalogRules.addAll(getDatalogRules(dependency));
+		for (TGD tgd : guardedSaturation)
+			datalogRules.addAll(getDatalogRules(tgd));
 
 		try {
 			Files.write(Paths.get(path), datalogRules, Charset.forName("UTF-8"));
@@ -166,13 +167,13 @@ public class Utility {
 
 	}
 
-	private static Collection<? extends String> getDatalogRules(Dependency dependency) {
+	private static Collection<? extends String> getDatalogRules(TGD tgd) {
 
-		assert !App.isFull(dependency);
+		assert !App.isFull(tgd);
 
 		StringBuilder body = new StringBuilder();
 		String to_append = ":-";
-		for (Atom atom : dependency.getBodyAtoms()) {
+		for (Atom atom : tgd.getBodyAtoms()) {
 			body.append(to_append);
 			if (to_append == ":-")
 				to_append = ",";
@@ -185,7 +186,7 @@ public class Utility {
 
 		Collection<String> rules = new LinkedList<>();
 		// if multiple atoms in the head, we have to return multiple rules
-		for (Atom atom : dependency.getHeadAtoms()) {
+		for (Atom atom : tgd.getHeadAtoms()) {
 			App.logger.debug("Atom:" + renameVariablesAndConstantsDatalog(atom));
 			rules.add(renameVariablesAndConstantsDatalog(atom).toString() + bodyString);
 		}

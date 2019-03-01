@@ -15,7 +15,6 @@ import uk.ac.ox.cs.pdq.db.Schema;
 import uk.ac.ox.cs.pdq.fol.Atom;
 import uk.ac.ox.cs.pdq.fol.ConjunctiveQuery;
 import uk.ac.ox.cs.pdq.fol.Dependency;
-import uk.ac.ox.cs.pdq.fol.EGD;
 import uk.ac.ox.cs.pdq.fol.TGD;
 import uk.ac.ox.cs.pdq.fol.Term;
 import uk.ac.ox.cs.pdq.fol.Variable;
@@ -31,11 +30,11 @@ public class App {
 		// String baseTest = "weak";
 		String baseTest = "deep";
 
-		// String basePath = "test" + File.separator + "ChaseBench" + File.separator + "scenarios" + File.separator
-		// 		+ "correctness" + File.separator + baseTest + File.separator;
-		String basePath = ".." + File.separator + "pdq" + File.separator +
-		"regression" + File.separator + "test" + File.separator + "chaseBench" +
-		File.separator + baseTest + File.separator + "100" + File.separator;
+		// String basePath = "test" + File.separator + "ChaseBench" + File.separator +
+		// "scenarios" + File.separator
+		// + "correctness" + File.separator + baseTest + File.separator;
+		String basePath = ".." + File.separator + "pdq" + File.separator + "regression" + File.separator + "test"
+				+ File.separator + "chaseBench" + File.separator + baseTest + File.separator + "100" + File.separator;
 
 		logger.info("Reading from: '" + basePath + "'");
 
@@ -53,7 +52,7 @@ public class App {
 		logger.info("# Queries: " + queries.size());
 		logger.debug(queries);
 
-		Collection<Dependency> guardedSaturation = runGSat(allDependencies);
+		Collection<TGD> guardedSaturation = runGSat(allDependencies);
 		logger.info("Rewriting completed!");
 		System.out.println("Guarded saturation:");
 		System.out.println("=========================================");
@@ -68,29 +67,29 @@ public class App {
 
 	}
 
-	public static Collection<Dependency> runGSat(Dependency[] allDependencies) {
+	public static Collection<TGD> runGSat(Dependency[] allDependencies) {
 
 		System.out.println("Running GSat...");
 
-		Collection<Dependency> newDependencies = new HashSet<>();
+		Collection<TGD> newTGDs = new HashSet<>();
 
 		for (Dependency d : allDependencies)
-			// if (d instanceof TGD && ((TGD) d).isGuarded()) // Adding only Guarded TGDs
-			if (!(d instanceof EGD))
-				newDependencies.addAll(VNF(HNF(d)));
+			if (d instanceof TGD && ((TGD) d).isGuarded()) // Adding only Guarded TGDs
+				// if (!(d instanceof EGD))
+				newTGDs.addAll(VNF(HNF((TGD) d)));
 
-		logger.debug("# initial dependencies: " + newDependencies.size());
-		newDependencies.forEach(logger::debug);
+		logger.debug("# initial TGDs: " + newTGDs.size());
+		newTGDs.forEach(logger::debug);
 
-		Collection<Dependency> nonFullTGDs = new HashSet<>();
-		Collection<Dependency> fullTGDs = new HashSet<>();
+		Collection<TGD> nonFullTGDs = new HashSet<>();
+		Collection<TGD> fullTGDs = new HashSet<>();
 
-		// for (Dependency d : allDependencies)
+		// for (TGD d : allDependencies)
 		// if (isFull(d))
 		// fullTGDs.add(VNF(d));
 		// else {
-		// Collection<Dependency> hnf = HNF(d);
-		// Dependency[] dh = hnf.toArray(new Dependency[hnf.size()]);
+		// Collection<TGD> hnf = HNF(d);
+		// TGD[] dh = hnf.toArray(new TGD[hnf.size()]);
 		// if (hnf.size() == 1)
 		// nonFullTGDs.add(VNF(dh[0]));
 		// else {
@@ -108,83 +107,83 @@ public class App {
 		// if (!fullTGDs.isEmpty())
 		// logger.debug("First full TGD: " + fullTGDs.toArray()[0]);
 		//
-		// newDependencies.addAll(nonFullTGDs);
-		// newDependencies.addAll(fullTGDs);
+		// newTGDs.addAll(nonFullTGDs);
+		// newTGDs.addAll(fullTGDs);
 
-		while (!newDependencies.isEmpty()) {
-			logger.debug("# new dependencies: " + newDependencies.size());
-			newDependencies.forEach(logger::debug);
+		while (!newTGDs.isEmpty()) {
+			logger.debug("# new TGDs: " + newTGDs.size());
+			newTGDs.forEach(logger::debug);
 
-			Dependency currentDependency = newDependencies.iterator().next();
-			newDependencies.remove(currentDependency);
+			TGD currentTGD = newTGDs.iterator().next();
+			newTGDs.remove(currentTGD);
 
-			Set<Dependency> tempDependenciesSet = new HashSet<>();
+			Set<TGD> tempTGDsSet = new HashSet<>();
 
-			if (isFull(currentDependency)) {
-				fullTGDs.add(currentDependency);
-				for (Dependency nftgd : nonFullTGDs)
-					tempDependenciesSet.addAll(VNF(HNF(evolve(nftgd, currentDependency))));
+			if (isFull(currentTGD)) {
+				fullTGDs.add(currentTGD);
+				for (TGD nftgd : nonFullTGDs)
+					tempTGDsSet.addAll(VNF(HNF(evolve(nftgd, currentTGD))));
 			} else {
-				nonFullTGDs.add(currentDependency);
-				for (Dependency ftgd : fullTGDs)
-					tempDependenciesSet.addAll(VNF(HNF(evolve(currentDependency, ftgd))));
+				nonFullTGDs.add(currentTGD);
+				for (TGD ftgd : fullTGDs)
+					tempTGDsSet.addAll(VNF(HNF(evolve(currentTGD, ftgd))));
 			}
 
-			for (Dependency d : tempDependenciesSet)
+			for (TGD d : tempTGDsSet)
 				if (isFull(d) && !fullTGDs.contains(d) || !isFull(d) && !nonFullTGDs.contains(d))
-					newDependencies.add(d);
+					newTGDs.add(d);
 		}
 
 		return fullTGDs;
 
 	}
 
-	public static Collection<Dependency> HNF(Dependency dependency) {
+	public static Collection<TGD> HNF(TGD tgd) {
 
-		Collection<Dependency> result = new ArrayList<>();
+		Collection<TGD> result = new ArrayList<>();
 
-		if (dependency == null)
+		if (tgd == null)
 			return result;
 
-		Variable[] eVariables = dependency.getExistential();
+		Variable[] eVariables = tgd.getExistential();
 
 		Collection<Atom> eHead = new LinkedList<>();
 		Collection<Atom> fHead = new LinkedList<>();
 
-		for (Atom a : dependency.getHeadAtoms())
+		for (Atom a : tgd.getHeadAtoms())
 			if (Utility.containsAny(a, eVariables))
 				eHead.add(a);
 			else
 				fHead.add(a);
 
 		if (eHead.isEmpty() || fHead.isEmpty())
-			result.add(dependency);
+			result.add(tgd);
 		else {
-			result.add(Dependency.create(dependency.getBodyAtoms(), eHead.toArray(new Atom[eHead.size()])));
-			result.add(Dependency.create(dependency.getBodyAtoms(), fHead.toArray(new Atom[fHead.size()])));
+			result.add(TGD.create(tgd.getBodyAtoms(), eHead.toArray(new Atom[eHead.size()])));
+			result.add(TGD.create(tgd.getBodyAtoms(), fHead.toArray(new Atom[fHead.size()])));
 		}
 
 		return result;
 
 	}
 
-	public static Collection<Dependency> VNF(Collection<Dependency> dependencies) {
+	public static Collection<TGD> VNF(Collection<TGD> tgds) {
 
-		Collection<Dependency> result = new LinkedList<>();
+		Collection<TGD> result = new LinkedList<>();
 
-		for (Dependency d : dependencies)
+		for (TGD d : tgds)
 			result.add(VNF(d));
 
 		return result;
 
 	}
 
-	public static Dependency VNF(Dependency dependency) {
+	public static TGD VNF(TGD tgd) {
 
-		assert dependency != null;
+		assert tgd != null;
 
-		Variable[] uVariables = dependency.getUniversal();
-		Variable[] eVariables = dependency.getExistential();
+		Variable[] uVariables = tgd.getUniversal();
+		Variable[] eVariables = tgd.getExistential();
 		logger.trace(uVariables);
 		logger.trace(eVariables);
 
@@ -198,21 +197,19 @@ public class App {
 
 		logger.debug("VNF substitution:\n" + substitution);
 
-		// Dependency applySubstitution = (Dependency)
-		// Utility.applySubstitution(dependency, substitution);
-		// logger.debug("VNF: " + dependency + "===>>>" + applySubstitution);
-		// return applySubstitution;
-		return (Dependency) Utility.applySubstitution(dependency, substitution);
+		TGD applySubstitution = (TGD) Utility.applySubstitution(tgd, substitution);
+		logger.debug("VNF: " + tgd + "===>>>" + applySubstitution);
+		return applySubstitution;
 
 	}
 
-	public static boolean isFull(Dependency dependency) {
+	public static boolean isFull(TGD tgd) {
 
-		return dependency.getExistential().length == 0;
+		return tgd.getExistential().length == 0;
 
 	}
 
-	public static Dependency evolve(Dependency nftgd, Dependency ftgd) {
+	public static TGD evolve(TGD nftgd, TGD ftgd) {
 
 		ftgd = evolveRename(ftgd);
 
@@ -224,14 +221,14 @@ public class App {
 		logger.debug("Join atoms:");
 		joinAtoms.forEach(logger::debug);
 
-		// Dependency evolveRule =
+		// TGD evolveRule =
 		// if (existentialVariableCheck(evolveRule, joinAtoms))
 		// return evolveRule;
 		return getEvolveRule(nftgd, ftgd, joinAtoms);
 
 	}
 
-	public static Dependency evolveRename(Dependency ftgd) {
+	public static TGD evolveRename(TGD ftgd) {
 
 		Variable[] uVariables = ftgd.getUniversal();
 
@@ -240,7 +237,7 @@ public class App {
 		for (Variable v : uVariables)
 			substitution.put(v, Variable.create("z" + counter++));
 
-		return (Dependency) Utility.applySubstitution(ftgd, substitution);
+		return (TGD) Utility.applySubstitution(ftgd, substitution);
 
 	}
 
@@ -259,7 +256,7 @@ public class App {
 
 	}
 
-	public static Dependency getEvolveRule(Dependency nftgd, Dependency ftgd, Collection<Atom> joinAtoms) {
+	public static TGD getEvolveRule(TGD nftgd, TGD ftgd, Collection<Atom> joinAtoms) {
 
 		Collection<Atom> nftgdBodyAtoms = new ArrayList<>(Arrays.asList(nftgd.getBodyAtoms()));
 		Collection<Atom> nftgdHeadAtoms = new ArrayList<>(Arrays.asList(nftgd.getHeadAtoms()));
@@ -276,9 +273,9 @@ public class App {
 		logger.debug("MGU: " + mgu);
 
 		if (mgu != null) {
-			Dependency newDependency = Dependency.create(applyMGU(nftgdBodyAtoms, mgu), applyMGU(nftgdHeadAtoms, mgu));
-			logger.debug(newDependency);
-			return newDependency;
+			TGD newTGD = TGD.create(applyMGU(nftgdBodyAtoms, mgu), applyMGU(nftgdHeadAtoms, mgu));
+			logger.debug(newTGD);
+			return newTGD;
 		}
 
 		return null;
