@@ -1,7 +1,7 @@
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
 
 import java.util.Arrays;
 import java.util.Collection;
@@ -11,9 +11,11 @@ import java.util.Map;
 import org.junit.Test;
 
 import uk.ac.ox.cs.pdq.fol.Atom;
+import uk.ac.ox.cs.pdq.fol.ConjunctiveQuery;
 import uk.ac.ox.cs.pdq.fol.Predicate;
 import uk.ac.ox.cs.pdq.fol.TGD;
 import uk.ac.ox.cs.pdq.fol.Term;
+import uk.ac.ox.cs.pdq.fol.UntypedConstant;
 import uk.ac.ox.cs.pdq.fol.Variable;
 
 /**
@@ -24,10 +26,10 @@ public class AppTest {
 	@Test
 	public void runGSatTest() {
 
-		// (forall[x1](R(x1) --> (exists[y1,y2]T(x1,y1,y2))))
-		// (forall[x1,x2,x3](T(x1,x2,x3) --> (exists[y]U(x1,x2,y))))
-		// (forall[x1,x2,x3](U(x1,x2,x3) --> (P(x1) & V(x1,x2))))
-		// (forall[x1,x2,x3]((T(x1,x2,x3) & (V(x1,x2) & S(x1))) --> M(x1)))
+		// ∀ x1 R(x1) → ∃ y1,y2 T(x1,y1,y2)
+		// ∀ x1,x2,x3 T(x1,x2,x3) → ∃ y U(x1,x2,y)
+		// ∀ x1,x2,x3 U(x1,x2,x3) → P(x1) ∧ V(x1,x2)
+		// ∀ x1,x2,x3 T(x1,x2,x3) ∧ V(x1,x2) ∧ S(x1) → M(x1)
 		TGD t1 = TGD.create(new Atom[] { Atom.create(Predicate.create("R", 1), Variable.create("x1")) },
 				new Atom[] { Atom.create(Predicate.create("T", 3), Variable.create("x1"), Variable.create("y1"),
 						Variable.create("y2")) });
@@ -57,26 +59,25 @@ public class AppTest {
 		System.out.println("Initial rules:");
 		allTGDs.forEach(System.out::println);
 
-		Collection<TGD> guardedSaturation = App
-				.runGSat(allTGDs.toArray(new TGD[allTGDs.size()]));
+		Collection<TGD> guardedSaturation = App.runGSat(allTGDs.toArray(new TGD[allTGDs.size()]));
 
 		System.out.println("Guarded saturation:");
 		guardedSaturation.forEach(System.out::println);
-		// (forall[u1,u2,u3](T(u1,u2,u3) --> (P(u1) & V(u1,u2))))
-		// (forall[u1]((R(u1) & S(u1)) --> P(u1)))
-		// (forall[u1,u2,u3]((T(u1,u2,u3) & (V(u1,u2) & S(u1))) --> M(u1)))
-		// (forall[u1](R(u1) --> P(u1)))
-		// (forall[u1,u2,u3](U(u1,u2,u3) --> (P(u1) & V(u1,u2))))
-		// (forall[u1]((R(u1) & S(u1)) --> M(u1)))
+		// ∀ u1,u2,u3 T(u1,u2,u3) → P(u1) ∧ V(u1,u2)
+		// ∀ u1 R(u1) ∧ S(u1) → P(u1)
+		// ∀ u1,u2,u3 T(u1,u2,u3) ∧ V(u1,u2) ∧ S(u1) → M(u1)
+		// ∀ u1 R(u1) → P(u1)
+		// ∀ u1,u2,u3 U(u1,u2,u3) → P(u1) ∧ V(u1,u2)
+		// ∀ u1 R(u1) ∧ S(u1) → M(u1)
 
 		assertEquals(6, guardedSaturation.size());
 
 		// TGD tgdExpected = TGD.create(bodyE, headE);
 		// assertTrue(guardedSaturation.stream().anyMatch(tgdExpected));
 
-		// (forall[x1,x2](R(x1,x2) --> (exists[y1,y2](S(x1,x2,y1,y2) & T(x1,x2,y2)))))
-		// (forall[x1,x2,x3,x4](S(x1,x2,x3,x4) --> U(x4)))
-		// (forall[z1,z2,z3]((T(z1,z2,z3) & U(z3)) --> P(z1)))
+		// ∀ x1,x2 R(x1,x2) → ∃ y1,y2 S(x1,x2,y1,y2) ∧ T(x1,x2,y2)
+		// ∀ x1,x2,x3,x4 S(x1,x2,x3,x4) → U(x4)
+		// ∀ z1,z2,z3 T(z1,z2,z3) ∧ U(z3) → P(z1)
 		t1 = TGD.create(
 				new Atom[] { Atom.create(Predicate.create("R", 2), Variable.create("x1"), Variable.create("x2")) },
 				new Atom[] {
@@ -104,9 +105,9 @@ public class AppTest {
 
 		System.out.println("Guarded saturation:");
 		guardedSaturation.forEach(System.out::println);
-		// (forall[u1,u2,u3]((T(u1,u2,u3) & U(u3)) --> P(u1)))
-		// (forall[u1,u2,u3,u4](S(u1,u2,u3,u4) --> U(u4)))
-		// (forall[u1,u2](R(u1,u2) --> P(u1)))
+		// ∀ u1,u2,u3 T(u1,u2,u3) ∧ U(u3) → P(u1)
+		// ∀ u1,u2,u3,u4 S(u1,u2,u3,u4) → U(u4)
+		// ∀ u1,u2 R(u1,u2) → P(u1)
 
 		assertEquals(3, guardedSaturation.size());
 
@@ -115,7 +116,6 @@ public class AppTest {
 	@Test
 	public void HNFTest() {
 		// ∀ x1,x2 B(x1,x2) → ∃ y1 H1(x1,y1) ∧ H2(x2)
-		// (forall[x1,x2](B(x1,x2) --> (exists[y1](H1(x1,y1) & H2(x2)))))
 		Atom[] body = { Atom.create(Predicate.create("B", 2), Variable.create("x1"), Variable.create("x2")) };
 		Atom[] head = { Atom.create(Predicate.create("H1", 2), Variable.create("x1"), Variable.create("y1")),
 				Atom.create(Predicate.create("H2", 1), Variable.create("x2")) };
@@ -126,8 +126,8 @@ public class AppTest {
 		System.out.println("TGDs in HNF:");
 		tgdsHNF.forEach(System.out::println);
 
-		// (forall[x1,x2](B(x1,x2) --> (exists[y1]H1(x1,y1))))
-		// (forall[x1,x2](B(x1,x2) --> H2(x2)))
+		// ∀ x1,x2 B(x1,x2) → ∃ y1 H1(x1,y1)
+		// ∀ x1,x2 B(x1,x2) → H2(x2)
 		Atom[] bodyE = { Atom.create(Predicate.create("B", 2), Variable.create("x1"), Variable.create("x2")) };
 		Atom[] headE1 = { Atom.create(Predicate.create("H1", 2), Variable.create("x1"), Variable.create("y1")) };
 		Atom[] headE2 = { Atom.create(Predicate.create("H2", 1), Variable.create("x2")) };
@@ -142,7 +142,8 @@ public class AppTest {
 
 	@Test
 	public void VNFTest() {
-		// (forall[x2,x1,x3](B(x2,x1,x3) --> (exists[z1,y1,y2](H1(x1,z1,y1,y2) & H2(y1,y2)))))
+		// ∀ x2,x1,x3 B(x2,x1,x3) → ∃ z1,y1,y2 H1(x1,z1,y1,y2) &
+		// H2(y1,y2)
 		Atom[] body = { Atom.create(Predicate.create("B", 3), Variable.create("x2"), Variable.create("x1"),
 				Variable.create("x3")) };
 		Atom[] head = {
@@ -155,7 +156,8 @@ public class AppTest {
 		TGD tgdVNF = App.VNF(tgd);
 		System.out.println("TGD in VNF: " + tgdVNF);
 
-		// (forall[u1,u2,u3](B(u1,u2,u3) --> (exists[e1,e2,e3](H1(u2,e1,e2,e3) & H2(e2,e3)))))
+		// ∀ u1,u2,u3 B(u1,u2,u3) → ∃ e1,e2,e3 H1(u2,e1,e2,e3) &
+		// H2(e2,e3)
 		Atom[] bodyE = { Atom.create(Predicate.create("B", 3), Variable.create("u1"), Variable.create("u2"),
 				Variable.create("u3")) };
 		Atom[] headE = {
@@ -169,7 +171,8 @@ public class AppTest {
 
 	@Test
 	public void isFullTest() {
-		// (forall[x2,x1,x3](B(x2,x1,x3) --> (exists[z1,y1,y2](H1(x1,z1,y1,y2) & H2(y1,y2)))))
+		// ∀ x2,x1,x3 B(x2,x1,x3) → ∃ z1,y1,y2 H1(x1,z1,y1,y2) &
+		// H2(y1,y2)
 		TGD tgd = TGD.create(
 				new Atom[] { Atom.create(Predicate.create("B", 3), Variable.create("x2"), Variable.create("x1"),
 						Variable.create("x3")) },
@@ -181,7 +184,8 @@ public class AppTest {
 
 		assertFalse("This is a 'non-full' TGD", App.isFull(tgd));
 
-		// (forall[u1,u2,u3](B(u1,u2,u3) --> (exists[e1,e2,e3](H1(u2,e1,e2,e3) & H2(e2,e3)))))
+		// ∀ u1,u2,u3 B(u1,u2,u3) → ∃ e1,e2,e3 H1(u2,e1,e2,e3) &
+		// H2(e2,e3)
 		tgd = TGD.create(
 				new Atom[] { Atom.create(Predicate.create("B", 3), Variable.create("u1"), Variable.create("u2"),
 						Variable.create("u3")) },
@@ -193,7 +197,7 @@ public class AppTest {
 
 		assertFalse("This is a 'non-full' TGD", App.isFull(tgd));
 
-		// (forall[x1,x2](B(x1,x2) --> (exists[y1](H1(x1,y1) & H2(x2)))))
+		// ∀ x1,x2 B(x1,x2) → ∃ y1 H1(x1,y1) ∧ H2(x2)
 		tgd = TGD.create(
 				new Atom[] { Atom.create(Predicate.create("B", 2), Variable.create("x1"), Variable.create("x2")) },
 				new Atom[] { Atom.create(Predicate.create("H1", 2), Variable.create("x1"), Variable.create("y1")),
@@ -202,7 +206,7 @@ public class AppTest {
 
 		assertFalse("This is a 'non-full' TGD", App.isFull(tgd));
 
-		// (forall[x1,x2](B(x1,x2) --> (exists[y1]H1(x1,y1))))
+		// ∀ x1,x2 B(x1,x2) → ∃ y1]H1(x1,y1)
 		tgd = TGD.create(
 				new Atom[] { Atom.create(Predicate.create("B", 2), Variable.create("x1"), Variable.create("x2")) },
 				new Atom[] { Atom.create(Predicate.create("H1", 2), Variable.create("x1"), Variable.create("y1")) });
@@ -210,7 +214,7 @@ public class AppTest {
 
 		assertFalse("This is a 'non-full' TGD", App.isFull(tgd));
 
-		// (forall[x1,x2](B(x1,x2) --> H2(x2)))
+		// ∀ x1,x2 B(x1,x2) → H2(x2)
 		tgd = TGD.create(
 				new Atom[] { Atom.create(Predicate.create("B", 2), Variable.create("x1"), Variable.create("x2")) },
 				new Atom[] { Atom.create(Predicate.create("H2", 1), Variable.create("x2")) });
@@ -218,10 +222,10 @@ public class AppTest {
 
 		assertTrue("This is a 'full' TGD", App.isFull(tgd));
 
-		// (forall[x1](R(x1) --> (exists[y1,y2]T(x1,y1,y2))))
-		// (forall[x1,x2,x3](T(x1,x2,x3) --> (exists[y]U(x1,x2,y))))
-		// (forall[x1,x2,x3](U(x1,x2,x3) --> (P(x1) & V(x1,x2))))
-		// (forall[x1,x2,x3]((T(x1,x2,x3) & (V(x1,x2) & S(x1))) --> M(x1)))
+		// ∀ x1 R(x1) → ∃ y1,y2]T(x1,y1,y2)
+		// ∀ x1,x2,x3 T(x1,x2,x3) → ∃ y]U(x1,x2,y)
+		// ∀ x1,x2,x3 U(x1,x2,x3) → P(x1) ∧ V(x1,x2)
+		// ∀ x1,x2,x3 T(x1,x2,x3) ∧ V(x1,x2) ∧ S(x1) → M(x1)
 		TGD t1 = TGD.create(new Atom[] { Atom.create(Predicate.create("R", 1), Variable.create("x1")) },
 				new Atom[] { Atom.create(Predicate.create("T", 3), Variable.create("x1"), Variable.create("y1"),
 						Variable.create("y2")) });
@@ -296,6 +300,51 @@ public class AppTest {
 	@Test
 	public void applyMGU() {
 		// TODO
+	}
+
+	@Test
+	public void fromIRISPM() {
+		// guardedExample.dtg
+
+		// r1(?z, ?x) :- r1(?x, ?y), r2(?y).
+		// r2(?x) :- r1(?x, ?y).
+
+		// r1('a', 'b').
+		// r2('b').
+
+		// ?- r1(?x, ?y).
+		// ?- r2(?x).
+
+		Collection<TGD> allTGDs = new LinkedList<>();
+		allTGDs.add(TGD.create(
+				new Atom[] { Atom.create(Predicate.create("r1", 2), Variable.create("x"), Variable.create("y")),
+						Atom.create(Predicate.create("r2", 1), Variable.create("y")) },
+				new Atom[] { Atom.create(Predicate.create("r1", 2), Variable.create("z"), Variable.create("x")) }));
+		allTGDs.add(TGD.create(
+				new Atom[] { Atom.create(Predicate.create("r1", 2), Variable.create("x"), Variable.create("y")) },
+				new Atom[] { Atom.create(Predicate.create("r2", 1), Variable.create("x")) }));
+		System.out.println("Initial rules:");
+		allTGDs.forEach(System.out::println);
+		Collection<TGD> guardedSaturation = App.runGSat(allTGDs.toArray(new TGD[allTGDs.size()]));
+
+		System.out.println("Guarded saturation:");
+		guardedSaturation.forEach(System.out::println);
+
+		assertEquals(1, guardedSaturation.size());
+
+		Collection<Atom> allFacts = new LinkedList<>();
+		allFacts.add(Atom.create(Predicate.create("r1", 2), UntypedConstant.create("a"), UntypedConstant.create("b")));
+		allFacts.add(Atom.create(Predicate.create("r2", 1), UntypedConstant.create("b")));
+		System.out.println("Initial data:");
+		allFacts.forEach(System.out::println);
+
+		Collection<ConjunctiveQuery> allQueries = new LinkedList<>();
+		allQueries.add(ConjunctiveQuery.create(new Variable[] { Variable.create("x"), Variable.create("y") },
+				new Atom[] { Atom.create(Predicate.create("r1", 2), Variable.create("x"), Variable.create("y")) }));
+		allQueries.add(ConjunctiveQuery.create(new Variable[] { Variable.create("x") },
+				new Atom[] { Atom.create(Predicate.create("r2", 1), Variable.create("x")) }));
+		System.out.println("Initial queries:");
+		allQueries.forEach(System.out::println);
 	}
 
 }
