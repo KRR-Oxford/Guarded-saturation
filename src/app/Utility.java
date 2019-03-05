@@ -1,9 +1,13 @@
+import java.io.BufferedReader;
 import java.io.File;
 import java.io.IOException;
+import java.io.InputStreamReader;
+import java.io.PrintWriter;
 import java.nio.charset.Charset;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.LinkedList;
@@ -257,6 +261,115 @@ public class Utility {
 
 		return querySB.toString();
 
+	}
+
+	/**
+	 * From EmbASP code, slightly modified
+	 */
+	static Output invokeSolver(String exe_path, String options, List<String> files) {
+		String files_paths = new String();
+
+		String final_program = new String();
+
+		for (final String program_file : files) {
+			File f = new File(program_file);
+			if (f.exists() && !f.isDirectory()) {
+				files_paths += program_file;
+				files_paths += " ";
+			} else
+				App.logger.warn("The file " + f.getAbsolutePath() + " does not exists.");
+
+		}
+
+		final StringBuffer solverOutput = new StringBuffer();
+
+		final StringBuffer solverError = new StringBuffer();
+
+		try {
+
+			final long startTime = System.nanoTime();
+
+			final StringBuffer stringBuffer = new StringBuffer();
+
+			if (exe_path == null)
+				return new Output("", "Error: executable not found");
+
+			stringBuffer.append(exe_path).append(" ").append(options).append(" ").append(files_paths);
+
+			App.logger.debug(stringBuffer.toString());
+
+			final Process solver_process = Runtime.getRuntime().exec(stringBuffer.toString());
+
+			Thread threadOutput = new Thread() {
+				@Override
+				public void run() {
+					try {
+						final BufferedReader bufferedReaderOutput = new BufferedReader(
+								new InputStreamReader(solver_process.getInputStream()));
+
+						// Read output of the solver and store in solverOutput
+						String currentLine;
+						while ((currentLine = bufferedReaderOutput.readLine()) != null)
+							solverOutput.append(currentLine + "\n");
+					} catch (final IOException e) {
+						e.printStackTrace();
+					}
+				}
+			};
+
+			threadOutput.start();
+			threadOutput.join();
+
+			Thread threadError = new Thread() {
+				@Override
+				public void run() {
+					try {
+						final BufferedReader bufferedReaderError = new BufferedReader(
+								new InputStreamReader(solver_process.getErrorStream()));
+						String currentErrLine;
+						while ((currentErrLine = bufferedReaderError.readLine()) != null)
+							solverError.append(currentErrLine + "\n");
+					} catch (final IOException e) {
+						e.printStackTrace();
+					}
+				}
+			};
+
+			threadError.start();
+			threadError.join();
+
+			final PrintWriter writer = new PrintWriter(solver_process.getOutputStream());
+			writer.println(final_program);
+
+			if (writer != null)
+				writer.close();
+
+			solver_process.waitFor();
+
+			final long stopTime = System.nanoTime();
+
+			App.logger.debug("Total time : " + (stopTime - startTime) / 10E6 + " ms");
+
+			return new Output(solverOutput.toString(), solverError.toString());
+
+		} catch (final IOException e2) {
+			e2.printStackTrace();
+		} catch (final InterruptedException e) {
+			e.printStackTrace();
+		}
+
+		return new Output("", "");
+
+	}
+
+	public static void writeOutput(Output solverOutput, String path) {
+		try {
+			Files.write(Paths.get(path), Arrays.asList(solverOutput.getOutput(), solverOutput.getErrors()),
+					Charset.forName("UTF-8"));
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
 	}
 
 }

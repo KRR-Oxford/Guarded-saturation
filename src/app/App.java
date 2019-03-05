@@ -27,15 +27,26 @@ public class App {
 
 		System.out.println("Starting GSat...");
 
-		// String baseTest = "weak";
-		String baseTest = "deep";
+		// String baseTest = "tgds";
+		// String baseTest = "deep";
 
 		// String basePath = "test" + File.separator + "ChaseBench" + File.separator +
 		// "scenarios" + File.separator
 		// + "correctness" + File.separator + baseTest + File.separator;
-		String basePath = ".." + File.separator + "pdq" + File.separator + "regression" + File.separator + "test"
-				+ File.separator + "chaseBench" + File.separator + baseTest + File.separator + "100" + File.separator;
+		// String basePath = ".." + File.separator + "pdq" + File.separator +
+		// "regression" + File.separator + "test"
+		// + File.separator + "chaseBench" + File.separator + baseTest + File.separator
+		// + "100" + File.separator;
 
+		for (String baseTest : new String[] { "tgds", "tgds5", "tgdsEgds", "tgdsEgdsLarge", "vldb2010", "weak" }) {
+			String basePath = "test" + File.separator + "ChaseBench" + File.separator + "scenarios" + File.separator
+					+ "correctness" + File.separator + baseTest + File.separator;
+			executeChaseBenchTest(baseTest, basePath);
+		}
+
+	}
+
+	public static void executeChaseBenchTest(String baseTest, String basePath) {
 		logger.info("Reading from: '" + basePath + "'");
 
 		Schema schema = Utility.readSchemaAndDependenciesChaseBench(basePath, baseTest);
@@ -65,6 +76,11 @@ public class App {
 		Utility.writeDatalogFacts(facts, baseOutputPath + baseTest + ".data");
 		Utility.writeDatalogQueries(queries, baseOutputPath + baseTest + "_queries.rul");
 
+		Output solverOutput = Utility.invokeSolver("executables" + File.separator + "idlv_1.1.2_windows_x86-64.exe",
+				"--t", Arrays.asList(baseOutputPath + baseTest + ".rul", baseOutputPath + baseTest + ".data",
+						baseOutputPath + baseTest + "_queries.rul"));
+		System.out.println(solverOutput);
+		Utility.writeOutput(solverOutput, baseOutputPath + baseTest + ".output");
 	}
 
 	public static Collection<TGD> runGSat(Dependency[] allDependencies) {
@@ -274,7 +290,7 @@ public class App {
 
 		if (mgu != null) {
 			TGD newTGD = TGD.create(applyMGU(nftgdBodyAtoms, mgu), applyMGU(nftgdHeadAtoms, mgu));
-			logger.debug(newTGD);
+			logger.debug("After applying MGU: " + newTGD);
 			return newTGD;
 		}
 
