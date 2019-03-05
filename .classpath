@@ -1,16 +1,13 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <classpath>
 	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER"/>
-	<classpathentry kind="src" path="src/app" output="build/classes/app"/>
-	<classpathentry kind="src" path="src/test" output="build/classes/test">
+	<classpathentry kind="src" output="build/classes/app" path="src/app"/>
+	<classpathentry kind="src" output="build/classes/test" path="src/test">
 		<attributes>
-			<attribute name="test" value="true" />
+			<attribute name="test" value="true"/>
 		</attributes>
 	</classpathentry>
-	<!-- <classpathentry kind="src" path="src/resources" /> -->
-	<!-- <classpathentry exported="true" kind="lib" path="lib/commons-lang3-3.8.1.jar"/>
-	<classpathentry exported="true" kind="lib" path="lib/commons-collections4-4.3.jar"/> -->
-	<!-- <classpathentry exported="true" kind="lib" path="lib/pdq-benchmark-1.0.0-SNAPSHOT.one-jar"/> -->
 	<classpathentry exported="true" kind="lib" path="lib/pdq-common-1.0.0-Beta-jar-with-dependencies.jar"/>
 	<classpathentry exported="true" kind="lib" path="lib/pdq-regression-1.0.0-Beta-jar-with-dependencies.jar"/>
+	<classpathentry kind="src" output="build/resources" path="src/resources"/>
 </classpath>
