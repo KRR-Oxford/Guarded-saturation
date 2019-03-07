@@ -76,11 +76,13 @@ public class App {
 		Utility.writeDatalogFacts(facts, baseOutputPath + baseTest + ".data");
 		Utility.writeDatalogQueries(queries, baseOutputPath + baseTest + "_queries.rul");
 
-		Output solverOutput = Utility.invokeSolver("executables" + File.separator + "idlv_1.1.2_windows_x86-64.exe",
-				"--t", Arrays.asList(baseOutputPath + baseTest + ".rul", baseOutputPath + baseTest + ".data",
+		Output solverOutput = Utility.invokeSolver("executables" + File.separator + "idlv_1.1.3_windows_x86-64.exe",
+				"--t --no-facts", // "dlv.mingw.exe", "-nofacts",
+				Arrays.asList(baseOutputPath + baseTest + ".rul", baseOutputPath + baseTest + ".data",
 						baseOutputPath + baseTest + "_queries.rul"));
 		System.out.println(solverOutput);
-		Utility.writeOutput(solverOutput, baseOutputPath + baseTest + ".output");
+		Utility.writeOutput(solverOutput, baseOutputPath + baseTest + ".idlv.output" // ".dlv.output"
+		);
 	}
 
 	public static Collection<TGD> runGSat(Dependency[] allDependencies) {
