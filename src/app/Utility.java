@@ -26,6 +26,7 @@ import uk.ac.ox.cs.pdq.fol.Formula;
 import uk.ac.ox.cs.pdq.fol.Implication;
 import uk.ac.ox.cs.pdq.fol.TGD;
 import uk.ac.ox.cs.pdq.fol.Term;
+import uk.ac.ox.cs.pdq.fol.UntypedConstant;
 import uk.ac.ox.cs.pdq.fol.Variable;
 import uk.ac.ox.cs.pdq.regression.utils.CommonToPDQTranslator;
 
@@ -137,7 +138,9 @@ public class Utility {
 				// System.out.println(term.isVariable());
 				// System.out.println(substitution.containsKey(term));
 				// System.out.println(substitution.get(term));
-				if (term.isVariable() && substitution.containsKey(term))
+				// we assume UNA also between variables and constants
+				// if (term.isVariable() && substitution.containsKey(term))
+				if (substitution.containsKey(term))
 					nterms[termIndex] = substitution.get(term);
 				else
 					nterms[termIndex] = term;
@@ -200,12 +203,16 @@ public class Utility {
 	}
 
 	public static Atom renameVariablesAndConstantsDatalog(Atom atom) {
+		// App.logger.info(atom);
+		// App.logger.info(atom.getTypedAndUntypedConstants());
 
 		Map<Term, Term> substitution = new HashMap<>();
 		for (Variable v : atom.getVariables())
 			substitution.put(v, Variable.create(v.getSymbol().toUpperCase()));
 		for (Constant c : atom.getTypedAndUntypedConstants())
-			substitution.put(c, Variable.create(c.toString().toLowerCase()));
+			substitution.put(c, UntypedConstant.create(c.toString().toLowerCase()));
+
+		// App.logger.info(substitution);
 
 		return (Atom) Utility.applySubstitution(atom, substitution);
 
@@ -249,13 +256,15 @@ public class Utility {
 		StringBuilder querySB = new StringBuilder();
 		String to_append = "";
 		for (Formula f : query.getChildren()) {
-			assert !(f instanceof Conjunction);
-			for (Atom atom : ((Conjunction) f).getAtoms()) {
-				querySB.append(to_append);
-				if (to_append == "")
-					to_append = ",";
-				querySB.append(renameVariablesAndConstantsDatalog(atom).toString());
+			if (f instanceof Conjunction) {
+				App.logger.warn("We only accept atomic queries");
+				return "";
 			}
+			assert (f instanceof Atom);
+			querySB.append(to_append);
+			if (to_append == "")
+				to_append = ",";
+			querySB.append(renameVariablesAndConstantsDatalog((Atom) f).toString());
 		}
 		querySB.append(" ?");
 
