@@ -304,6 +304,40 @@ public class AppTest {
 	}
 
 	@Test
+	public void fromIRISPM_guardedCarlo() {
+		// guardedCarlo.dtg
+
+		// DIP(?y, ?z) :- IMP(?x, ?y).
+		// IMP(?y, ?w) :- DIP(?x, ?y).
+
+		// Q1(?x) :- DIP (?x, ?y).
+
+		// DIP('a', 'b').
+
+		// ?- Q1(?x).
+
+		Atom IMP_xy = Atom.create(Predicate.create("IMP", 2), Variable.create("x"), Variable.create("y"));
+		Atom DIP_yz = Atom.create(Predicate.create("DIP", 2), Variable.create("y"), Variable.create("z"));
+		Atom DIP_xy = Atom.create(Predicate.create("DIP", 2), Variable.create("x"), Variable.create("y"));
+		Atom IMP_yw = Atom.create(Predicate.create("IMP", 2), Variable.create("y"), Variable.create("w"));
+		Atom Q1_x = Atom.create(Predicate.create("Q1", 1), Variable.create("x"));
+
+		Collection<TGD> allTGDs = new LinkedList<>();
+		allTGDs.add(TGD.create(new Atom[] { IMP_xy }, new Atom[] { DIP_yz }));
+		allTGDs.add(TGD.create(new Atom[] { DIP_xy }, new Atom[] { IMP_yw }));
+		allTGDs.add(TGD.create(new Atom[] { DIP_xy }, new Atom[] { Q1_x }));
+
+		Collection<Atom> allFacts = new LinkedList<>();
+		allFacts.add(Atom.create(Predicate.create("DIP", 2), UntypedConstant.create("a"), UntypedConstant.create("b")));
+
+		Collection<ConjunctiveQuery> allQueries = new LinkedList<>();
+		allQueries.add(ConjunctiveQuery.create(new Variable[] { Variable.create("x") }, new Atom[] { Q1_x }));
+
+		fromIRISPM(allTGDs, allFacts, allQueries, 2);
+
+	}
+
+	@Test
 	public void fromIRISPM_guardedExample() {
 		// guardedExample.dtg
 
