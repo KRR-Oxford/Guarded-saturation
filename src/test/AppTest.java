@@ -3,6 +3,7 @@ import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 
+import java.io.File;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.LinkedList;
@@ -303,7 +304,7 @@ public class AppTest {
 	}
 
 	@Test
-	public void fromIRISPM() {
+	public void fromIRISPM_guardedExample() {
 		// guardedExample.dtg
 
 		// r1(?z, ?x) :- r1(?x, ?y), r2(?y).
@@ -315,14 +316,101 @@ public class AppTest {
 		// ?- r1(?x, ?y).
 		// ?- r2(?x).
 
+		Atom r1_xy = Atom.create(Predicate.create("r1", 2), Variable.create("x"), Variable.create("y"));
+		Atom r2_y = Atom.create(Predicate.create("r2", 1), Variable.create("y"));
+		Atom r1_zx = Atom.create(Predicate.create("r1", 2), Variable.create("z"), Variable.create("x"));
+		Atom r2_x = Atom.create(Predicate.create("r2", 1), Variable.create("x"));
+
 		Collection<TGD> allTGDs = new LinkedList<>();
-		allTGDs.add(TGD.create(
-				new Atom[] { Atom.create(Predicate.create("r1", 2), Variable.create("x"), Variable.create("y")),
-						Atom.create(Predicate.create("r2", 1), Variable.create("y")) },
-				new Atom[] { Atom.create(Predicate.create("r1", 2), Variable.create("z"), Variable.create("x")) }));
-		allTGDs.add(TGD.create(
-				new Atom[] { Atom.create(Predicate.create("r1", 2), Variable.create("x"), Variable.create("y")) },
-				new Atom[] { Atom.create(Predicate.create("r2", 1), Variable.create("x")) }));
+		allTGDs.add(TGD.create(new Atom[] { r1_xy, r2_y }, new Atom[] { r1_zx }));
+		allTGDs.add(TGD.create(new Atom[] { r1_xy }, new Atom[] { r2_x }));
+
+		Collection<Atom> allFacts = new LinkedList<>();
+		allFacts.add(Atom.create(Predicate.create("r1", 2), UntypedConstant.create("a"), UntypedConstant.create("b")));
+		allFacts.add(Atom.create(Predicate.create("r2", 1), UntypedConstant.create("b")));
+
+		Collection<ConjunctiveQuery> allQueries = new LinkedList<>();
+		allQueries.add(ConjunctiveQuery.create(new Variable[] { Variable.create("x"), Variable.create("y") },
+				new Atom[] { r1_xy }));
+		allQueries.add(ConjunctiveQuery.create(new Variable[] { Variable.create("x") }, new Atom[] { r2_x }));
+
+		fromIRISPM(allTGDs, allFacts, allQueries, 1);
+
+	}
+
+	@Test
+	public void fromIRISPM_guarded_owl_nostorage() {
+		// guarded_owl_nostorage.dtg
+
+		// /// First Level Datalog Query or Program///
+		// ?- Parent(?x), hasSon(?x, 'Giorgio').
+		// ?- hasSon(?x, ?y).
+		// ?- Parent(?x).
+		// ?- Person(?x).
+
+		// /// ABox ///
+		// Person('Ermanna').
+		// Parent('Lucia').
+		// hasSon('Ermanna', 'Giorgio').
+		// hasSon('Katia', 'Manuela').
+
+		// /// TBox ///
+		// anon2 (?x) :- Parent(?x).
+		// Parent(?x) :- anon2(?x).
+
+		// Person(?x) :- anon2(?x).
+		// anon1(?x) :- anon2(?x).
+		// anon2(?x) :- anon1(?x), Person(?x).
+
+		// hasSon(?x, ?y) :- anon1(?x).
+		// Person(?y) :- hasSon(?x, ?y), anon1(?x).
+		// anon1(?x) :- hasSon(?x, ?y), Person(?y).
+
+		// // Domain and Range //
+		// Person(?x) :- hasSon(?x, ?y).
+		// Person(?y) :- hasSon(?x, ?y).
+
+		Atom Parent_x = Atom.create(Predicate.create("Parent", 1), Variable.create("x"));
+		Atom anon2_x = Atom.create(Predicate.create("anon2", 1), Variable.create("x"));
+		Atom Person_x = Atom.create(Predicate.create("Person", 1), Variable.create("x"));
+		Atom anon1_x = Atom.create(Predicate.create("anon1", 1), Variable.create("x"));
+		Atom hasSon_xy = Atom.create(Predicate.create("hasSon", 2), Variable.create("x"), Variable.create("y"));
+		Atom Person_y = Atom.create(Predicate.create("Person", 1), Variable.create("y"));
+
+		Collection<TGD> allTGDs = new LinkedList<>();
+		allTGDs.add(TGD.create(new Atom[] { Parent_x }, new Atom[] { anon2_x }));
+		allTGDs.add(TGD.create(new Atom[] { anon2_x }, new Atom[] { Parent_x }));
+		allTGDs.add(TGD.create(new Atom[] { anon2_x }, new Atom[] { Person_x }));
+		allTGDs.add(TGD.create(new Atom[] { anon2_x }, new Atom[] { anon1_x }));
+		allTGDs.add(TGD.create(new Atom[] { anon1_x, Person_x }, new Atom[] { anon2_x }));
+		allTGDs.add(TGD.create(new Atom[] { anon1_x }, new Atom[] { hasSon_xy }));
+		allTGDs.add(TGD.create(new Atom[] { hasSon_xy, anon1_x }, new Atom[] { Person_x }));
+		allTGDs.add(TGD.create(new Atom[] { hasSon_xy, Person_x }, new Atom[] { anon1_x }));
+		allTGDs.add(TGD.create(new Atom[] { hasSon_xy }, new Atom[] { Person_x }));
+		allTGDs.add(TGD.create(new Atom[] { hasSon_xy }, new Atom[] { Person_y }));
+
+		Collection<Atom> allFacts = new LinkedList<>();
+		allFacts.add(Atom.create(Predicate.create("Person", 1), UntypedConstant.create("Ermanna")));
+		allFacts.add(Atom.create(Predicate.create("Parent", 1), UntypedConstant.create("Lucia")));
+		allFacts.add(Atom.create(Predicate.create("hasSon", 2), UntypedConstant.create("Ermanna"),
+				UntypedConstant.create("Giorgio")));
+		allFacts.add(Atom.create(Predicate.create("hasSon", 2), UntypedConstant.create("Katia"),
+				UntypedConstant.create("Manuela")));
+
+		Collection<ConjunctiveQuery> allQueries = new LinkedList<>();
+		allQueries.add(ConjunctiveQuery.create(new Variable[] { Variable.create("x") }, new Atom[] { Parent_x,
+				Atom.create(Predicate.create("hasSon", 2), Variable.create("x"), UntypedConstant.create("Giorgio")) }));
+		allQueries.add(ConjunctiveQuery.create(new Variable[] { Variable.create("x"), Variable.create("y") },
+				new Atom[] { hasSon_xy }));
+		allQueries.add(ConjunctiveQuery.create(new Variable[] { Variable.create("x") }, new Atom[] { Parent_x }));
+		allQueries.add(ConjunctiveQuery.create(new Variable[] { Variable.create("x") }, new Atom[] { Person_x }));
+
+		fromIRISPM(allTGDs, allFacts, allQueries, 12);
+
+	}
+
+	public void fromIRISPM(Collection<TGD> allTGDs, Collection<Atom> allFacts, Collection<ConjunctiveQuery> allQueries,
+			int guardedSaturationSize) {
 		System.out.println("Initial rules:");
 		allTGDs.forEach(System.out::println);
 		Collection<TGD> guardedSaturation = App.runGSat(allTGDs.toArray(new TGD[allTGDs.size()]));
@@ -330,21 +418,25 @@ public class AppTest {
 		System.out.println("Guarded saturation:");
 		guardedSaturation.forEach(System.out::println);
 
-		assertEquals(1, guardedSaturation.size());
+		assertEquals(guardedSaturationSize, guardedSaturation.size());
 
-		Collection<Atom> allFacts = new LinkedList<>();
-		allFacts.add(Atom.create(Predicate.create("r1", 2), UntypedConstant.create("a"), UntypedConstant.create("b")));
-		allFacts.add(Atom.create(Predicate.create("r2", 1), UntypedConstant.create("b")));
 		System.out.println("Initial data:");
 		allFacts.forEach(System.out::println);
 
-		Collection<ConjunctiveQuery> allQueries = new LinkedList<>();
-		allQueries.add(ConjunctiveQuery.create(new Variable[] { Variable.create("x"), Variable.create("y") },
-				new Atom[] { Atom.create(Predicate.create("r1", 2), Variable.create("x"), Variable.create("y")) }));
-		allQueries.add(ConjunctiveQuery.create(new Variable[] { Variable.create("x") },
-				new Atom[] { Atom.create(Predicate.create("r2", 1), Variable.create("x")) }));
 		System.out.println("Initial queries:");
 		allQueries.forEach(System.out::println);
+
+		String baseOutputPath = "test" + File.separator + "UnitTests" + File.separator + "IRISPM" + File.separator;
+		new File(baseOutputPath).mkdirs();
+		Utility.writeDatalogRules(guardedSaturation, baseOutputPath + "rules.rul");
+		Utility.writeDatalogFacts(allFacts, baseOutputPath + "facts.data");
+		for (ConjunctiveQuery q : allQueries) {
+			Utility.writeDatalogQueries(Arrays.asList(q), baseOutputPath + "query.rul");
+			Output output = Utility.invokeSolver("executables" + File.separator + "idlv_1.1.2_windows_x86-64.exe",
+					"--query", Arrays.asList(baseOutputPath + "rules.rul", baseOutputPath + "facts.data",
+							baseOutputPath + "query.rul"));
+			System.out.println(output);
+		}
 	}
 
 }
