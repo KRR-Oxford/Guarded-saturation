@@ -61,9 +61,11 @@ public class Utility {
 
 	/**
 	 * From PDQ testing code, slightly modified
+	 * 
+	 * @param fact_querySize
 	 */
-	static Collection<Atom> readFactsChaseBench(String basePath, Schema schema) {
-		File dataDir = new File(basePath + "data");
+	static Collection<Atom> readFactsChaseBench(String basePath, String fact_querySize, Schema schema) {
+		File dataDir = new File(basePath + "data" + File.separator + fact_querySize);
 		Collection<Atom> facts = new ArrayList<>();
 		if (dataDir.exists())
 			for (File f : dataDir.listFiles())
@@ -79,23 +81,34 @@ public class Utility {
 
 	/**
 	 * From PDQ testing code, slightly modified
+	 * 
+	 * @param fact_querySize
 	 */
-	static Collection<ConjunctiveQuery> readQueriesChaseBench(String basePath, Schema schema) {
-		File queriesDir = new File(basePath + "queries");
-		Collection<ConjunctiveQuery> queries = new ArrayList<>();
+	static Collection<TGD> readQueriesChaseBench(String basePath, String fact_querySize, Schema schema) {
+		File queriesDir = new File(basePath + "queries" + File.separator + fact_querySize);
+		Collection<Dependency> queries = new ArrayList<>();
 		Map<String, Relation> relations2 = new HashMap<>();
 		for (Relation r : schema.getRelations())
 			relations2.put(r.getName(), r);
 
 		if (queriesDir.exists())
 			for (File f : queriesDir.listFiles())
-				if (f.getName().endsWith(".txt"))
-					try {
-						queries.add(CommonToPDQTranslator.parseQuery(relations2, f.getAbsolutePath()));
-					} catch (IOException e) {
-						e.printStackTrace();
-					}
-		return queries;
+				if (f.getName().endsWith(".txt")) {
+					App.logger.debug("Parsing: " + f.getAbsolutePath());
+					queries.addAll(CommonToPDQTranslator.parseDependencies(relations2, f.getAbsolutePath()));
+					// queries.add(CommonToPDQTranslator.parseQuery(relations2,
+					// f.getAbsolutePath()));
+				}
+		Collection<TGD> result = new ArrayList<>();
+		for (Dependency d : queries) {
+			if (d instanceof TGD && ((TGD) d).isGuarded()) {// Adding only Guarded TGDs
+				result.add((TGD) d);
+				if (!App.isFull((TGD) d))
+					System.out.println(d + "is not full!!");
+			} else
+				App.logger.error("We accept only Guarded TGDs. Error with query " + d);
+		}
+		return result;
 	}
 
 	/**
@@ -272,6 +285,32 @@ public class Utility {
 
 	}
 
+	public static void writeChaseBenchDatalogQueries(Collection<TGD> queriesRules, String path) {
+
+		Collection<String> datalogQueries = new LinkedList<>();
+
+		for (TGD query : queriesRules) {
+			// System.out.println(query);
+			// datalogQueries.addAll(getDatalogRules(query));
+			datalogQueries.add(getProjectedDatalogQuery(query));
+		}
+
+		try {
+			Files.write(Paths.get(path), datalogQueries, Charset.forName("UTF-8"));
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+
+	}
+
+	private static String getProjectedDatalogQuery(TGD query) {
+
+		assert query.getHeadAtoms().length == 1;
+		return renameVariablesAndConstantsDatalog(query.getHeadAtom(0)).toString() + " ?";
+
+	}
+
 	/**
 	 * From EmbASP code, slightly modified
 	 */
@@ -357,7 +396,7 @@ public class Utility {
 
 			final long stopTime = System.nanoTime();
 
-			App.logger.debug("Total time : " + (stopTime - startTime) / 10E6 + " ms");
+			App.logger.info("Solver total time : " + (stopTime - startTime) / 10E6 + " ms");
 
 			return new Output(solverOutput.toString(), solverError.toString());
 

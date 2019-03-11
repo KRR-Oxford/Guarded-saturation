@@ -8,12 +8,12 @@ import java.util.LinkedList;
 import java.util.Map;
 import java.util.Set;
 
+import org.apache.commons.lang3.ArrayUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 import uk.ac.ox.cs.pdq.db.Schema;
 import uk.ac.ox.cs.pdq.fol.Atom;
-import uk.ac.ox.cs.pdq.fol.ConjunctiveQuery;
 import uk.ac.ox.cs.pdq.fol.Dependency;
 import uk.ac.ox.cs.pdq.fol.TGD;
 import uk.ac.ox.cs.pdq.fol.Term;
@@ -28,42 +28,51 @@ public class App {
 		System.out.println("Starting GSat...");
 
 		// String baseTest = "tgds";
-		// String baseTest = "deep";
+		String baseTest = "deep";
+		// String baseTest = "doctors";
 
 		// String basePath = "test" + File.separator + "ChaseBench" + File.separator +
 		// "scenarios" + File.separator
 		// + "correctness" + File.separator + baseTest + File.separator;
+		String basePath = ".." + File.separator + "pdq" + File.separator + "regression" + File.separator + "test"
+				+ File.separator + "chaseBench" + File.separator + baseTest + File.separator + "100" + File.separator;
 		// String basePath = ".." + File.separator + "pdq" + File.separator +
 		// "regression" + File.separator + "test"
-		// + File.separator + "chaseBench" + File.separator + baseTest + File.separator
-		// + "100" + File.separator;
+		// + File.separator + "chaseBench" + File.separator + baseTest + File.separator;
 
-		for (String baseTest : new String[] { "tgds", "tgds5", "tgdsEgds", "tgdsEgdsLarge", "vldb2010", "weak" }) {
-			String basePath = "test" + File.separator + "ChaseBench" + File.separator + "scenarios" + File.separator
-					+ "correctness" + File.separator + baseTest + File.separator;
-			executeChaseBenchTest(baseTest, basePath);
-		}
+		String fact_querySize = "";
+		// String fact_querySize = "10k";
+
+		// for (String baseTest : new String[] { "tgds" , "tgds5", "tgdsEgds",
+		// "tgdsEgdsLarge", "vldb2010", "weak" })
+		// {
+		// String basePath = "test" + File.separator + "ChaseBench" + File.separator +
+		// "scenarios" + File.separator
+		// + "correctness" + File.separator + baseTest + File.separator;
+		executeChaseBenchTest(baseTest, basePath, fact_querySize);
+		// }
 
 	}
 
-	public static void executeChaseBenchTest(String baseTest, String basePath) {
+	public static void executeChaseBenchTest(String baseTest, String basePath, String fact_querySize) {
 		logger.info("Reading from: '" + basePath + "'");
 
 		Schema schema = Utility.readSchemaAndDependenciesChaseBench(basePath, baseTest);
 		Dependency[] allDependencies = schema.getAllDependencies();
 
 		logger.info("# Dependencies: " + allDependencies.length);
-		logger.debug(schema);
+		logger.trace(schema);
 
-		Collection<Atom> facts = Utility.readFactsChaseBench(basePath, schema);
+		Collection<Atom> facts = Utility.readFactsChaseBench(basePath, fact_querySize, schema);
 		logger.info("# Facts: " + facts.size());
-		logger.debug(facts);
+		logger.trace(facts);
 
-		Collection<ConjunctiveQuery> queries = Utility.readQueriesChaseBench(basePath, schema);
-		logger.info("# Queries: " + queries.size());
-		logger.debug(queries);
+		Collection<TGD> queriesRules = Utility.readQueriesChaseBench(basePath, fact_querySize, schema);
+		logger.info("# Queries: " + queriesRules.size());
+		logger.debug(queriesRules);
 
-		Collection<TGD> guardedSaturation = runGSat(allDependencies);
+		Collection<TGD> guardedSaturation = runGSat(
+				ArrayUtils.addAll(allDependencies, queriesRules.toArray(new TGD[queriesRules.size()])));
 		logger.info("Rewriting completed!");
 		System.out.println("Guarded saturation:");
 		System.out.println("=========================================");
@@ -74,15 +83,35 @@ public class App {
 		new File(baseOutputPath).mkdirs();
 		Utility.writeDatalogRules(guardedSaturation, baseOutputPath + baseTest + ".rul");
 		Utility.writeDatalogFacts(facts, baseOutputPath + baseTest + ".data");
-		Utility.writeDatalogQueries(queries, baseOutputPath + baseTest + "_queries.rul");
 
-		Output solverOutput = Utility.invokeSolver("executables" + File.separator + "idlv_1.1.3_windows_x86-64.exe",
-				"--t --no-facts", // "dlv.mingw.exe", "-nofacts",
-				Arrays.asList(baseOutputPath + baseTest + ".rul", baseOutputPath + baseTest + ".data",
-						baseOutputPath + baseTest + "_queries.rul"));
-		System.out.println(solverOutput);
-		Utility.writeOutput(solverOutput, baseOutputPath + baseTest + ".idlv.output" // ".dlv.output"
-		);
+		for (TGD query : queriesRules) {
+
+			Utility.writeChaseBenchDatalogQueries(Arrays.asList(query), baseOutputPath + baseTest + "_queries.rul");
+
+			Output solverOutput = Utility.invokeSolver("executables" + File.separator + "idlv_1.1.3_windows_x86-64.exe",
+					"--t --no-facts --check-edb-duplication", // "dlv.mingw.exe", "-nofacts",
+					Arrays.asList(baseOutputPath + baseTest + ".rul", baseOutputPath + baseTest + ".data",
+							baseOutputPath + baseTest + "_queries.rul"));
+			// System.out.println(solverOutput);
+			System.out.println(
+					"Output size: " + solverOutput.getOutput().length() + ", " + solverOutput.getErrors().length());
+			Utility.writeOutput(solverOutput, baseOutputPath + baseTest + ".idlv.output" // ".dlv.output"
+			);
+
+		}
+
+		if (queriesRules.isEmpty()) {
+			System.out.println("No queries. Performing the full grounding...");
+			Output solverOutput = Utility.invokeSolver("executables" + File.separator + "idlv_1.1.3_windows_x86-64.exe",
+					"--t --no-facts --check-edb-duplication", // "dlv.mingw.exe", "-nofacts",
+					Arrays.asList(baseOutputPath + baseTest + ".rul", baseOutputPath + baseTest + ".data"));
+			// System.out.println(solverOutput);
+			System.out.println(
+					"Output size: " + solverOutput.getOutput().length() + ", " + solverOutput.getErrors().length());
+			Utility.writeOutput(solverOutput, baseOutputPath + baseTest + ".idlv.output" // ".dlv.output"
+			);
+		}
+
 	}
 
 	public static Collection<TGD> runGSat(Dependency[] allDependencies) {
@@ -133,6 +162,7 @@ public class App {
 			newTGDs.forEach(logger::debug);
 
 			TGD currentTGD = newTGDs.iterator().next();
+			logger.debug("current TGD: " + currentTGD);
 			newTGDs.remove(currentTGD);
 
 			Set<TGD> tempTGDsSet = new HashSet<>();
