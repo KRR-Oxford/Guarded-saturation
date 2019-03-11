@@ -223,7 +223,7 @@ public class Utility {
 		for (Variable v : atom.getVariables())
 			substitution.put(v, Variable.create(v.getSymbol().toUpperCase()));
 		for (Constant c : atom.getTypedAndUntypedConstants())
-			substitution.put(c, UntypedConstant.create(c.toString().toLowerCase()));
+			substitution.put(c, UntypedConstant.create('"' + c.toString() + '"'));
 
 		// App.logger.info(substitution);
 

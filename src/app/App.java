@@ -28,17 +28,22 @@ public class App {
 		System.out.println("Starting GSat...");
 
 		// String baseTest = "tgds";
-		String baseTest = "deep";
+		// String baseTest = "deep";
 		// String baseTest = "doctors";
+		String baseTest = "LUBM";
 
 		// String basePath = "test" + File.separator + "ChaseBench" + File.separator +
 		// "scenarios" + File.separator
 		// + "correctness" + File.separator + baseTest + File.separator;
-		String basePath = ".." + File.separator + "pdq" + File.separator + "regression" + File.separator + "test"
-				+ File.separator + "chaseBench" + File.separator + baseTest + File.separator + "100" + File.separator;
+		// String basePath = ".." + File.separator + "pdq" + File.separator +
+		// "regression" + File.separator + "test"
+		// + File.separator + "chaseBench" + File.separator + baseTest + File.separator
+		// + "100" + File.separator;
 		// String basePath = ".." + File.separator + "pdq" + File.separator +
 		// "regression" + File.separator + "test"
 		// + File.separator + "chaseBench" + File.separator + baseTest + File.separator;
+		String basePath = ".." + File.separator + "pdq" + File.separator + "regression" + File.separator + "test"
+				+ File.separator + "chaseBench" + File.separator + baseTest + File.separator;
 
 		String fact_querySize = "";
 		// String fact_querySize = "10k";
@@ -84,32 +89,31 @@ public class App {
 		Utility.writeDatalogRules(guardedSaturation, baseOutputPath + baseTest + ".rul");
 		Utility.writeDatalogFacts(facts, baseOutputPath + baseTest + ".data");
 
+		System.out.println("Performing the full grounding...");
+		Output solverOutput = Utility.invokeSolver("executables" + File.separator + "idlv_1.1.3_windows_x86-64.exe",
+				"--t --no-facts --check-edb-duplication", // "dlv.mingw.exe", "-nofacts",
+				Arrays.asList(baseOutputPath + baseTest + ".rul", baseOutputPath + baseTest + ".data"));
+		// System.out.println(solverOutput);
+		System.out.println(
+				"Output size: " + solverOutput.getOutput().length() + ", " + solverOutput.getErrors().length());
+		Utility.writeOutput(solverOutput, baseOutputPath + baseTest + ".idlv.output" // ".dlv.output"
+		);
+
 		for (TGD query : queriesRules) {
 
 			Utility.writeChaseBenchDatalogQueries(Arrays.asList(query), baseOutputPath + baseTest + "_queries.rul");
 
-			Output solverOutput = Utility.invokeSolver("executables" + File.separator + "idlv_1.1.3_windows_x86-64.exe",
+			solverOutput = Utility.invokeSolver("executables" + File.separator + "idlv_1.1.3_windows_x86-64.exe",
 					"--t --no-facts --check-edb-duplication", // "dlv.mingw.exe", "-nofacts",
 					Arrays.asList(baseOutputPath + baseTest + ".rul", baseOutputPath + baseTest + ".data",
 							baseOutputPath + baseTest + "_queries.rul"));
 			// System.out.println(solverOutput);
 			System.out.println(
 					"Output size: " + solverOutput.getOutput().length() + ", " + solverOutput.getErrors().length());
-			Utility.writeOutput(solverOutput, baseOutputPath + baseTest + ".idlv.output" // ".dlv.output"
+			Utility.writeOutput(solverOutput,
+					baseOutputPath + baseTest + "." + query.getHead().getAtoms()[0].getPredicate() + ".idlv.output" // ".dlv.output"
 			);
 
-		}
-
-		if (queriesRules.isEmpty()) {
-			System.out.println("No queries. Performing the full grounding...");
-			Output solverOutput = Utility.invokeSolver("executables" + File.separator + "idlv_1.1.3_windows_x86-64.exe",
-					"--t --no-facts --check-edb-duplication", // "dlv.mingw.exe", "-nofacts",
-					Arrays.asList(baseOutputPath + baseTest + ".rul", baseOutputPath + baseTest + ".data"));
-			// System.out.println(solverOutput);
-			System.out.println(
-					"Output size: " + solverOutput.getOutput().length() + ", " + solverOutput.getErrors().length());
-			Utility.writeOutput(solverOutput, baseOutputPath + baseTest + ".idlv.output" // ".dlv.output"
-			);
 		}
 
 	}
