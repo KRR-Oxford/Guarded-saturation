@@ -9,7 +9,8 @@
             "name": "Debug (Launch) - App<Guarded-saturation>",
             "request": "launch",
             "mainClass": "App",
-            "projectName": "Guarded-saturation"
+            "projectName": "Guarded-saturation",
+            "args": "cb LUBM ../pdq/regression/test/chaseBench/LUBM/"
         },
         {
             "type": "java",
