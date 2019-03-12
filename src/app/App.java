@@ -19,11 +19,43 @@ public class App {
 
 		System.out.println("Starting GSat...");
 
+		if (args.length > 0)
+			if (args[0].equals("cb"))
+				if (args.length == 3)
+					App.executeChaseBenchScenario(args[1], args[2], "");
+				else if (args.length == 4)
+					App.executeChaseBenchScenario(args[1], args[2], args[3]);
+				else
+					printHelp("Wrong number of parameters for cb");
+			else if (args[0].equals("dlgp"))
+				System.err.println("Not yet implemented!");
+			else
+				printHelp("Wrong command (i.e. first argument)");
+		else
+			printHelp("No arguments provided");
+
+	}
+
+	private static void printHelp(String message) {
+
+		System.err.println();
+		System.err.println(message);
+		System.err.println();
+		System.err.println("Note that only these commands are currently supported:");
+		System.err.println("cb \t for testing a ChaseBench scenario");
+		System.err.println("dlgp \t for parsing a file in the DLGP format");
+		System.err.println();
+		System.err.println("if cb is specified the following arguments must be provided, in this strict order:");
+		System.err.println("<NAME OF THE SCENARIO> <PATH OF THE BASE FOLDER> [<FACT/QUERY SIZE>]");
+		System.err.println();
+		System.err.println("if dlgp is specified the following arguments must be provided, in this strict order:");
+		System.err.println("<PATH OF THE DLGP FILE>");
+
 	}
 
 	public static SolverOutput executeChaseBenchScenario(String baseTest, String basePath, String fact_querySize) {
 
-		System.out.println("Executing ChaseBench scenario...");
+		System.out.println("Executing ChaseBench scenario: " + baseTest + " " + basePath + " " + fact_querySize);
 
 		logger.info("Reading from: '" + basePath + "'");
 
