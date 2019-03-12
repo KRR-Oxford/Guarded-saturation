@@ -2,21 +2,21 @@
 /**
  * From EmbASP code
  */
-public class Output implements Cloneable {
+public class SolverOutput implements Cloneable {
     /** Variable in which results are stored */
     protected String output;
     /** The errors thrown by the solver */
     protected String errors;
 
-    public Output() {
+    public SolverOutput() {
         output = new String();
     }
 
-    public Output(final String initial_output) {
+    public SolverOutput(final String initial_output) {
         output = initial_output;
     }
 
-    public Output(final String out, final String err) {
+    public SolverOutput(final String out, final String err) {
         output = out;
         errors = err;
     }

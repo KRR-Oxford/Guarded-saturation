@@ -20,9 +20,11 @@ import uk.ac.ox.cs.pdq.fol.UntypedConstant;
 import uk.ac.ox.cs.pdq.fol.Variable;
 
 /**
- * AppTest
+ * Unit tests for the GSat class
+ * 
+ * @author Stefano
  */
-public class AppTest {
+public class GSatTest {
 
 	@Test
 	public void runGSatTest() {
@@ -50,7 +52,7 @@ public class AppTest {
 								Variable.create("x3")),
 						Atom.create(Predicate.create("V", 2), Variable.create("x1"), Variable.create("x2")),
 						Atom.create(Predicate.create("S", 1), Variable.create("x1")) },
-				new Atom[] { Atom.create(Predicate.create("M", 1), Variable.create("x1")), });
+				new Atom[] { Atom.create(Predicate.create("M", 1), Variable.create("x1")) });
 
 		Collection<TGD> allTGDs = new LinkedList<>();
 		allTGDs.add(t1);
@@ -60,7 +62,7 @@ public class AppTest {
 		System.out.println("Initial rules:");
 		allTGDs.forEach(System.out::println);
 
-		Collection<TGD> guardedSaturation = App.runGSat(allTGDs.toArray(new TGD[allTGDs.size()]));
+		Collection<TGD> guardedSaturation = GSat.runGSat(allTGDs.toArray(new TGD[allTGDs.size()]));
 
 		System.out.println("Guarded saturation:");
 		guardedSaturation.forEach(System.out::println);
@@ -102,7 +104,7 @@ public class AppTest {
 		System.out.println("Initial rules:");
 		allTGDs.forEach(System.out::println);
 
-		guardedSaturation = App.runGSat(allTGDs.toArray(new TGD[allTGDs.size()]));
+		guardedSaturation = GSat.runGSat(allTGDs.toArray(new TGD[allTGDs.size()]));
 
 		System.out.println("Guarded saturation:");
 		guardedSaturation.forEach(System.out::println);
@@ -123,7 +125,7 @@ public class AppTest {
 		TGD tgd = TGD.create(body, head);
 		System.out.println("Original TGD: " + tgd);
 
-		Collection<TGD> tgdsHNF = App.HNF(tgd);
+		Collection<TGD> tgdsHNF = GSat.HNF(tgd);
 		System.out.println("TGDs in HNF:");
 		tgdsHNF.forEach(System.out::println);
 
@@ -143,8 +145,7 @@ public class AppTest {
 
 	@Test
 	public void VNFTest() {
-		// ∀ x2,x1,x3 B(x2,x1,x3) → ∃ z1,y1,y2 H1(x1,z1,y1,y2) &
-		// H2(y1,y2)
+		// ∀ x2,x1,x3 B(x2,x1,x3) → ∃ z1,y1,y2 H1(x1,z1,y1,y2) & H2(y1,y2)
 		Atom[] body = { Atom.create(Predicate.create("B", 3), Variable.create("x2"), Variable.create("x1"),
 				Variable.create("x3")) };
 		Atom[] head = {
@@ -154,11 +155,10 @@ public class AppTest {
 		TGD tgd = TGD.create(body, head);
 		System.out.println("Original TGD: " + tgd);
 
-		TGD tgdVNF = App.VNF(tgd);
+		TGD tgdVNF = GSat.VNF(tgd);
 		System.out.println("TGD in VNF: " + tgdVNF);
 
-		// ∀ u1,u2,u3 B(u1,u2,u3) → ∃ e1,e2,e3 H1(u2,e1,e2,e3) &
-		// H2(e2,e3)
+		// ∀ u1,u2,u3 B(u1,u2,u3) → ∃ e1,e2,e3 H1(u2,e1,e2,e3) & H2(e2,e3)
 		Atom[] bodyE = { Atom.create(Predicate.create("B", 3), Variable.create("u1"), Variable.create("u2"),
 				Variable.create("u3")) };
 		Atom[] headE = {
@@ -172,8 +172,7 @@ public class AppTest {
 
 	@Test
 	public void isFullTest() {
-		// ∀ x2,x1,x3 B(x2,x1,x3) → ∃ z1,y1,y2 H1(x1,z1,y1,y2) &
-		// H2(y1,y2)
+		// ∀ x2,x1,x3 B(x2,x1,x3) → ∃ z1,y1,y2 H1(x1,z1,y1,y2) & H2(y1,y2)
 		TGD tgd = TGD.create(
 				new Atom[] { Atom.create(Predicate.create("B", 3), Variable.create("x2"), Variable.create("x1"),
 						Variable.create("x3")) },
@@ -183,10 +182,9 @@ public class AppTest {
 						Atom.create(Predicate.create("H2", 2), Variable.create("y1"), Variable.create("y2")) });
 		System.out.println("TGD: " + tgd);
 
-		assertFalse("This is a 'non-full' TGD", App.isFull(tgd));
+		assertFalse("This is a 'non-full' TGD", Logic.isFull(tgd));
 
-		// ∀ u1,u2,u3 B(u1,u2,u3) → ∃ e1,e2,e3 H1(u2,e1,e2,e3) &
-		// H2(e2,e3)
+		// ∀ u1,u2,u3 B(u1,u2,u3) → ∃ e1,e2,e3 H1(u2,e1,e2,e3) & H2(e2,e3)
 		tgd = TGD.create(
 				new Atom[] { Atom.create(Predicate.create("B", 3), Variable.create("u1"), Variable.create("u2"),
 						Variable.create("u3")) },
@@ -196,7 +194,7 @@ public class AppTest {
 						Atom.create(Predicate.create("H2", 2), Variable.create("e2"), Variable.create("e3")) });
 		System.out.println("TGD: " + tgd);
 
-		assertFalse("This is a 'non-full' TGD", App.isFull(tgd));
+		assertFalse("This is a 'non-full' TGD", Logic.isFull(tgd));
 
 		// ∀ x1,x2 B(x1,x2) → ∃ y1 H1(x1,y1) ∧ H2(x2)
 		tgd = TGD.create(
@@ -205,15 +203,15 @@ public class AppTest {
 						Atom.create(Predicate.create("H2", 1), Variable.create("x2")) });
 		System.out.println("TGD: " + tgd);
 
-		assertFalse("This is a 'non-full' TGD", App.isFull(tgd));
+		assertFalse("This is a 'non-full' TGD", Logic.isFull(tgd));
 
-		// ∀ x1,x2 B(x1,x2) → ∃ y1]H1(x1,y1)
+		// ∀ x1,x2 B(x1,x2) → ∃ y1 H1(x1,y1)
 		tgd = TGD.create(
 				new Atom[] { Atom.create(Predicate.create("B", 2), Variable.create("x1"), Variable.create("x2")) },
 				new Atom[] { Atom.create(Predicate.create("H1", 2), Variable.create("x1"), Variable.create("y1")) });
 		System.out.println("TGD: " + tgd);
 
-		assertFalse("This is a 'non-full' TGD", App.isFull(tgd));
+		assertFalse("This is a 'non-full' TGD", Logic.isFull(tgd));
 
 		// ∀ x1,x2 B(x1,x2) → H2(x2)
 		tgd = TGD.create(
@@ -221,10 +219,10 @@ public class AppTest {
 				new Atom[] { Atom.create(Predicate.create("H2", 1), Variable.create("x2")) });
 		System.out.println("TGD: " + tgd);
 
-		assertTrue("This is a 'full' TGD", App.isFull(tgd));
+		assertTrue("This is a 'full' TGD", Logic.isFull(tgd));
 
-		// ∀ x1 R(x1) → ∃ y1,y2]T(x1,y1,y2)
-		// ∀ x1,x2,x3 T(x1,x2,x3) → ∃ y]U(x1,x2,y)
+		// ∀ x1 R(x1) → ∃ y1,y2 T(x1,y1,y2)
+		// ∀ x1,x2,x3 T(x1,x2,x3) → ∃ y U(x1,x2,y)
 		// ∀ x1,x2,x3 U(x1,x2,x3) → P(x1) ∧ V(x1,x2)
 		// ∀ x1,x2,x3 T(x1,x2,x3) ∧ V(x1,x2) ∧ S(x1) → M(x1)
 		TGD t1 = TGD.create(new Atom[] { Atom.create(Predicate.create("R", 1), Variable.create("x1")) },
@@ -249,13 +247,13 @@ public class AppTest {
 				new Atom[] { Atom.create(Predicate.create("M", 1), Variable.create("x1")), });
 
 		System.out.println("TGD: " + t1);
-		assertFalse("This is a 'non-full' TGD", App.isFull(t1));
+		assertFalse("This is a 'non-full' TGD", Logic.isFull(t1));
 		System.out.println("TGD: " + t2);
-		assertFalse("This is a 'non-full' TGD", App.isFull(t2));
+		assertFalse("This is a 'non-full' TGD", Logic.isFull(t2));
 		System.out.println("TGD: " + t3);
-		assertTrue("This is a 'full' TGD", App.isFull(t3));
+		assertTrue("This is a 'full' TGD", Logic.isFull(t3));
 		System.out.println("TGD: " + t4);
-		assertTrue("This is a 'full' TGD", App.isFull(t4));
+		assertTrue("This is a 'full' TGD", Logic.isFull(t4));
 	}
 
 	@Test
@@ -283,7 +281,7 @@ public class AppTest {
 		Collection<Variable> existentials = new LinkedList<>();
 		existentials.add(Variable.create("e1"));
 
-		Map<Term, Term> mgu = App.getMGU(
+		Map<Term, Term> mgu = GSat.getMGU(
 				new Atom[] { Atom.create(Predicate.create("U", 3), Variable.create("u1"), Variable.create("u2"),
 						Variable.create("e1")) },
 				new Atom[] { Atom.create(Predicate.create("U", 3), Variable.create("z1"), Variable.create("z2"),
@@ -443,11 +441,11 @@ public class AppTest {
 
 	}
 
-	public void fromIRISPM(Collection<TGD> allTGDs, Collection<Atom> allFacts, Collection<ConjunctiveQuery> allQueries,
+	private void fromIRISPM(Collection<TGD> allTGDs, Collection<Atom> allFacts, Collection<ConjunctiveQuery> allQueries,
 			int guardedSaturationSize) {
 		System.out.println("Initial rules:");
 		allTGDs.forEach(System.out::println);
-		Collection<TGD> guardedSaturation = App.runGSat(allTGDs.toArray(new TGD[allTGDs.size()]));
+		Collection<TGD> guardedSaturation = GSat.runGSat(allTGDs.toArray(new TGD[allTGDs.size()]));
 
 		System.out.println("Guarded saturation:");
 		guardedSaturation.forEach(System.out::println);
@@ -462,11 +460,11 @@ public class AppTest {
 
 		String baseOutputPath = "test" + File.separator + "UnitTests" + File.separator + "IRISPM" + File.separator;
 		new File(baseOutputPath).mkdirs();
-		Utility.writeDatalogRules(guardedSaturation, baseOutputPath + "rules.rul");
-		Utility.writeDatalogFacts(allFacts, baseOutputPath + "facts.data");
+		IO.writeDatalogRules(guardedSaturation, baseOutputPath + "rules.rul");
+		IO.writeDatalogFacts(allFacts, baseOutputPath + "facts.data");
 		for (ConjunctiveQuery q : allQueries) {
-			Utility.writeDatalogQueries(Arrays.asList(q), baseOutputPath + "query.rul");
-			Output output = Utility.invokeSolver("executables" + File.separator + "idlv_1.1.2_windows_x86-64.exe",
+			IO.writeDatalogQueries(Arrays.asList(q), baseOutputPath + "query.rul");
+			SolverOutput output = Logic.invokeSolver("executables" + File.separator + "idlv_1.1.2_windows_x86-64.exe",
 					"--query", Arrays.asList(baseOutputPath + "rules.rul", baseOutputPath + "facts.data",
 							baseOutputPath + "query.rul"));
 			System.out.println(output);
