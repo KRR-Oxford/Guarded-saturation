@@ -19,6 +19,13 @@ public class App {
 
 		System.out.println("Starting GSat...");
 
+		try {
+			Class.forName("uk.ac.ox.cs.pdq.fol.TGD");
+		} catch (ClassNotFoundException e) {
+			System.err.println("PDQ library not found. The system will now terminate.");
+			System.exit(1);
+		}
+
 		if (args.length > 0)
 			if (args[0].equals("cb"))
 				if (args.length == 3)
