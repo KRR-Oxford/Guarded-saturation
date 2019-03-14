@@ -21,6 +21,7 @@ public class GSat {
     public static Collection<TGD> runGSat(Dependency[] allDependencies) {
 
         System.out.println("Running GSat...");
+        final long startTime = System.nanoTime();
 
         Collection<TGD> newTGDs = new HashSet<>();
 
@@ -85,6 +86,10 @@ public class GSat {
                 if (Logic.isFull(d) && !fullTGDs.contains(d) || !Logic.isFull(d) && !nonFullTGDs.contains(d))
                     newTGDs.add(d);
         }
+
+        final long stopTime = System.nanoTime();
+
+        App.logger.info("GSat total time : " + (stopTime - startTime) / 10E6 + " ms");
 
         return fullTGDs;
 
