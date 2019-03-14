@@ -1,3 +1,4 @@
+import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.util.Properties;
@@ -19,7 +20,7 @@ public class Configuration {
         Configuration.initialize();
 
         if (Configuration.prop == null)
-            return "";
+            return "idlv";
 
         return Configuration.prop.getProperty("solver.name");
 
@@ -30,7 +31,7 @@ public class Configuration {
         Configuration.initialize();
 
         if (Configuration.prop == null)
-            return "";
+            return "executables" + File.separator + "idlv";
 
         return Configuration.prop.getProperty("solver.path");
 
@@ -41,7 +42,7 @@ public class Configuration {
         Configuration.initialize();
 
         if (Configuration.prop == null)
-            return "";
+            return "--t --no-facts --check-edb-duplication";
 
         return Configuration.prop.getProperty("solver.options.grounding");
 
@@ -52,7 +53,7 @@ public class Configuration {
         Configuration.initialize();
 
         if (Configuration.prop == null)
-            return "";
+            return "--query";
 
         return Configuration.prop.getProperty("solver.options.query");
 

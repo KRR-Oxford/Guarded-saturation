@@ -93,8 +93,12 @@ public class Logic {
 
 	/**
 	 * From EmbASP code, slightly modified
+	 * 
+	 * @throws InterruptedException
+	 * @throws IOException
 	 */
-	static SolverOutput invokeSolver(String exe_path, String options, List<String> files) {
+	static SolverOutput invokeSolver(String exe_path, String options, List<String> files)
+			throws InterruptedException, IOException {
 		String files_paths = new String();
 
 		String final_program = new String();
@@ -113,80 +117,70 @@ public class Logic {
 
 		final StringBuffer solverError = new StringBuffer();
 
-		try {
+		final long startTime = System.nanoTime();
 
-			final long startTime = System.nanoTime();
+		final StringBuffer stringBuffer = new StringBuffer();
 
-			final StringBuffer stringBuffer = new StringBuffer();
+		if (exe_path == null)
+			return new SolverOutput("", "Error: executable not found");
 
-			if (exe_path == null)
-				return new SolverOutput("", "Error: executable not found");
+		stringBuffer.append(exe_path).append(" ").append(options).append(" ").append(files_paths);
 
-			stringBuffer.append(exe_path).append(" ").append(options).append(" ").append(files_paths);
+		App.logger.debug(stringBuffer.toString());
 
-			App.logger.debug(stringBuffer.toString());
+		final Process solver_process = Runtime.getRuntime().exec(stringBuffer.toString());
 
-			final Process solver_process = Runtime.getRuntime().exec(stringBuffer.toString());
+		Thread threadOutput = new Thread() {
+			@Override
+			public void run() {
+				final BufferedReader bufferedReaderOutput = new BufferedReader(
+						new InputStreamReader(solver_process.getInputStream()));
 
-			Thread threadOutput = new Thread() {
-				@Override
-				public void run() {
-					try {
-						final BufferedReader bufferedReaderOutput = new BufferedReader(
-								new InputStreamReader(solver_process.getInputStream()));
-
-						// Read output of the solver and store in solverOutput
-						String currentLine;
-						while ((currentLine = bufferedReaderOutput.readLine()) != null)
-							solverOutput.append(currentLine + "\n");
-					} catch (final IOException e) {
-						e.printStackTrace();
-					}
+				// Read output of the solver and store in solverOutput
+				String currentLine;
+				try {
+					while ((currentLine = bufferedReaderOutput.readLine()) != null)
+						solverOutput.append(currentLine + "\n");
+				} catch (IOException e) {
+					System.err.println("Error while reading the output of the solver.");
 				}
-			};
+			}
+		};
 
-			threadOutput.start();
-			threadOutput.join();
+		threadOutput.start();
+		threadOutput.join();
 
-			Thread threadError = new Thread() {
-				@Override
-				public void run() {
-					try {
-						final BufferedReader bufferedReaderError = new BufferedReader(
-								new InputStreamReader(solver_process.getErrorStream()));
-						String currentErrLine;
-						while ((currentErrLine = bufferedReaderError.readLine()) != null)
-							solverError.append(currentErrLine + "\n");
-					} catch (final IOException e) {
-						e.printStackTrace();
-					}
+		Thread threadError = new Thread() {
+			@Override
+			public void run() {
+				final BufferedReader bufferedReaderError = new BufferedReader(
+						new InputStreamReader(solver_process.getErrorStream()));
+				String currentErrLine;
+				try {
+					while ((currentErrLine = bufferedReaderError.readLine()) != null)
+						solverError.append(currentErrLine + "\n");
+				} catch (IOException e) {
+					System.err.println("Error while reading the output of the solver.");
 				}
-			};
+			}
+		};
 
-			threadError.start();
-			threadError.join();
+		threadError.start();
+		threadError.join();
 
-			final PrintWriter writer = new PrintWriter(solver_process.getOutputStream());
-			writer.println(final_program);
+		final PrintWriter writer = new PrintWriter(solver_process.getOutputStream());
+		writer.println(final_program);
 
-			if (writer != null)
-				writer.close();
+		if (writer != null)
+			writer.close();
 
-			solver_process.waitFor();
+		solver_process.waitFor();
 
-			final long stopTime = System.nanoTime();
+		final long stopTime = System.nanoTime();
 
-			App.logger.info("Solver total time : " + (stopTime - startTime) / 10E6 + " ms");
+		App.logger.info("Solver total time : " + (stopTime - startTime) / 10E6 + " ms");
 
-			return new SolverOutput(solverOutput.toString(), solverError.toString());
-
-		} catch (final IOException e2) {
-			e2.printStackTrace();
-		} catch (final InterruptedException e) {
-			e.printStackTrace();
-		}
-
-		return new SolverOutput("", "");
+		return new SolverOutput(solverOutput.toString(), solverError.toString());
 
 	}
 

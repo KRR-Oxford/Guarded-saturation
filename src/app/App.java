@@ -7,7 +7,6 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 import uk.ac.ox.cs.pdq.db.Schema;
-import uk.ac.ox.cs.pdq.fol.Atom;
 import uk.ac.ox.cs.pdq.fol.Dependency;
 import uk.ac.ox.cs.pdq.fol.TGD;
 
@@ -26,20 +25,27 @@ public class App {
 			System.exit(1);
 		}
 
-		if (args.length > 0)
-			if (args[0].equals("cb"))
-				if (args.length == 3)
-					App.executeChaseBenchScenario(args[1], args[2], "");
-				else if (args.length == 4)
-					App.executeChaseBenchScenario(args[1], args[2], args[3]);
+		try {
+
+			if (args.length > 0)
+				if (args[0].equals("cb"))
+					if (args.length == 3)
+						App.executeChaseBenchScenario(args[1], args[2], "");
+					else if (args.length == 4)
+						App.executeChaseBenchScenario(args[1], args[2], args[3]);
+					else
+						printHelp("Wrong number of parameters for cb");
+				else if (args[0].equals("dlgp"))
+					System.err.println("Not yet implemented!");
 				else
-					printHelp("Wrong number of parameters for cb");
-			else if (args[0].equals("dlgp"))
-				System.err.println("Not yet implemented!");
+					printHelp("Wrong command (i.e. first argument)");
 			else
-				printHelp("Wrong command (i.e. first argument)");
-		else
-			printHelp("No arguments provided");
+				printHelp("No arguments provided");
+
+		} catch (Throwable t) {
+			System.err.println("Unknown error. The system will now terminate.");
+			System.exit(1);
+		}
 
 	}
 

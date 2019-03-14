@@ -2,8 +2,10 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
 
 import java.io.File;
+import java.io.IOException;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.LinkedList;
@@ -462,14 +464,19 @@ public class GSatTest {
 
 		String baseOutputPath = "test" + File.separator + "UnitTests" + File.separator + "IRISPM" + File.separator;
 		new File(baseOutputPath).mkdirs();
-		IO.writeDatalogRules(guardedSaturation, baseOutputPath + "rules.rul");
-		IO.writeDatalogFacts(allFacts, baseOutputPath + "facts.data");
-		for (ConjunctiveQuery q : allQueries) {
-			IO.writeDatalogQueries(Arrays.asList(q), baseOutputPath + "query.rul");
-			SolverOutput output = Logic.invokeSolver("executables" + File.separator + "idlv_1.1.2_windows_x86-64.exe",
-					"--query", Arrays.asList(baseOutputPath + "rules.rul", baseOutputPath + "facts.data",
-							baseOutputPath + "query.rul"));
-			System.out.println(output);
+		try {
+			IO.writeDatalogRules(guardedSaturation, baseOutputPath + "rules.rul");
+			IO.writeDatalogFacts(allFacts, baseOutputPath + "facts.data");
+			for (ConjunctiveQuery q : allQueries) {
+				IO.writeDatalogQueries(Arrays.asList(q), baseOutputPath + "query.rul");
+				SolverOutput output = Logic.invokeSolver(
+						"executables" + File.separator + "idlv_1.1.2_windows_x86-64.exe", "--query",
+						Arrays.asList(baseOutputPath + "rules.rul", baseOutputPath + "facts.data",
+								baseOutputPath + "query.rul"));
+				System.out.println(output);
+			}
+		} catch (IOException | InterruptedException e) {
+			fail(e.getLocalizedMessage());
 		}
 
 	}

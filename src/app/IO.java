@@ -1,6 +1,5 @@
 import java.io.File;
 import java.io.IOException;
-import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -111,19 +110,14 @@ public class IO {
         return result;
     }
 
-    public static void writeDatalogRules(Collection<TGD> guardedSaturation, String path) {
+    public static void writeDatalogRules(Collection<TGD> guardedSaturation, String path) throws IOException {
 
         Collection<String> datalogRules = new LinkedList<>();
 
         for (TGD tgd : guardedSaturation)
             datalogRules.addAll(getDatalogRules(tgd));
 
-        try {
-            Files.write(Paths.get(path), datalogRules, Charset.forName("UTF-8"));
-        } catch (IOException e) {
-            // TODO Auto-generated catch block
-            e.printStackTrace();
-        }
+        Files.write(Paths.get(path), datalogRules, StandardCharsets.UTF_8);
 
     }
 
@@ -175,9 +169,10 @@ public class IO {
      * From PDQ testing code, slightly modified
      * 
      * @param fact_querySize
+     * @throws IOException
      */
     static void readFactsChaseBenchAndWriteToDatalog(String basePath, String fact_querySize, Schema schema,
-            String outputPath) {
+            String outputPath) throws IOException {
         Path path = Paths.get(outputPath);
         File dataDir = new File(basePath + "data" + File.separator + fact_querySize);
         if (dataDir.exists())
@@ -192,34 +187,24 @@ public class IO {
                         for (Atom atom : CommonToPDQTranslator.importFacts(schema, name, f.getAbsolutePath()))
                             datalogFacts.add(renameVariablesAndConstantsDatalog(atom).toString() + '.');
 
-                        try {
-                            Files.write(path, datalogFacts, StandardCharsets.UTF_8,
-                                    Files.exists(path) ? StandardOpenOption.APPEND : StandardOpenOption.CREATE);
-                        } catch (IOException e) {
-                            // TODO Auto-generated catch block
-                            e.printStackTrace();
-                        }
+                        Files.write(path, datalogFacts, StandardCharsets.UTF_8,
+                                Files.exists(path) ? StandardOpenOption.APPEND : StandardOpenOption.CREATE);
                     }
                 }
     }
 
-    public static void writeDatalogFacts(Collection<Atom> facts, String path) {
+    public static void writeDatalogFacts(Collection<Atom> facts, String path) throws IOException {
 
         Collection<String> datalogFacts = new LinkedList<>();
 
         for (Atom atom : facts)
             datalogFacts.add(renameVariablesAndConstantsDatalog(atom).toString() + '.');
 
-        try {
-            Files.write(Paths.get(path), datalogFacts, Charset.forName("UTF-8"));
-        } catch (IOException e) {
-            // TODO Auto-generated catch block
-            e.printStackTrace();
-        }
+        Files.write(Paths.get(path), datalogFacts, StandardCharsets.UTF_8);
 
     }
 
-    public static void writeDatalogQueries(Collection<ConjunctiveQuery> queries, String path) {
+    public static void writeDatalogQueries(Collection<ConjunctiveQuery> queries, String path) throws IOException {
 
         Collection<String> datalogQueries = new LinkedList<>();
 
@@ -227,12 +212,7 @@ public class IO {
             // System.out.println(query);
             datalogQueries.add(getDatalogQuery(query));
 
-        try {
-            Files.write(Paths.get(path), datalogQueries, Charset.forName("UTF-8"));
-        } catch (IOException e) {
-            // TODO Auto-generated catch block
-            e.printStackTrace();
-        }
+        Files.write(Paths.get(path), datalogQueries, StandardCharsets.UTF_8);
 
     }
 
@@ -257,7 +237,7 @@ public class IO {
 
     }
 
-    public static void writeChaseBenchDatalogQueries(Collection<TGD> queriesRules, String path) {
+    public static void writeChaseBenchDatalogQueries(Collection<TGD> queriesRules, String path) throws IOException {
 
         Collection<String> datalogQueries = new LinkedList<>();
 
@@ -267,12 +247,7 @@ public class IO {
             datalogQueries.add(getProjectedDatalogQuery(query));
         }
 
-        try {
-            Files.write(Paths.get(path), datalogQueries, Charset.forName("UTF-8"));
-        } catch (IOException e) {
-            // TODO Auto-generated catch block
-            e.printStackTrace();
-        }
+        Files.write(Paths.get(path), datalogQueries, StandardCharsets.UTF_8);
 
     }
 
@@ -283,13 +258,11 @@ public class IO {
 
     }
 
-    public static void writeSolverOutput(SolverOutput solverOutput, String path) {
-        try {
-            Files.write(Paths.get(path), Arrays.asList(solverOutput.getOutput(), solverOutput.getErrors()),
-                    Charset.forName("UTF-8"));
-        } catch (IOException e) {
-            // TODO Auto-generated catch block
-            e.printStackTrace();
-        }
+    public static void writeSolverOutput(SolverOutput solverOutput, String path) throws IOException {
+
+        Files.write(Paths.get(path), Arrays.asList(solverOutput.getOutput(), solverOutput.getErrors()),
+                StandardCharsets.UTF_8);
+
     }
+
 }
