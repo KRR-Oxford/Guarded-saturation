@@ -36,7 +36,8 @@ public class App {
 						if (!basePath.substring(basePath.length() - 1).equals(File.separator))
 							basePath += File.separator; // Simplify usage
 						String fact_querySize = args.length == 3 ? "" : args[3]; // Optional argument
-						App.executeChaseBenchScenario(scenario, basePath, fact_querySize);
+						App.executeChaseBenchScenario(scenario, basePath, fact_querySize,
+								Configuration.isFullGrounding());
 
 					} else
 						printHelp("Wrong number of parameters for cb");
@@ -71,7 +72,8 @@ public class App {
 
 	}
 
-	public static SolverOutput executeChaseBenchScenario(String scenario, String basePath, String fact_querySize) {
+	public static SolverOutput executeChaseBenchScenario(String scenario, String basePath, String fact_querySize,
+			boolean fullGrounding) {
 
 		System.out.println("Executing ChaseBench scenario: " + scenario + " " + basePath + " " + fact_querySize);
 
@@ -140,6 +142,7 @@ public class App {
 		}
 
 		SolverOutput solverOutput = null;
+
 		try {
 			IO.writeDatalogRules(guardedSaturation, baseOutputPath + "datalog.rul");
 
@@ -162,7 +165,7 @@ public class App {
 
 			}
 
-			if (Configuration.isFullGrounding()) {
+			if (fullGrounding) {
 
 				System.out.println("Performing the full grounding...");
 

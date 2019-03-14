@@ -21,6 +21,7 @@ import uk.ac.ox.cs.pdq.fol.ConjunctiveQuery;
 import uk.ac.ox.cs.pdq.fol.Constant;
 import uk.ac.ox.cs.pdq.fol.Dependency;
 import uk.ac.ox.cs.pdq.fol.Formula;
+import uk.ac.ox.cs.pdq.fol.Predicate;
 import uk.ac.ox.cs.pdq.fol.TGD;
 import uk.ac.ox.cs.pdq.fol.Term;
 import uk.ac.ox.cs.pdq.fol.UntypedConstant;
@@ -161,7 +162,18 @@ public class IO {
 
         // App.logger.info(substitution);
 
-        return (Atom) Logic.applySubstitution(atom, substitution);
+        Atom newAtom = (Atom) Logic.applySubstitution(atom, substitution);
+        Predicate predicate = newAtom.getPredicate();
+        String name = predicate.getName();
+        // First char to Lower Case
+        if (name.substring(0, 1).matches("[A-Z]")) {
+            App.logger.warn("Predicate starting with an upper-case letter. Transforming it to lower-case.");
+            return Atom.create(
+                    Predicate.create(name.substring(0, 1).toLowerCase() + name.substring(1), predicate.getArity()),
+                    newAtom.getTerms());
+        }
+
+        return newAtom;
 
     }
 

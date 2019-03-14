@@ -22,7 +22,8 @@ public class ChaseBenchTests {
             String basePath = "test" + File.separator + "ChaseBench" + File.separator + "scenarios" + File.separator
                     + "correctness" + File.separator + baseTest + File.separator;
 
-            SolverOutput executeChaseBenchScenario = App.executeChaseBenchScenario(baseTest, basePath, fact_querySize);
+            SolverOutput executeChaseBenchScenario = App.executeChaseBenchScenario(baseTest, basePath, fact_querySize,
+                    true);
 
             assertEquals(output_vals[count], executeChaseBenchScenario.getOutput().length());
             assertEquals(errors_vals[count], executeChaseBenchScenario.getErrors().length());
@@ -43,7 +44,8 @@ public class ChaseBenchTests {
 
         String fact_querySize = "";
 
-        SolverOutput executeChaseBenchScenario = App.executeChaseBenchScenario(baseTest, basePath, fact_querySize);
+        SolverOutput executeChaseBenchScenario = App.executeChaseBenchScenario(baseTest, basePath, fact_querySize,
+                true);
 
         assertEquals(1833, executeChaseBenchScenario.getOutput().length());
         assertEquals(0, executeChaseBenchScenario.getErrors().length());
@@ -60,7 +62,8 @@ public class ChaseBenchTests {
 
         String fact_querySize = "10k";
 
-        SolverOutput executeChaseBenchScenario = App.executeChaseBenchScenario(baseTest, basePath, fact_querySize);
+        SolverOutput executeChaseBenchScenario = App.executeChaseBenchScenario(baseTest, basePath, fact_querySize,
+                true);
 
         assertEquals(49690, executeChaseBenchScenario.getOutput().length());
         assertEquals(0, executeChaseBenchScenario.getErrors().length());
@@ -77,7 +80,8 @@ public class ChaseBenchTests {
 
         String fact_querySize = "";
 
-        SolverOutput executeChaseBenchScenario = App.executeChaseBenchScenario(baseTest, basePath, fact_querySize);
+        SolverOutput executeChaseBenchScenario = App.executeChaseBenchScenario(baseTest, basePath, fact_querySize,
+                true);
 
         assertEquals(12306747, executeChaseBenchScenario.getOutput().length());
         assertEquals(0, executeChaseBenchScenario.getErrors().length());

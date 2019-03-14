@@ -60,11 +60,11 @@ public class GSatTest {
 			Variable.create("z1"), Variable.create("y1"), Variable.create("y2"));
 	private static final Atom H2_y1y2 = Atom.create(Predicate.create("H2", 2), Variable.create("y1"),
 			Variable.create("y2"));
-	private static final Atom b_u1u2u3 = Atom.create(Predicate.create("b", 3), Variable.create("u1"),
+	private static final Atom B_u1u2u3 = Atom.create(Predicate.create("B", 3), Variable.create("u1"),
 			Variable.create("u2"), Variable.create("u3"));
-	private static final Atom h1_u2e1e2e3 = Atom.create(Predicate.create("h1", 4), Variable.create("u2"),
+	private static final Atom H1_u2e1e2e3 = Atom.create(Predicate.create("H1", 4), Variable.create("u2"),
 			Variable.create("e1"), Variable.create("e2"), Variable.create("e3"));
-	private static final Atom h2_e2e3 = Atom.create(Predicate.create("h2", 2), Variable.create("e2"),
+	private static final Atom H2_e2e3 = Atom.create(Predicate.create("H2", 2), Variable.create("e2"),
 			Variable.create("e3"));
 	private static final Atom U_u1u2u3 = Atom.create(Predicate.create("U", 3), Variable.create("u1"),
 			Variable.create("u2"), Variable.create("e1"));
@@ -178,7 +178,7 @@ public class GSatTest {
 		System.out.println("TGDs in VNFs: " + tgdsVNFs);
 
 		// ∀ u1,u2,u3 B(u1,u2,u3) → ∃ e1,e2,e3 H1(u2,e1,e2,e3) & H2(e2,e3)
-		TGD tgdExpected = TGD.create(new Atom[] { b_u1u2u3 }, new Atom[] { h1_u2e1e2e3, h2_e2e3 });
+		TGD tgdExpected = TGD.create(new Atom[] { B_u1u2u3 }, new Atom[] { H1_u2e1e2e3, H2_e2e3 });
 
 		assertEquals(1, tgdsVNFs.size());
 		assertTrue(tgdsVNFs.contains(tgdExpected));
@@ -196,7 +196,7 @@ public class GSatTest {
 		System.out.println("TGD in VNF: " + tgdVNF);
 
 		// ∀ u1,u2,u3 B(u1,u2,u3) → ∃ e1,e2,e3 H1(u2,e1,e2,e3) & H2(e2,e3)
-		TGD tgdExpected = TGD.create(new Atom[] { b_u1u2u3 }, new Atom[] { h1_u2e1e2e3, h2_e2e3 });
+		TGD tgdExpected = TGD.create(new Atom[] { B_u1u2u3 }, new Atom[] { H1_u2e1e2e3, H2_e2e3 });
 
 		assertEquals(tgdExpected, tgdVNF);
 

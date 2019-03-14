@@ -12,7 +12,6 @@ import uk.ac.ox.cs.pdq.fol.ConjunctiveQuery;
 import uk.ac.ox.cs.pdq.fol.Disjunction;
 import uk.ac.ox.cs.pdq.fol.Formula;
 import uk.ac.ox.cs.pdq.fol.Implication;
-import uk.ac.ox.cs.pdq.fol.Predicate;
 import uk.ac.ox.cs.pdq.fol.TGD;
 import uk.ac.ox.cs.pdq.fol.Term;
 import uk.ac.ox.cs.pdq.fol.Variable;
@@ -77,8 +76,7 @@ public class Logic {
 				else
 					nterms[termIndex] = term;
 			}
-			Predicate predicate = ((Atom) formula).getPredicate(); // to Lower Case
-			return Atom.create(Predicate.create(predicate.getName().toLowerCase(), predicate.getArity()), nterms);
+			return Atom.create(((Atom) formula).getPredicate(), nterms);
 		}
 		throw new java.lang.RuntimeException("Unsupported formula type: " + formula);
 	}

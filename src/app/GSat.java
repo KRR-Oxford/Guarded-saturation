@@ -246,9 +246,6 @@ public class GSat {
                         Term currentTermBody = bodyAtom.getTerm(i);
                         Term currentTermHead = headAtom.getTerm(i);
                         if (currentTermBody.isVariable() && currentTermHead.isVariable())
-                            // if (existentials.contains(currentTermHead)) // Identity on y
-                            // ;
-                            // else
                             if (result.containsKey(currentTermBody)) {
                                 if (!result.get(currentTermBody).equals(currentTermHead))
                                     return null;
@@ -274,7 +271,7 @@ public class GSat {
 
                     }
 
-        // evc
+        // existential variable check (evc)
         for (Atom a : bodyAtoms)
             if (!joinAtoms.contains(a))
                 for (Term t : a.getTerms())
