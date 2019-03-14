@@ -6,7 +6,7 @@
         {
             "label": "Create JAR",
             "type": "shell",
-            "command": "jar cvfm GSat.jar MANIFEST.MF -C build/classes/app . test",
+            "command": "jar cvfm GSat.jar MANIFEST.MF -C build/classes/app .",
             "group": {
                 "kind": "build",
                 "isDefault": true
