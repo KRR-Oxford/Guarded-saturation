@@ -66,20 +66,16 @@ public class App {
 
 		logger.info("Reading from: '" + basePath + "'");
 
+		Schema schema = null;
 		Dependency[] allDependencies = null;
 		Collection<TGD> queriesRules = null;
-		Collection<Atom> facts = null;
 		try {
 
-			Schema schema = IO.readSchemaAndDependenciesChaseBench(basePath, baseTest);
+			schema = IO.readSchemaAndDependenciesChaseBench(basePath, baseTest);
 			allDependencies = schema.getAllDependencies();
 
 			logger.info("# Dependencies: " + allDependencies.length);
 			logger.trace(schema);
-
-			facts = IO.readFactsChaseBench(basePath, fact_querySize, schema);
-			logger.info("# Facts: " + facts.size());
-			logger.trace(facts);
 
 			queriesRules = IO.readQueriesChaseBench(basePath, fact_querySize, schema);
 			logger.info("# Queries: " + queriesRules.size());
@@ -106,38 +102,58 @@ public class App {
 			System.exit(1);
 		}
 
+		logger.info("Converting facts to Datalog");
+		String baseOutputPath = "test" + File.separator + "datalog" + File.separator + baseTest + File.separator
+				+ fact_querySize + File.separator;
+		try {
+			new File(baseOutputPath).mkdirs();
+
+			if (!new File(baseOutputPath + "datalog.data").exists()) {
+
+				// Collection<Atom> facts = IO.readFactsChaseBench(basePath, fact_querySize,
+				// schema);
+				// logger.info("# Facts: " + facts.size());
+				// logger.trace(facts);
+
+				// IO.writeDatalogFacts(facts, baseOutputPath + "datalog.data");
+
+				// For performance reasons
+				IO.readFactsChaseBenchAndWriteToDatalog(basePath, fact_querySize, schema,
+						baseOutputPath + "datalog.data");
+
+			}
+
+		} catch (Exception e) {
+			System.err.println("Facts conversion to Datalog failed. The system will now terminate.");
+			System.exit(1);
+		}
+
 		SolverOutput solverOutput = null;
 		try {
-			String baseOutputPath = "test" + File.separator + "datalog" + File.separator;
-			new File(baseOutputPath).mkdirs();
-			IO.writeDatalogRules(guardedSaturation, baseOutputPath + baseTest + ".rul");
-			IO.writeDatalogFacts(facts, baseOutputPath + baseTest + ".data");
+			IO.writeDatalogRules(guardedSaturation, baseOutputPath + "datalog.rul");
 
 			System.out.println("Performing the full grounding...");
-			solverOutput = Logic.invokeSolver("executables" + File.separator + "idlv_1.1.3_windows_x86-64.exe",
-					"--t --no-facts --check-edb-duplication", // "dlv.mingw.exe", "-nofacts",
-					Arrays.asList(baseOutputPath + baseTest + ".rul", baseOutputPath + baseTest + ".data"));
+			solverOutput = Logic.invokeSolver(Configuration.getSolverPath(), Configuration.getSolverOptionsGrounding(),
+					Arrays.asList(baseOutputPath + "datalog.rul", baseOutputPath + "datalog.data"));
 
 			// System.out.println(solverOutput);
 			System.out.println(
 					"Output size: " + solverOutput.getOutput().length() + ", " + solverOutput.getErrors().length());
-			IO.writeSolverOutput(solverOutput, baseOutputPath + baseTest + ".idlv.output"); // ".dlv.output"
+			IO.writeSolverOutput(solverOutput, baseOutputPath + Configuration.getSolverName() + ".output");
 
 			for (TGD query : queriesRules) {
 
-				IO.writeChaseBenchDatalogQueries(Arrays.asList(query), baseOutputPath + baseTest + "_queries.rul");
+				IO.writeChaseBenchDatalogQueries(Arrays.asList(query), baseOutputPath + "queries.rul");
 
-				SolverOutput solverOutputQuery = Logic.invokeSolver(
-						"executables" + File.separator + "idlv_1.1.3_windows_x86-64.exe", "--query",
-						// "dlv.mingw.exe", "-FC",
-						Arrays.asList(baseOutputPath + baseTest + ".rul", baseOutputPath + baseTest + ".data",
-								baseOutputPath + baseTest + "_queries.rul"));
+				SolverOutput solverOutputQuery = Logic.invokeSolver(Configuration.getSolverPath(),
+						Configuration.getSolverOptionsQuery(), Arrays.asList(baseOutputPath + "datalog.rul",
+								baseOutputPath + "datalog.data", baseOutputPath + "queries.rul"));
 
 				// System.out.println(solverOutput2);
 				System.out.println("Output size: " + solverOutputQuery.getOutput().length() + ", "
 						+ solverOutputQuery.getErrors().length());
-				IO.writeSolverOutput(solverOutputQuery, baseOutputPath + baseTest + "."
-						+ query.getHead().getAtoms()[0].getPredicate() + ".idlv.output"); // ".dlv.output"
+				IO.writeSolverOutput(solverOutputQuery, baseOutputPath + Configuration.getSolverName() + "."
+						+ query.getHead().getAtoms()[0].getPredicate() + ".output");
 
 			}
 

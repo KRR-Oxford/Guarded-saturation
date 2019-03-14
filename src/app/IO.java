@@ -1,8 +1,11 @@
 import java.io.File;
 import java.io.IOException;
 import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
+import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.nio.file.StandardOpenOption;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -166,6 +169,38 @@ public class IO {
 
         return (Atom) Logic.applySubstitution(atom, substitution);
 
+    }
+
+    /**
+     * From PDQ testing code, slightly modified
+     * 
+     * @param fact_querySize
+     */
+    static void readFactsChaseBenchAndWriteToDatalog(String basePath, String fact_querySize, Schema schema,
+            String outputPath) {
+        Path path = Paths.get(outputPath);
+        File dataDir = new File(basePath + "data" + File.separator + fact_querySize);
+        if (dataDir.exists())
+            for (File f : dataDir.listFiles())
+                if (f.getName().endsWith(".csv")) {
+                    String name = f.getName().substring(0, f.getName().indexOf("."));
+                    if (schema.getRelation(name) == null)
+                        System.out.println("Can't process file: " + f.getAbsolutePath());
+                    else {
+                        Collection<String> datalogFacts = new LinkedList<>();
+
+                        for (Atom atom : CommonToPDQTranslator.importFacts(schema, name, f.getAbsolutePath()))
+                            datalogFacts.add(renameVariablesAndConstantsDatalog(atom).toString() + '.');
+
+                        try {
+                            Files.write(path, datalogFacts, StandardCharsets.UTF_8,
+                                    Files.exists(path) ? StandardOpenOption.APPEND : StandardOpenOption.CREATE);
+                        } catch (IOException e) {
+                            // TODO Auto-generated catch block
+                            e.printStackTrace();
+                        }
+                    }
+                }
     }
 
     public static void writeDatalogFacts(Collection<Atom> facts, String path) {
