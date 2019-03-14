@@ -29,11 +29,16 @@ public class App {
 
 			if (args.length > 0)
 				if (args[0].equals("cb"))
-					if (args.length == 3)
-						App.executeChaseBenchScenario(args[1], args[2], "");
-					else if (args.length == 4)
-						App.executeChaseBenchScenario(args[1], args[2], args[3]);
-					else
+					if (args.length == 3 || args.length == 4) {
+
+						String scenario = args[1];
+						String basePath = args[2];
+						if (!basePath.substring(basePath.length() - 1).equals(File.separator))
+							basePath += File.separator; // Simplify usage
+						String fact_querySize = args.length == 3 ? "" : args[3]; // Optional argument
+						App.executeChaseBenchScenario(scenario, basePath, fact_querySize);
+
+					} else
 						printHelp("Wrong number of parameters for cb");
 				else if (args[0].equals("dlgp"))
 					System.err.println("Not yet implemented!");
@@ -66,9 +71,9 @@ public class App {
 
 	}
 
-	public static SolverOutput executeChaseBenchScenario(String baseTest, String basePath, String fact_querySize) {
+	public static SolverOutput executeChaseBenchScenario(String scenario, String basePath, String fact_querySize) {
 
-		System.out.println("Executing ChaseBench scenario: " + baseTest + " " + basePath + " " + fact_querySize);
+		System.out.println("Executing ChaseBench scenario: " + scenario + " " + basePath + " " + fact_querySize);
 
 		logger.info("Reading from: '" + basePath + "'");
 
@@ -77,7 +82,7 @@ public class App {
 		Collection<TGD> queriesRules = null;
 		try {
 
-			schema = IO.readSchemaAndDependenciesChaseBench(basePath, baseTest);
+			schema = IO.readSchemaAndDependenciesChaseBench(basePath, scenario);
 			allDependencies = schema.getAllDependencies();
 
 			logger.info("# Dependencies: " + allDependencies.length);
@@ -109,7 +114,7 @@ public class App {
 		}
 
 		logger.info("Converting facts to Datalog");
-		String baseOutputPath = "test" + File.separator + "datalog" + File.separator + baseTest + File.separator
+		String baseOutputPath = "test" + File.separator + "datalog" + File.separator + scenario + File.separator
 				+ fact_querySize + File.separator;
 		try {
 			new File(baseOutputPath).mkdirs();
