@@ -143,14 +143,8 @@ public class App {
 		try {
 			IO.writeDatalogRules(guardedSaturation, baseOutputPath + "datalog.rul");
 
-			System.out.println("Performing the full grounding...");
-			solverOutput = Logic.invokeSolver(Configuration.getSolverPath(), Configuration.getSolverOptionsGrounding(),
-					Arrays.asList(baseOutputPath + "datalog.rul", baseOutputPath + "datalog.data"));
-
-			// System.out.println(solverOutput);
-			System.out.println(
-					"Output size: " + solverOutput.getOutput().length() + ", " + solverOutput.getErrors().length());
-			IO.writeSolverOutput(solverOutput, baseOutputPath + Configuration.getSolverName() + ".output");
+			if (!queriesRules.isEmpty())
+				System.out.println("Answering the queries...");
 
 			for (TGD query : queriesRules) {
 
@@ -165,6 +159,21 @@ public class App {
 						+ solverOutputQuery.getErrors().length());
 				IO.writeSolverOutput(solverOutputQuery, baseOutputPath + Configuration.getSolverName() + "."
 						+ query.getHead().getAtoms()[0].getPredicate() + ".output");
+
+			}
+
+			if (Configuration.isFullGrounding()) {
+
+				System.out.println("Performing the full grounding...");
+
+				solverOutput = Logic.invokeSolver(Configuration.getSolverPath(),
+						Configuration.getSolverOptionsGrounding(),
+						Arrays.asList(baseOutputPath + "datalog.rul", baseOutputPath + "datalog.data"));
+
+				// System.out.println(solverOutput);
+				System.out.println(
+						"Output size: " + solverOutput.getOutput().length() + ", " + solverOutput.getErrors().length());
+				IO.writeSolverOutput(solverOutput, baseOutputPath + Configuration.getSolverName() + ".output");
 
 			}
 

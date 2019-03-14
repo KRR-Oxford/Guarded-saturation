@@ -59,6 +59,28 @@ public class Configuration {
 
     }
 
+    public static boolean isSolverOutputToFile() {
+
+        Configuration.initialize();
+
+        if (Configuration.prop == null)
+            return true;
+
+        return Boolean.parseBoolean(Configuration.prop.getProperty("solver.output.to_file"));
+
+    }
+
+    public static boolean isFullGrounding() {
+
+        Configuration.initialize();
+
+        if (Configuration.prop == null)
+            return true;
+
+        return Boolean.parseBoolean(Configuration.prop.getProperty("solver.full_grounding"));
+
+    }
+
     private static void initialize() {
 
         if (Configuration.prop == null)

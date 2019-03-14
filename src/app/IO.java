@@ -260,6 +260,9 @@ public class IO {
 
     public static void writeSolverOutput(SolverOutput solverOutput, String path) throws IOException {
 
+        if (!Configuration.isSolverOutputToFile())
+            return;
+
         Files.write(Paths.get(path), Arrays.asList(solverOutput.getOutput(), solverOutput.getErrors()),
                 StandardCharsets.UTF_8);
 
