@@ -47,7 +47,7 @@ public class IRISPMTest {
 	private static final Atom Person_y = Atom.create(Predicate.create("Person", 1), Variable.create("y"));
 
 	private void fromIRISPM(Collection<TGD> allTGDs, Collection<Atom> allFacts, Collection<ConjunctiveQuery> allQueries,
-			int guardedSaturationSize) {
+			int guardedSaturationSize, int[] queryLenghts) {
 		System.out.println("Initial rules:");
 		allTGDs.forEach(System.out::println);
 		Collection<TGD> guardedSaturation = GSat.runGSat(allTGDs.toArray(new TGD[allTGDs.size()]));
@@ -68,18 +68,33 @@ public class IRISPMTest {
 		try {
 			IO.writeDatalogRules(guardedSaturation, baseOutputPath + "rules.rul");
 			IO.writeDatalogFacts(allFacts, baseOutputPath + "facts.data");
+			int count = 0;
+			assertEquals(allQueries.size(), queryLenghts.length);
 			for (ConjunctiveQuery q : allQueries) {
+
 				IO.writeDatalogQueries(Arrays.asList(q), baseOutputPath + "query.rul");
 				SolverOutput output = Logic.invokeSolver(
 						"executables" + File.separator + "idlv_1.1.2_windows_x86-64.exe", "--query",
 						Arrays.asList(baseOutputPath + "rules.rul", baseOutputPath + "facts.data",
 								baseOutputPath + "query.rul"));
 				System.out.println(output);
+
+				int expectedLines = queryLenghts[count++];
+				if (expectedLines != -1) {
+					assertEquals(expectedLines, countLines(output.getOutput()));
+					assertEquals(0, output.getErrors().length());
+				}
+
 			}
 		} catch (IOException | InterruptedException e) {
 			fail(e.getLocalizedMessage());
 		}
 
+	}
+
+	private static int countLines(String str) {
+		String[] lines = str.split("\r\n|\r|\n");
+		return lines.length;
 	}
 
 	@Test
@@ -106,7 +121,7 @@ public class IRISPMTest {
 		Collection<ConjunctiveQuery> allQueries = new LinkedList<>();
 		allQueries.add(ConjunctiveQuery.create(new Variable[] { Variable.create("x") }, new Atom[] { Q1_x }));
 
-		fromIRISPM(allTGDs, allFacts, allQueries, 2);
+		fromIRISPM(allTGDs, allFacts, allQueries, 2, new int[] { 1 });
 
 	}
 
@@ -136,7 +151,7 @@ public class IRISPMTest {
 				new Atom[] { r1_xy }));
 		allQueries.add(ConjunctiveQuery.create(new Variable[] { Variable.create("x") }, new Atom[] { r2_x }));
 
-		fromIRISPM(allTGDs, allFacts, allQueries, 1);
+		fromIRISPM(allTGDs, allFacts, allQueries, 1, new int[] { 1, 2 });
 
 	}
 
@@ -200,7 +215,7 @@ public class IRISPMTest {
 		allQueries.add(ConjunctiveQuery.create(new Variable[] { Variable.create("x") }, new Atom[] { Parent_x }));
 		allQueries.add(ConjunctiveQuery.create(new Variable[] { Variable.create("x") }, new Atom[] { Person_x }));
 
-		fromIRISPM(allTGDs, allFacts, allQueries, 12);
+		fromIRISPM(allTGDs, allFacts, allQueries, 12, new int[] { -1, 2, 3, 5 });
 
 	}
 
