@@ -50,6 +50,7 @@ public class App {
 
 		} catch (Throwable t) {
 			System.err.println("Unknown error. The system will now terminate.");
+			logger.debug(t);
 			System.exit(1);
 		}
 
@@ -96,6 +97,7 @@ public class App {
 
 		} catch (Exception e) {
 			System.err.println("Data loading failed. The system will now terminate.");
+			logger.debug(e);
 			System.exit(1);
 		}
 
@@ -182,6 +184,7 @@ public class App {
 
 		} catch (Exception e) {
 			System.err.println("Datalog solver execution failed. The system will now terminate.");
+			logger.debug(e);
 			System.exit(1);
 		}
 

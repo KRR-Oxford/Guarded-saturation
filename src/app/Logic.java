@@ -176,7 +176,7 @@ public class Logic {
 
 		final long stopTime = System.nanoTime();
 
-		App.logger.info("Solver total time : " + (stopTime - startTime) / 10E6 + " ms");
+		App.logger.info("Solver total time : " + (stopTime - startTime) / 1E6 + " ms");
 
 		return new SolverOutput(solverOutput.toString(), solverError.toString());
 

@@ -80,7 +80,7 @@ public class IRISPMTest {
 				System.out.println(output);
 
 				int expectedLines = queryLenghts[count++];
-				if (expectedLines != -1) {
+				if (expectedLines != -1) { // -1 disable the check
 					assertEquals(expectedLines, countLines(output.getOutput()));
 					assertEquals(0, output.getErrors().length());
 				}
