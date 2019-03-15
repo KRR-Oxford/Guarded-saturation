@@ -6,6 +6,14 @@
     "configurations": [
         {
             "type": "java",
+            "name": "cb tgds - App<Guarded-saturation>",
+            "request": "launch",
+            "mainClass": "App",
+            "projectName": "Guarded-saturation",
+            "args": "cb tgds test\\ChaseBench\\scenarios\\correctness\\tgds\\"
+        },
+        {
+            "type": "java",
             "name": "cb LUBM - App<Guarded-saturation>",
             "request": "launch",
             "mainClass": "App",
