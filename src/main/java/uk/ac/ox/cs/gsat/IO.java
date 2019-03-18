@@ -1,3 +1,5 @@
+package uk.ac.ox.cs.gsat;
+
 import java.io.File;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
@@ -16,7 +18,6 @@ import java.util.Map;
 import uk.ac.ox.cs.pdq.db.Relation;
 import uk.ac.ox.cs.pdq.db.Schema;
 import uk.ac.ox.cs.pdq.fol.Atom;
-import uk.ac.ox.cs.pdq.fol.Conjunction;
 import uk.ac.ox.cs.pdq.fol.ConjunctiveQuery;
 import uk.ac.ox.cs.pdq.fol.Constant;
 import uk.ac.ox.cs.pdq.fol.Dependency;
@@ -124,7 +125,8 @@ public class IO {
 
     private static Collection<? extends String> getDatalogRules(TGD tgd) {
 
-        assert !Logic.isFull(tgd);
+        if (!Logic.isFull(tgd))
+            throw new IllegalArgumentException("TGD not full while writing to Datalog");
 
         StringBuilder body = new StringBuilder();
         String to_append = ":-";
@@ -233,11 +235,10 @@ public class IO {
         StringBuilder querySB = new StringBuilder();
         String to_append = "";
         for (Formula f : query.getChildren()) {
-            if (f instanceof Conjunction) {
+            if (!(f instanceof Atom)) {
                 App.logger.warn("We only accept atomic queries");
                 return "";
             }
-            assert (f instanceof Atom);
             querySB.append(to_append);
             if (to_append == "")
                 to_append = ",";
@@ -265,7 +266,9 @@ public class IO {
 
     private static String getProjectedDatalogQuery(TGD query) {
 
-        assert query.getHeadAtoms().length == 1;
+        if (query.getHeadAtoms().length != 1)
+            throw new IllegalArgumentException("The query is not atomic");
+
         return renameVariablesAndConstantsDatalog(query.getHeadAtom(0)).toString() + " ?";
 
     }

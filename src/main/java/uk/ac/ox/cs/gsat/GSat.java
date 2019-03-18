@@ -1,3 +1,5 @@
+package uk.ac.ox.cs.gsat;
+
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -146,7 +148,8 @@ public class GSat {
 
     public static TGD VNF(TGD tgd) {
 
-        assert tgd != null;
+        if (tgd == null)
+            throw new IllegalArgumentException("Null TGD in VNF");
 
         Variable[] uVariables = tgd.getUniversal();
         Variable[] eVariables = tgd.getExistential();

@@ -1,3 +1,5 @@
+package uk.ac.ox.cs;
+
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.fail;
 
@@ -9,6 +11,10 @@ import java.util.LinkedList;
 
 import org.junit.Test;
 
+import uk.ac.ox.cs.gsat.GSat;
+import uk.ac.ox.cs.gsat.IO;
+import uk.ac.ox.cs.gsat.Logic;
+import uk.ac.ox.cs.gsat.SolverOutput;
 import uk.ac.ox.cs.pdq.fol.Atom;
 import uk.ac.ox.cs.pdq.fol.ConjunctiveQuery;
 import uk.ac.ox.cs.pdq.fol.Predicate;

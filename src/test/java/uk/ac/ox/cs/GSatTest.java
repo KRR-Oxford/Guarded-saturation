@@ -1,3 +1,5 @@
+package uk.ac.ox.cs;
+
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
@@ -9,6 +11,7 @@ import java.util.Map;
 
 import org.junit.Test;
 
+import uk.ac.ox.cs.gsat.GSat;
 import uk.ac.ox.cs.pdq.fol.Atom;
 import uk.ac.ox.cs.pdq.fol.Predicate;
 import uk.ac.ox.cs.pdq.fol.TGD;

@@ -1,3 +1,5 @@
+package uk.ac.ox.cs.gsat;
+
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.IOException;
@@ -95,7 +97,7 @@ public class Logic {
 	 * @throws InterruptedException
 	 * @throws IOException
 	 */
-	static SolverOutput invokeSolver(String exe_path, String options, List<String> files)
+	public static SolverOutput invokeSolver(String exe_path, String options, List<String> files)
 			throws InterruptedException, IOException {
 		String files_paths = new String();
 
