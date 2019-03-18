@@ -25,10 +25,14 @@ public class GSat {
 
         Collection<TGD> newTGDs = new HashSet<>();
 
+        int discarded = 0;
+
         for (Dependency d : allDependencies)
             if (d instanceof TGD && ((TGD) d).isGuarded()) // Adding only Guarded TGDs
                 // if (!(d instanceof EGD))
                 newTGDs.addAll(VNFs(HNF((TGD) d)));
+            else
+                discarded++;
 
         App.logger.debug("# initial TGDs: " + newTGDs.size());
         newTGDs.forEach(App.logger::debug);
@@ -89,7 +93,12 @@ public class GSat {
 
         final long stopTime = System.nanoTime();
 
-        App.logger.info("GSat total time : " + (stopTime - startTime) / 10E6 + " ms");
+        long totalTime = stopTime - startTime;
+
+        App.logger.info("GSat total time : " + totalTime / 1E6 + " ms = " + totalTime / 1E9 + " s");
+
+        App.logger.info("GSat discarded rules : " + discarded + "/" + allDependencies.length + " = "
+                + (float) discarded / allDependencies.length * 100 + "%");
 
         return fullTGDs;
 
