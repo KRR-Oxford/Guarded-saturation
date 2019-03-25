@@ -6,6 +6,7 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.PrintWriter;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 
 import uk.ac.ox.cs.pdq.fol.Atom;
@@ -180,7 +181,8 @@ public class Logic {
 
 		long totalTime = stopTime - startTime;
 
-		App.logger.info("Solver total time : " + totalTime / 1E6 + " ms = " + totalTime / 1E9 + " s");
+		App.logger.info("Solver total time : " + String.format(Locale.UK, "%.0f", totalTime / 1E6) + " ms = "
+				+ String.format(Locale.UK, "%.2f", totalTime / 1E9) + " s");
 
 		return new SolverOutput(solverOutput.toString(), solverError.toString());
 

@@ -6,6 +6,7 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedList;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
 
@@ -35,6 +36,9 @@ public class GSat {
                 newTGDs.addAll(VNFs(HNF((TGD) d)));
             else
                 discarded++;
+
+        App.logger.info("GSat discarded rules : " + discarded + "/" + allDependencies.length + " = "
+                + (float) discarded / allDependencies.length * 100 + "%");
 
         App.logger.debug("# initial TGDs: " + newTGDs.size());
         newTGDs.forEach(App.logger::debug);
@@ -69,7 +73,9 @@ public class GSat {
         // newTGDs.addAll(fullTGDs);
 
         while (!newTGDs.isEmpty()) {
-            App.logger.debug("# new TGDs: " + newTGDs.size());
+            // System.out.print('.');
+
+            App.logger.warn("# new TGDs: " + newTGDs.size());
             newTGDs.forEach(App.logger::debug);
 
             TGD currentTGD = newTGDs.iterator().next();
@@ -91,16 +97,16 @@ public class GSat {
             for (TGD d : tempTGDsSet)
                 if (Logic.isFull(d) && !fullTGDs.contains(d) || !Logic.isFull(d) && !nonFullTGDs.contains(d))
                     newTGDs.add(d);
+
         }
+        // System.out.println();
 
         final long stopTime = System.nanoTime();
 
         long totalTime = stopTime - startTime;
 
-        App.logger.info("GSat total time : " + totalTime / 1E6 + " ms = " + totalTime / 1E9 + " s");
-
-        App.logger.info("GSat discarded rules : " + discarded + "/" + allDependencies.length + " = "
-                + (float) discarded / allDependencies.length * 100 + "%");
+        App.logger.info("GSat total time : " + String.format(Locale.UK, "%.0f", totalTime / 1E6) + " ms = "
+                + String.format(Locale.UK, "%.2f", totalTime / 1E9) + " s");
 
         return fullTGDs;
 
