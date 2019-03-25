@@ -9,12 +9,17 @@ import java.nio.file.Paths;
 import java.nio.file.StandardOpenOption;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Base64;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 
+import fr.lirmm.graphik.graal.api.core.AtomSet;
+import fr.lirmm.graphik.graal.api.core.Rule;
+import fr.lirmm.graphik.util.stream.CloseableIterator;
+import fr.lirmm.graphik.util.stream.IteratorException;
 import uk.ac.ox.cs.pdq.db.Relation;
 import uk.ac.ox.cs.pdq.db.Schema;
 import uk.ac.ox.cs.pdq.fol.Atom;
@@ -123,7 +128,7 @@ public class IO {
 
     }
 
-    private static Collection<? extends String> getDatalogRules(TGD tgd) {
+    public static Collection<? extends String> getDatalogRules(TGD tgd) {
 
         if (!Logic.isFull(tgd))
             throw new IllegalArgumentException("TGD not full while writing to Datalog");
@@ -165,16 +170,36 @@ public class IO {
         // App.logger.info(substitution);
 
         Atom newAtom = (Atom) Logic.applySubstitution(atom, substitution);
+
         Predicate predicate = newAtom.getPredicate();
         String name = predicate.getName();
-        // First char to Lower Case
-        if (name.substring(0, 1).matches("[A-Z]")) {
-            App.logger.warn("Predicate starting with an upper-case letter. Transforming it to lower-case.");
-            return Atom.create(
-                    Predicate.create(name.substring(0, 1).toLowerCase() + name.substring(1), predicate.getArity()),
-                    newAtom.getTerms());
+        if (name != null) {
+            // First char to Lower Case
+            if (name.length() > 0 && name.substring(0, 1).matches("[A-Z]")) {
+                App.logger.info("Predicate starting with an upper-case letter. Transforming it to lower-case.");
+                return Atom.create(
+                        Predicate.create(name.substring(0, 1).toLowerCase() + name.substring(1), predicate.getArity()),
+                        newAtom.getTerms());
+            }
+            // URL in angle bracket
+            if (name.length() > 6 && name.substring(0, 7).equals("http://")) {
+                App.logger.info("URL as predicate name. Adding angle brackets.");
+                // return Atom.create(Predicate.create('<' + name + '>', predicate.getArity()),
+                // newAtom.getTerms());
+                return Atom.create(
+                        Predicate.create(Base64.getUrlEncoder().withoutPadding().encodeToString(name.getBytes()),
+                                predicate.getArity()),
+                        newAtom.getTerms());
+            }
+            // // remove unwanted chars
+            // FIXME
+            // if (!name.matches("[a-z]([A-Z_])+")) {
+            // App.logger.warn("Not a valid predicate name. " + name);
+            // return Atom.create(Predicate.create(name.replaceAll("", ""),
+            // predicate.getArity()),
+            // newAtom.getTerms());
+            // }
         }
-
         return newAtom;
 
     }
@@ -230,7 +255,7 @@ public class IO {
 
     }
 
-    private static String getDatalogQuery(ConjunctiveQuery query) {
+    public static String getDatalogQuery(ConjunctiveQuery query) {
 
         StringBuilder querySB = new StringBuilder();
         String to_append = "";
@@ -264,7 +289,7 @@ public class IO {
 
     }
 
-    private static String getProjectedDatalogQuery(TGD query) {
+    public static String getProjectedDatalogQuery(TGD query) {
 
         if (query.getHeadAtoms().length != 1)
             throw new IllegalArgumentException("The query is not atomic");
@@ -280,6 +305,87 @@ public class IO {
 
         Files.write(Paths.get(path), Arrays.asList(solverOutput.getOutput(), solverOutput.getErrors()),
                 StandardCharsets.UTF_8);
+
+    }
+
+    public static List<Atom> getPDQAtomsFromGraalAtomSets(List<AtomSet> atomSets) throws IteratorException {
+
+        List<Atom> atoms = new LinkedList<>();
+
+        for (AtomSet atomSet : atomSets)
+            atoms.addAll(getPDQAtomsFromGraalAtomSet(atomSet));
+
+        return atoms;
+
+    }
+
+    public static List<Atom> getPDQAtomsFromGraalAtomSet(AtomSet atomSet) throws IteratorException {
+
+        List<Atom> atoms = new LinkedList<>();
+
+        CloseableIterator<fr.lirmm.graphik.graal.api.core.Atom> it = atomSet.iterator();
+
+        while (it.hasNext()) {
+
+            fr.lirmm.graphik.graal.api.core.Atom next = it.next();
+
+            atoms.add(getPDQAtomFromGraalAtom(next.getPredicate(), next.getTerms()));
+
+        }
+
+        return atoms;
+
+    }
+
+    public static Atom getPDQAtomFromGraalAtom(fr.lirmm.graphik.graal.api.core.Predicate predicate,
+            List<fr.lirmm.graphik.graal.api.core.Term> terms) {
+        return Atom.create(getPDQPredicateFromGraalPredicate(predicate), getPDQTermsFromGraalTerms(terms));
+    }
+
+    public static Predicate getPDQPredicateFromGraalPredicate(fr.lirmm.graphik.graal.api.core.Predicate predicate) {
+        if (predicate.equals(fr.lirmm.graphik.graal.api.core.Predicate.TOP)
+                || predicate.equals(fr.lirmm.graphik.graal.api.core.Predicate.BOTTOM)
+                || predicate.equals(fr.lirmm.graphik.graal.api.core.Predicate.EQUALITY)) {
+            return Predicate.create("true", predicate.getArity());
+            // FIXME
+        }
+        return Predicate.create(predicate.getIdentifier().toString(), predicate.getArity());
+
+    }
+
+    public static Term[] getPDQTermsFromGraalTerms(List<fr.lirmm.graphik.graal.api.core.Term> terms) {
+
+        List<Term> PDQterms = new LinkedList<>();
+
+        for (fr.lirmm.graphik.graal.api.core.Term term : terms) {
+
+            String term_label = term.toString();
+            if (term_label != null && term_label.length() > 2 && term_label.substring(0, 2).equals("_:"))
+                PDQterms.add(UntypedConstant.create(term_label));
+            else if (term.isConstant() || term.isLiteral())
+                PDQterms.add(UntypedConstant.create(term_label));
+            else if (term.isVariable())
+                PDQterms.add(Variable.create(term_label));
+            else
+                throw new IllegalArgumentException("Unknown Term " + term + " of " + term.getClass());
+
+        }
+
+        return PDQterms.toArray(new Term[PDQterms.size()]);
+
+    }
+
+    public static List<TGD> getPDQTGDsFromGraalRules(List<Rule> rules) throws IteratorException {
+
+        List<TGD> tgds = new LinkedList<>();
+
+        for (Rule rule : rules) {
+            List<Atom> body = getPDQAtomsFromGraalAtomSet(rule.getBody());
+            List<Atom> head = getPDQAtomsFromGraalAtomSet(rule.getHead());
+            tgds.add(TGD.create(body.toArray(new Atom[body.size()]), head.toArray(new Atom[head.size()])));
+        }
+
+        return tgds;
 
     }
 
