@@ -327,7 +327,10 @@ public class IO {
 
             fr.lirmm.graphik.graal.api.core.Atom next = it.next();
 
-            atoms.add(getPDQAtomFromGraalAtom(next.getPredicate(), next.getTerms()));
+            Atom pdqAtomFromGraalAtom = getPDQAtomFromGraalAtom(next.getPredicate(), next.getTerms());
+
+            if (pdqAtomFromGraalAtom != null)
+                atoms.add(pdqAtomFromGraalAtom);
 
         }
 
@@ -337,16 +340,23 @@ public class IO {
 
     public static Atom getPDQAtomFromGraalAtom(fr.lirmm.graphik.graal.api.core.Predicate predicate,
             Collection<fr.lirmm.graphik.graal.api.core.Term> terms) {
-        return Atom.create(getPDQPredicateFromGraalPredicate(predicate), getPDQTermsFromGraalTerms(terms));
+
+        Predicate pdqPredicateFromGraalPredicate = getPDQPredicateFromGraalPredicate(predicate);
+
+        if (pdqPredicateFromGraalPredicate == null)
+            return null;
+
+        return Atom.create(pdqPredicateFromGraalPredicate, getPDQTermsFromGraalTerms(terms));
+
     }
 
     public static Predicate getPDQPredicateFromGraalPredicate(fr.lirmm.graphik.graal.api.core.Predicate predicate) {
+
         if (predicate.equals(fr.lirmm.graphik.graal.api.core.Predicate.TOP)
                 || predicate.equals(fr.lirmm.graphik.graal.api.core.Predicate.BOTTOM)
-                || predicate.equals(fr.lirmm.graphik.graal.api.core.Predicate.EQUALITY)) {
-            return Predicate.create("true", predicate.getArity());
-            // FIXME
-        }
+                || predicate.equals(fr.lirmm.graphik.graal.api.core.Predicate.EQUALITY))
+            return null;
+
         return Predicate.create(predicate.getIdentifier().toString(), predicate.getArity());
 
     }
