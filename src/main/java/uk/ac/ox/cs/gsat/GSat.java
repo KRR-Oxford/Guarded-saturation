@@ -5,10 +5,10 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.LinkedList;
 import java.util.Locale;
 import java.util.Map;
-import java.util.Set;
+import java.util.Objects;
+import java.util.stream.Collectors;
 
 import uk.ac.ox.cs.pdq.fol.Atom;
 import uk.ac.ox.cs.pdq.fol.Dependency;
@@ -21,12 +21,12 @@ import uk.ac.ox.cs.pdq.fol.Variable;
  */
 public class GSat {
 
-    public static Collection<TGD> runGSat(Dependency[] allDependencies) {
+    public static Collection<TGDGSat> runGSat(Dependency[] allDependencies) {
 
         System.out.println("Running GSat...");
         final long startTime = System.nanoTime();
 
-        Collection<TGD> newTGDs = new HashSet<>();
+        Collection<TGDGSat> newTGDs = new HashSet<>();
 
         int discarded = 0;
 
@@ -38,13 +38,13 @@ public class GSat {
                 discarded++;
 
         App.logger.info("GSat discarded rules : " + discarded + "/" + allDependencies.length + " = "
-                + (float) discarded / allDependencies.length * 100 + "%");
+                + String.format(Locale.UK, "%.3f", (float) discarded / allDependencies.length * 100) + "%");
 
         App.logger.debug("# initial TGDs: " + newTGDs.size());
         newTGDs.forEach(App.logger::debug);
 
-        Collection<TGD> nonFullTGDs = new HashSet<>();
-        Collection<TGD> fullTGDs = new HashSet<>();
+        Collection<TGDGSat> nonFullTGDs = new HashSet<>();
+        Collection<TGDGSat> fullTGDs = new HashSet<>();
 
         // for (TGD d : allDependencies)
         // if (isFull(d))
@@ -78,25 +78,29 @@ public class GSat {
             App.logger.warn("# new TGDs: " + newTGDs.size());
             newTGDs.forEach(App.logger::debug);
 
-            TGD currentTGD = newTGDs.iterator().next();
+            TGDGSat currentTGD = newTGDs.iterator().next();
             App.logger.debug("current TGD: " + currentTGD);
             newTGDs.remove(currentTGD);
 
-            Set<TGD> tempTGDsSet = new HashSet<>();
+            Collection<TGDGSat> tempTGDsSet = new ArrayList<>();
 
             if (Logic.isFull(currentTGD)) {
                 fullTGDs.add(currentTGD);
-                for (TGD nftgd : nonFullTGDs)
+                for (TGDGSat nftgd : nonFullTGDs)
                     tempTGDsSet.addAll(VNFs(HNF(evolve(nftgd, currentTGD))));
             } else {
                 nonFullTGDs.add(currentTGD);
-                for (TGD ftgd : fullTGDs)
+                for (TGDGSat ftgd : fullTGDs)
                     tempTGDsSet.addAll(VNFs(HNF(evolve(currentTGD, ftgd))));
             }
 
-            for (TGD d : tempTGDsSet)
-                if (Logic.isFull(d) && !fullTGDs.contains(d) || !Logic.isFull(d) && !nonFullTGDs.contains(d))
+            for (TGDGSat d : tempTGDsSet)
+                if ((Logic.isFull(d) && !fullTGDs.contains(d)) || (!Logic.isFull(d) && !nonFullTGDs.contains(d))) {
+                    App.logger.debug("adding new TGD: " + d + "\t" + d.equals(currentTGD) + ": "
+                            + nonFullTGDs.contains(currentTGD) + ": " + nonFullTGDs.contains(d) + ": "
+                            + Objects.equals(d, currentTGD));
                     newTGDs.add(d);
+                }
 
         }
         // System.out.println();
@@ -114,15 +118,15 @@ public class GSat {
 
     public static Collection<TGD> HNF(TGD tgd) {
 
-        Collection<TGD> result = new ArrayList<>();
+        Collection<TGD> result = new HashSet<>();
 
         if (tgd == null)
             return result;
 
         Variable[] eVariables = tgd.getExistential();
 
-        Collection<Atom> eHead = new LinkedList<>();
-        Collection<Atom> fHead = new LinkedList<>();
+        Collection<Atom> eHead = new HashSet<>();
+        Collection<Atom> fHead = new HashSet<>();
 
         for (Atom a : tgd.getHeadAtoms())
             if (Logic.containsAny(a, eVariables))
@@ -141,18 +145,13 @@ public class GSat {
 
     }
 
-    public static Collection<TGD> VNFs(Collection<TGD> tgds) {
+    public static Collection<TGDGSat> VNFs(Collection<TGD> tgds) {
 
-        Collection<TGD> result = new LinkedList<>();
-
-        for (TGD d : tgds)
-            result.add(VNF(d));
-
-        return result;
+        return tgds.stream().map((tgd) -> VNF(tgd)).collect(Collectors.toList());
 
     }
 
-    public static TGD VNF(TGD tgd) {
+    public static TGDGSat VNF(TGD tgd) {
 
         if (tgd == null)
             throw new IllegalArgumentException("Null TGD in VNF");
@@ -172,7 +171,7 @@ public class GSat {
 
         App.logger.debug("VNF substitution:\n" + substitution);
 
-        TGD applySubstitution = (TGD) Logic.applySubstitution(tgd, substitution);
+        TGDGSat applySubstitution = new TGDGSat((TGD) Logic.applySubstitution(tgd, substitution));
         App.logger.debug("VNF: " + tgd + "===>>>" + applySubstitution);
         return applySubstitution;
 
@@ -212,7 +211,7 @@ public class GSat {
 
     public static Collection<Atom> getJoinAtoms(Atom[] headAtoms, Atom[] bodyAtoms) {
 
-        Collection<Atom> result = new LinkedList<>();
+        Collection<Atom> result = new HashSet<>();
 
         for (Atom bodyAtom : bodyAtoms)
             for (Atom headAtom : headAtoms)
@@ -227,10 +226,10 @@ public class GSat {
 
     public static TGD getEvolveRule(TGD nftgd, TGD ftgd, Collection<Atom> joinAtoms) {
 
-        Collection<Atom> nftgdBodyAtoms = new ArrayList<>(Arrays.asList(nftgd.getBodyAtoms()));
-        Collection<Atom> nftgdHeadAtoms = new ArrayList<>(Arrays.asList(nftgd.getHeadAtoms()));
-        Collection<Atom> ftgdBodyAtoms = new ArrayList<>(Arrays.asList(ftgd.getBodyAtoms()));
-        Collection<Atom> ftgdHeadAtoms = new ArrayList<>(Arrays.asList(ftgd.getHeadAtoms()));
+        Collection<Atom> nftgdBodyAtoms = new HashSet<>(Arrays.asList(nftgd.getBodyAtoms()));
+        Collection<Atom> nftgdHeadAtoms = new HashSet<>(Arrays.asList(nftgd.getHeadAtoms()));
+        Collection<Atom> ftgdBodyAtoms = new HashSet<>(Arrays.asList(ftgd.getBodyAtoms()));
+        Collection<Atom> ftgdHeadAtoms = new HashSet<>(Arrays.asList(ftgd.getHeadAtoms()));
 
         ftgdBodyAtoms.removeAll(joinAtoms);
         nftgdBodyAtoms.addAll(ftgdBodyAtoms);
@@ -302,7 +301,7 @@ public class GSat {
 
     public static Atom[] applyMGU(Collection<Atom> nftgdHeadAtoms, Map<Term, Term> mgu) {
 
-        Collection<Atom> result = new LinkedList<>();
+        Collection<Atom> result = new HashSet<>();
 
         nftgdHeadAtoms.forEach(atom -> result.add((Atom) Logic.applySubstitution(atom, mgu)));
 

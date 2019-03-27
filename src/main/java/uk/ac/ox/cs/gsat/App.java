@@ -4,8 +4,7 @@ import java.io.File;
 import java.nio.file.Paths;
 import java.util.Arrays;
 import java.util.Collection;
-import java.util.LinkedList;
-import java.util.List;
+import java.util.HashSet;
 
 import org.apache.commons.lang3.ArrayUtils;
 import org.apache.logging.log4j.LogManager;
@@ -120,7 +119,7 @@ public class App {
 			System.exit(1);
 		}
 
-		Collection<TGD> guardedSaturation = null;
+		Collection<TGDGSat> guardedSaturation = null;
 		try {
 
 			guardedSaturation = GSat
@@ -133,8 +132,12 @@ public class App {
 
 		} catch (Exception e) {
 			System.err.println("Guarded Saturation algorithm failed. The system will now terminate.");
+			logger.debug(e);
 			System.exit(1);
 		}
+
+		if (!fullGrounding && queriesRules.isEmpty())
+			return null;
 
 		logger.info("Converting facts to Datalog");
 		String baseOutputPath = "test" + File.separator + "datalog" + File.separator + scenario + File.separator
@@ -228,8 +231,8 @@ public class App {
 
 		boolean fullGrounding = Configuration.isFullGrounding();
 
-		List<Rule> rules = new LinkedList<>();
-		List<AtomSet> atomSets = new LinkedList<>();
+		Collection<Rule> rules = new HashSet<>();
+		Collection<AtomSet> atomSets = new HashSet<>();
 
 		try {
 
@@ -257,10 +260,10 @@ public class App {
 
 		System.out.println("# Rules: " + rules.size() + "; # AtomSets: " + atomSets.size());
 
-		Collection<TGD> guardedSaturation = null;
+		Collection<TGDGSat> guardedSaturation = null;
 		try {
 
-			List<TGD> tgds = IO.getPDQTGDsFromGraalRules(rules);
+			Collection<TGD> tgds = IO.getPDQTGDsFromGraalRules(rules);
 			rules = null;
 			guardedSaturation = GSat.runGSat(tgds.toArray(new TGD[tgds.size()]));
 			logger.info("Rewriting completed!");
@@ -271,6 +274,7 @@ public class App {
 
 		} catch (Exception e) {
 			System.err.println("Guarded Saturation algorithm failed. The system will now terminate.");
+			logger.debug(e);
 			System.exit(1);
 		}
 
@@ -286,7 +290,7 @@ public class App {
 
 			try {
 
-				List<Atom> atoms = IO.getPDQAtomsFromGraalAtomSets(atomSets);
+				Collection<Atom> atoms = IO.getPDQAtomsFromGraalAtomSets(atomSets);
 				atomSets = null;
 				System.out.println("# PDQ Atoms: " + atoms.size());
 
@@ -297,6 +301,7 @@ public class App {
 
 			} catch (Exception e) {
 				System.err.println("Facts conversion to Datalog failed. The system will now terminate.");
+				logger.debug(e);
 				System.exit(1);
 			}
 
@@ -320,6 +325,7 @@ public class App {
 				logger.debug(e);
 				System.exit(1);
 			}
+
 		}
 
 	}

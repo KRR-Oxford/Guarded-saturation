@@ -7,6 +7,7 @@ import java.io.File;
 import java.io.IOException;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.HashSet;
 import java.util.LinkedList;
 
 import org.junit.Test;
@@ -15,6 +16,7 @@ import uk.ac.ox.cs.gsat.GSat;
 import uk.ac.ox.cs.gsat.IO;
 import uk.ac.ox.cs.gsat.Logic;
 import uk.ac.ox.cs.gsat.SolverOutput;
+import uk.ac.ox.cs.gsat.TGDGSat;
 import uk.ac.ox.cs.pdq.fol.Atom;
 import uk.ac.ox.cs.pdq.fol.ConjunctiveQuery;
 import uk.ac.ox.cs.pdq.fol.Predicate;
@@ -56,7 +58,7 @@ public class IRISPMTest {
 			int guardedSaturationSize, int[] queryLenghts) {
 		System.out.println("Initial rules:");
 		allTGDs.forEach(System.out::println);
-		Collection<TGD> guardedSaturation = GSat.runGSat(allTGDs.toArray(new TGD[allTGDs.size()]));
+		Collection<TGDGSat> guardedSaturation = GSat.runGSat(allTGDs.toArray(new TGD[allTGDs.size()]));
 
 		System.out.println("Guarded saturation:");
 		guardedSaturation.forEach(System.out::println);
@@ -116,12 +118,12 @@ public class IRISPMTest {
 
 		// ?- Q1(?x).
 
-		Collection<TGD> allTGDs = new LinkedList<>();
+		Collection<TGD> allTGDs = new HashSet<>();
 		allTGDs.add(TGD.create(new Atom[] { IMP_xy }, new Atom[] { DIP_yz }));
 		allTGDs.add(TGD.create(new Atom[] { DIP_xy }, new Atom[] { IMP_yw }));
 		allTGDs.add(TGD.create(new Atom[] { DIP_xy }, new Atom[] { Q1_x }));
 
-		Collection<Atom> allFacts = new LinkedList<>();
+		Collection<Atom> allFacts = new HashSet<>();
 		allFacts.add(Atom.create(Predicate.create("DIP", 2), UntypedConstant.create("a"), UntypedConstant.create("b")));
 
 		Collection<ConjunctiveQuery> allQueries = new LinkedList<>();
@@ -144,11 +146,11 @@ public class IRISPMTest {
 		// ?- r1(?x, ?y).
 		// ?- r2(?x).
 
-		Collection<TGD> allTGDs = new LinkedList<>();
+		Collection<TGD> allTGDs = new HashSet<>();
 		allTGDs.add(TGD.create(new Atom[] { r1_xy, r2_y }, new Atom[] { r1_zx }));
 		allTGDs.add(TGD.create(new Atom[] { r1_xy }, new Atom[] { r2_x }));
 
-		Collection<Atom> allFacts = new LinkedList<>();
+		Collection<Atom> allFacts = new HashSet<>();
 		allFacts.add(Atom.create(Predicate.create("r1", 2), UntypedConstant.create("a"), UntypedConstant.create("b")));
 		allFacts.add(Atom.create(Predicate.create("r2", 1), UntypedConstant.create("b")));
 
@@ -193,7 +195,7 @@ public class IRISPMTest {
 		// Person(?x) :- hasSon(?x, ?y).
 		// Person(?y) :- hasSon(?x, ?y).
 
-		Collection<TGD> allTGDs = new LinkedList<>();
+		Collection<TGD> allTGDs = new HashSet<>();
 		allTGDs.add(TGD.create(new Atom[] { Parent_x }, new Atom[] { anon2_x }));
 		allTGDs.add(TGD.create(new Atom[] { anon2_x }, new Atom[] { Parent_x }));
 		allTGDs.add(TGD.create(new Atom[] { anon2_x }, new Atom[] { Person_x }));
@@ -205,7 +207,7 @@ public class IRISPMTest {
 		allTGDs.add(TGD.create(new Atom[] { hasSon_xy }, new Atom[] { Person_x }));
 		allTGDs.add(TGD.create(new Atom[] { hasSon_xy }, new Atom[] { Person_y }));
 
-		Collection<Atom> allFacts = new LinkedList<>();
+		Collection<Atom> allFacts = new HashSet<>();
 		allFacts.add(Atom.create(Predicate.create("Person", 1), UntypedConstant.create("Ermanna")));
 		allFacts.add(Atom.create(Predicate.create("Parent", 1), UntypedConstant.create("Lucia")));
 		allFacts.add(Atom.create(Predicate.create("hasSon", 2), UntypedConstant.create("Ermanna"),

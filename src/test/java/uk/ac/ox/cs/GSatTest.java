@@ -6,12 +6,13 @@ import static org.junit.Assert.assertTrue;
 
 import java.util.Arrays;
 import java.util.Collection;
-import java.util.LinkedList;
+import java.util.HashSet;
 import java.util.Map;
 
 import org.junit.Test;
 
 import uk.ac.ox.cs.gsat.GSat;
+import uk.ac.ox.cs.gsat.TGDGSat;
 import uk.ac.ox.cs.pdq.fol.Atom;
 import uk.ac.ox.cs.pdq.fol.Predicate;
 import uk.ac.ox.cs.pdq.fol.TGD;
@@ -90,7 +91,7 @@ public class GSatTest {
 		TGD t3 = TGD.create(new Atom[] { U_x1x2x3 }, new Atom[] { P_x1, V_x1x2 });
 		TGD t4 = TGD.create(new Atom[] { T_x1x2x3, V_x1x2, S_x1 }, new Atom[] { M_x1 });
 
-		Collection<TGD> allTGDs = new LinkedList<>();
+		Collection<TGD> allTGDs = new HashSet<>();
 		allTGDs.add(t1);
 		allTGDs.add(t2);
 		allTGDs.add(t3);
@@ -98,7 +99,7 @@ public class GSatTest {
 		System.out.println("Initial rules:");
 		allTGDs.forEach(System.out::println);
 
-		Collection<TGD> guardedSaturation = GSat.runGSat(allTGDs.toArray(new TGD[allTGDs.size()]));
+		Collection<TGDGSat> guardedSaturation = GSat.runGSat(allTGDs.toArray(new TGD[allTGDs.size()]));
 
 		System.out.println("Guarded saturation:");
 		guardedSaturation.forEach(System.out::println);
@@ -125,7 +126,7 @@ public class GSatTest {
 		t2 = TGD.create(new Atom[] { S_x1x2x3x4 }, new Atom[] { U_x4 });
 		t3 = TGD.create(new Atom[] { T_z1z2z3, U_z3 }, new Atom[] { P_z1 });
 
-		allTGDs = new LinkedList<>();
+		allTGDs = new HashSet<>();
 		allTGDs.add(t1);
 		allTGDs.add(t2);
 		allTGDs.add(t3);
@@ -162,7 +163,7 @@ public class GSatTest {
 		Atom[] headE2 = { H_x2 };
 		TGD tgdExpected1 = TGD.create(bodyE, headE1);
 		TGD tgdExpected2 = TGD.create(bodyE, headE2);
-		Collection<TGD> tgdsExpected = new LinkedList<>();
+		Collection<TGD> tgdsExpected = new HashSet<>();
 		tgdsExpected.add(tgdExpected1);
 		tgdsExpected.add(tgdExpected2);
 
@@ -177,14 +178,14 @@ public class GSatTest {
 		TGD tgd = TGD.create(new Atom[] { B_x2x1x3 }, new Atom[] { H1_x1z1y1y2, H2_y1y2 });
 		System.out.println("Original TGD: " + tgd);
 
-		Collection<TGD> tgdsVNFs = GSat.VNFs(Arrays.asList(tgd));
+		Collection<TGDGSat> tgdsVNFs = GSat.VNFs(Arrays.asList(tgd));
 		System.out.println("TGDs in VNFs: " + tgdsVNFs);
 
 		// ∀ u1,u2,u3 B(u1,u2,u3) → ∃ e1,e2,e3 H1(u2,e1,e2,e3) & H2(e2,e3)
-		TGD tgdExpected = TGD.create(new Atom[] { B_u1u2u3 }, new Atom[] { H1_u2e1e2e3, H2_e2e3 });
+		TGDGSat tgdExpected = new TGDGSat(TGD.create(new Atom[] { B_u1u2u3 }, new Atom[] { H1_u2e1e2e3, H2_e2e3 }));
 
 		assertEquals(1, tgdsVNFs.size());
-		assertTrue(tgdsVNFs.contains(tgdExpected));
+		assertTrue("Expecting: " + tgdExpected + ", got: " + tgdsVNFs, tgdsVNFs.contains(tgdExpected));
 
 	}
 
@@ -199,7 +200,7 @@ public class GSatTest {
 		System.out.println("TGD in VNF: " + tgdVNF);
 
 		// ∀ u1,u2,u3 B(u1,u2,u3) → ∃ e1,e2,e3 H1(u2,e1,e2,e3) & H2(e2,e3)
-		TGD tgdExpected = TGD.create(new Atom[] { B_u1u2u3 }, new Atom[] { H1_u2e1e2e3, H2_e2e3 });
+		TGD tgdExpected = new TGDGSat(TGD.create(new Atom[] { B_u1u2u3 }, new Atom[] { H1_u2e1e2e3, H2_e2e3 }));
 
 		assertEquals(tgdExpected, tgdVNF);
 
@@ -227,7 +228,7 @@ public class GSatTest {
 
 	@Test
 	public void getMGUTest() {
-		Collection<Variable> existentials = new LinkedList<>();
+		Collection<Variable> existentials = new HashSet<>();
 		existentials.add(Variable.create("e1"));
 
 		Map<Term, Term> mgu = GSat.getMGU(new Atom[] { U_u1u2u3 }, new Atom[] { U_z1z2z3 }, Arrays.asList(U_z1z2z3),
@@ -242,6 +243,23 @@ public class GSatTest {
 	@Test
 	public void applyMGU() {
 		// TODO
+	}
+
+	@Test
+	public void equalsTGDs() {
+
+		Atom OWL1 = Atom.create(Predicate.create("http://www.daml.org/2001/03/daml+oil#Nothing", 1),
+				Variable.create("u1"));
+		Atom OWL2 = Atom.create(Predicate.create("http://www.w3.org/2000/01/rdf-schema#Resource", 1),
+				Variable.create("e1"));
+		Atom OWL3 = Atom.create(Predicate.create("true", 1), Variable.create("e1"));
+		TGDGSat tgd1 = new TGDGSat(TGD.create(new Atom[] { OWL1 }, new Atom[] { OWL2, OWL3 }));
+
+		TGDGSat tgd2 = new TGDGSat(TGD.create(new Atom[] { OWL1 }, new Atom[] { OWL2, OWL3 }));
+
+		assertEquals(tgd1, tgd2);
+		assertTrue(tgd1.equals(tgd2));
+
 	}
 
 }

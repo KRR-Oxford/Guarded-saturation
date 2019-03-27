@@ -117,12 +117,10 @@ public class IO {
         return result;
     }
 
-    public static void writeDatalogRules(Collection<TGD> guardedSaturation, String path) throws IOException {
+    public static void writeDatalogRules(Collection<? extends TGD> guardedSaturation, String path) throws IOException {
 
         Collection<String> datalogRules = new LinkedList<>();
-
-        for (TGD tgd : guardedSaturation)
-            datalogRules.addAll(getDatalogRules(tgd));
+        guardedSaturation.forEach((tgd) -> datalogRules.addAll(getDatalogRules(tgd)));
 
         Files.write(Paths.get(path), datalogRules, StandardCharsets.UTF_8);
 
@@ -308,9 +306,9 @@ public class IO {
 
     }
 
-    public static List<Atom> getPDQAtomsFromGraalAtomSets(List<AtomSet> atomSets) throws IteratorException {
+    public static Collection<Atom> getPDQAtomsFromGraalAtomSets(Collection<AtomSet> atomSets) throws IteratorException {
 
-        List<Atom> atoms = new LinkedList<>();
+        Collection<Atom> atoms = new LinkedList<>();
 
         for (AtomSet atomSet : atomSets)
             atoms.addAll(getPDQAtomsFromGraalAtomSet(atomSet));
@@ -319,9 +317,9 @@ public class IO {
 
     }
 
-    public static List<Atom> getPDQAtomsFromGraalAtomSet(AtomSet atomSet) throws IteratorException {
+    public static Collection<Atom> getPDQAtomsFromGraalAtomSet(AtomSet atomSet) throws IteratorException {
 
-        List<Atom> atoms = new LinkedList<>();
+        Collection<Atom> atoms = new LinkedList<>();
 
         CloseableIterator<fr.lirmm.graphik.graal.api.core.Atom> it = atomSet.iterator();
 
@@ -338,7 +336,7 @@ public class IO {
     }
 
     public static Atom getPDQAtomFromGraalAtom(fr.lirmm.graphik.graal.api.core.Predicate predicate,
-            List<fr.lirmm.graphik.graal.api.core.Term> terms) {
+            Collection<fr.lirmm.graphik.graal.api.core.Term> terms) {
         return Atom.create(getPDQPredicateFromGraalPredicate(predicate), getPDQTermsFromGraalTerms(terms));
     }
 
@@ -353,9 +351,9 @@ public class IO {
 
     }
 
-    public static Term[] getPDQTermsFromGraalTerms(List<fr.lirmm.graphik.graal.api.core.Term> terms) {
+    public static Term[] getPDQTermsFromGraalTerms(Collection<fr.lirmm.graphik.graal.api.core.Term> terms) {
 
-        List<Term> PDQterms = new LinkedList<>();
+        Collection<Term> PDQterms = new LinkedList<>();
 
         for (fr.lirmm.graphik.graal.api.core.Term term : terms) {
 
@@ -375,13 +373,13 @@ public class IO {
 
     }
 
-    public static List<TGD> getPDQTGDsFromGraalRules(List<Rule> rules) throws IteratorException {
+    public static Collection<TGD> getPDQTGDsFromGraalRules(Collection<Rule> rules) throws IteratorException {
 
-        List<TGD> tgds = new LinkedList<>();
+        Collection<TGD> tgds = new LinkedList<>();
 
         for (Rule rule : rules) {
-            List<Atom> body = getPDQAtomsFromGraalAtomSet(rule.getBody());
-            List<Atom> head = getPDQAtomsFromGraalAtomSet(rule.getHead());
+            Collection<Atom> body = getPDQAtomsFromGraalAtomSet(rule.getBody());
+            Collection<Atom> head = getPDQAtomsFromGraalAtomSet(rule.getHead());
             tgds.add(TGD.create(body.toArray(new Atom[body.size()]), head.toArray(new Atom[head.size()])));
         }
 

@@ -10,9 +10,11 @@ import uk.ac.ox.cs.gsat.App;
 import uk.ac.ox.cs.gsat.SolverOutput;
 
 /**
- * ChaseBenchTests
+ * Unit tests for the GSat class from ChaseBench scenarios
+ * 
+ * @author Stefano
  */
-public class ChaseBenchTests {
+public class ChaseBenchTest {
 
         @Test
         public void correctness() {
@@ -45,9 +47,8 @@ public class ChaseBenchTests {
 
                 String baseTest = "deep";
 
-                String basePath = ".." + File.separator + "pdq" + File.separator + "regression" + File.separator
-                                + "test" + File.separator + "chaseBench" + File.separator + baseTest + File.separator
-                                + "100" + File.separator;
+                String basePath = "test" + File.separator + "ChaseBench" + File.separator + "scenarios" + File.separator
+                                + baseTest + File.separator + "100" + File.separator;
 
                 String fact_querySize = "";
 
@@ -64,8 +65,8 @@ public class ChaseBenchTests {
 
                 String baseTest = "doctors";
 
-                String basePath = ".." + File.separator + "pdq" + File.separator + "regression" + File.separator
-                                + "test" + File.separator + "chaseBench" + File.separator + baseTest + File.separator;
+                String basePath = "test" + File.separator + "ChaseBench" + File.separator + "scenarios" + File.separator
+                                + baseTest + File.separator;
 
                 String fact_querySize = "10k";
 
@@ -82,8 +83,8 @@ public class ChaseBenchTests {
 
                 String baseTest = "LUBM";
 
-                String basePath = ".." + File.separator + "pdq" + File.separator + "regression" + File.separator
-                                + "test" + File.separator + "chaseBench" + File.separator + baseTest + File.separator;
+                String basePath = "test" + File.separator + "ChaseBench" + File.separator + "scenarios" + File.separator
+                                + baseTest + File.separator;
 
                 String fact_querySize = "";
 
