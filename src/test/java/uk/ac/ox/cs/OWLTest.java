@@ -40,6 +40,7 @@ public class OWLTest {
 
 	}
 
+	@Disabled
 	@Test
 	public void GardinerCorpusHttp___www_daml_ecs_soton_ac_uk_ont_currency_daml() {
 

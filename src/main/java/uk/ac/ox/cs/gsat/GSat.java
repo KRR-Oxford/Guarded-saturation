@@ -75,7 +75,7 @@ public class GSat {
         while (!newTGDs.isEmpty()) {
             // System.out.print('.');
 
-            App.logger.warn("# new TGDs: " + newTGDs.size());
+            App.logger.debug("# new TGDs: " + newTGDs.size());
             newTGDs.forEach(App.logger::debug);
 
             TGDGSat currentTGD = newTGDs.iterator().next();
