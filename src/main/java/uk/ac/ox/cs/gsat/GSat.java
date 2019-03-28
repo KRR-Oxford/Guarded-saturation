@@ -203,7 +203,7 @@ public class GSat {
         Map<Term, Term> substitution = new HashMap<>();
         int counter = 1;
         for (Variable v : uVariables)
-            substitution.put(v, Variable.create("z" + counter++));
+            substitution.put(v, Variable.create("zzz" + counter++));
 
         return (TGD) Logic.applySubstitution(ftgd, substitution);
 

@@ -16,6 +16,9 @@ import uk.ac.ox.cs.gsat.SolverOutput;
  */
 public class ChaseBenchTest {
 
+        private static final String baseChaseBench = "test" + File.separator + "ChaseBench" + File.separator
+                        + "scenarios" + File.separator;
+
         @Test
         public void correctness() {
 
@@ -27,8 +30,7 @@ public class ChaseBenchTest {
                 for (String baseTest : new String[] { "tgds", "tgds5", "tgdsEgds", "tgdsEgdsLarge", "vldb2010",
                                 "weak" }) {
 
-                        String basePath = "test" + File.separator + "ChaseBench" + File.separator + "scenarios"
-                                        + File.separator + "correctness" + File.separator + baseTest + File.separator;
+                        String basePath = baseChaseBench + "correctness" + File.separator + baseTest + File.separator;
 
                         SolverOutput executeChaseBenchScenario = App.executeChaseBenchScenario(baseTest, basePath,
                                         fact_querySize, true);
@@ -47,8 +49,7 @@ public class ChaseBenchTest {
 
                 String baseTest = "deep";
 
-                String basePath = "test" + File.separator + "ChaseBench" + File.separator + "scenarios" + File.separator
-                                + baseTest + File.separator + "100" + File.separator;
+                String basePath = baseChaseBench + baseTest + File.separator + "100" + File.separator;
 
                 String fact_querySize = "";
 
@@ -65,8 +66,7 @@ public class ChaseBenchTest {
 
                 String baseTest = "doctors";
 
-                String basePath = "test" + File.separator + "ChaseBench" + File.separator + "scenarios" + File.separator
-                                + baseTest + File.separator;
+                String basePath = baseChaseBench + baseTest + File.separator;
 
                 String fact_querySize = "10k";
 
@@ -83,8 +83,7 @@ public class ChaseBenchTest {
 
                 String baseTest = "LUBM";
 
-                String basePath = "test" + File.separator + "ChaseBench" + File.separator + "scenarios" + File.separator
-                                + baseTest + File.separator;
+                String basePath = baseChaseBench + baseTest + File.separator;
 
                 String fact_querySize = "";
 

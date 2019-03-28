@@ -74,6 +74,10 @@ public class GSatTest {
 			Variable.create("u2"), Variable.create("e1"));
 	private static final Atom U_z1z2z3 = Atom.create(Predicate.create("U", 3), Variable.create("z1"),
 			Variable.create("z2"), Variable.create("z3"));
+	private static final Atom B_zzz1zzz2zzz3 = Atom.create(Predicate.create("B", 3), Variable.create("zzz1"),
+			Variable.create("zzz2"), Variable.create("zzz3"));
+	private static final Atom H1_zzz2z1y1y2 = Atom.create(Predicate.create("H1", 4), Variable.create("zzz2"),
+			Variable.create("z1"), Variable.create("y1"), Variable.create("y2"));
 
 	@Test
 	public void runGSatTest() {
@@ -213,7 +217,18 @@ public class GSatTest {
 
 	@Test
 	public void evolveRenameTest() {
-		// TODO
+		// ∀ x2,x1,x3 B(x2,x1,x3) → ∃ z1,y1,y2 H1(x1,z1,y1,y2) & H2(y1,y2)
+		TGD tgd = TGD.create(new Atom[] { B_x2x1x3 }, new Atom[] { H1_x1z1y1y2, H2_y1y2 });
+		System.out.println("Original TGD: " + tgd);
+
+		TGD tgdsEvolveRename = GSat.evolveRename(tgd);
+		System.out.println("TGDs in evolveRename: " + tgdsEvolveRename);
+
+		// ∀ zzz1,zzz2,zzz3 B(zzz1,zzz2,zzz3) → ∃ z1,y1,y2 H1(zzz2,z1,y1,y2) & H2(y1,y2)
+		TGD tgdExpected = TGD.create(new Atom[] { B_zzz1zzz2zzz3 }, new Atom[] { H1_zzz2z1y1y2, H2_y1y2 });
+
+		assertEquals(tgdExpected, tgdsEvolveRename);
+
 	}
 
 	@Test

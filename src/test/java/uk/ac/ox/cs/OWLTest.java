@@ -5,7 +5,6 @@ import static org.junit.Assert.assertEquals;
 import java.io.File;
 
 import org.junit.Test;
-import org.junit.jupiter.api.Disabled;
 
 import uk.ac.ox.cs.gsat.App;
 
@@ -17,11 +16,12 @@ import uk.ac.ox.cs.gsat.App;
  */
 public class OWLTest {
 
-	@Disabled
-	@Test
+	private static final String baseChaseBench = "test" + File.separator + "OWL" + File.separator;
+
+	// @Test
 	public void galenModule1NoFunctionality() {
 
-		String path = "test" + File.separator + "OWL" + File.separator + "00033.owl";
+		String path = baseChaseBench + "00033.owl";
 
 		int executeChaseBenchScenario = App.fromOWL(path);
 
@@ -32,7 +32,7 @@ public class OWLTest {
 	@Test
 	public void vicodiTimeDeleted() {
 
-		String path = "test" + File.separator + "OWL" + File.separator + "00780.owl";
+		String path = baseChaseBench + "00780.owl";
 
 		int executeChaseBenchScenario = App.fromOWL(path);
 
@@ -40,11 +40,10 @@ public class OWLTest {
 
 	}
 
-	@Disabled
-	@Test
+	// @Test
 	public void GardinerCorpusHttp___www_daml_ecs_soton_ac_uk_ont_currency_daml() {
 
-		String path = "test" + File.separator + "OWL" + File.separator + "00198.owl";
+		String path = baseChaseBench + "00198.owl";
 
 		int executeChaseBenchScenario = App.fromOWL(path);
 
