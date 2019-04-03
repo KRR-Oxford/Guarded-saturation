@@ -103,7 +103,7 @@ public class GSatTest {
 		System.out.println("Initial rules:");
 		allTGDs.forEach(System.out::println);
 
-		Collection<TGDGSat> guardedSaturation = GSat.runGSat(allTGDs.toArray(new TGD[allTGDs.size()]));
+		Collection<TGDGSat> guardedSaturation = GSat.getInstance().runGSat(allTGDs.toArray(new TGD[allTGDs.size()]));
 
 		System.out.println("Guarded saturation:");
 		guardedSaturation.forEach(System.out::println);
@@ -137,7 +137,7 @@ public class GSatTest {
 		System.out.println("Initial rules:");
 		allTGDs.forEach(System.out::println);
 
-		guardedSaturation = GSat.runGSat(allTGDs.toArray(new TGD[allTGDs.size()]));
+		guardedSaturation = GSat.getInstance().runGSat(allTGDs.toArray(new TGD[allTGDs.size()]));
 
 		System.out.println("Guarded saturation:");
 		guardedSaturation.forEach(System.out::println);
@@ -156,7 +156,7 @@ public class GSatTest {
 		TGD tgd = TGD.create(new Atom[] { B_x1x2 }, new Atom[] { H1_x1y1, H_x2 });
 		System.out.println("Original TGD: " + tgd);
 
-		Collection<TGD> tgdsHNF = GSat.HNF(tgd);
+		Collection<TGD> tgdsHNF = GSat.getInstance().HNF(tgd);
 		System.out.println("TGDs in HNF:");
 		tgdsHNF.forEach(System.out::println);
 
@@ -182,7 +182,7 @@ public class GSatTest {
 		TGD tgd = TGD.create(new Atom[] { B_x2x1x3 }, new Atom[] { H1_x1z1y1y2, H2_y1y2 });
 		System.out.println("Original TGD: " + tgd);
 
-		Collection<TGDGSat> tgdsVNFs = GSat.VNFs(Arrays.asList(tgd));
+		Collection<TGDGSat> tgdsVNFs = GSat.getInstance().VNFs(Arrays.asList(tgd));
 		System.out.println("TGDs in VNFs: " + tgdsVNFs);
 
 		// ∀ u1,u2,u3 B(u1,u2,u3) → ∃ e1,e2,e3 H1(u2,e1,e2,e3) & H2(e2,e3)
@@ -200,7 +200,7 @@ public class GSatTest {
 		TGD tgd = TGD.create(new Atom[] { B_x2x1x3 }, new Atom[] { H1_x1z1y1y2, H2_y1y2 });
 		System.out.println("Original TGD: " + tgd);
 
-		TGD tgdVNF = GSat.VNF(tgd);
+		TGD tgdVNF = GSat.getInstance().VNF(tgd);
 		System.out.println("TGD in VNF: " + tgdVNF);
 
 		// ∀ u1,u2,u3 B(u1,u2,u3) → ∃ e1,e2,e3 H1(u2,e1,e2,e3) & H2(e2,e3)
@@ -221,7 +221,7 @@ public class GSatTest {
 		TGD tgd = TGD.create(new Atom[] { B_x2x1x3 }, new Atom[] { H1_x1z1y1y2, H2_y1y2 });
 		System.out.println("Original TGD: " + tgd);
 
-		TGD tgdsEvolveRename = GSat.evolveRename(tgd);
+		TGD tgdsEvolveRename = GSat.getInstance().evolveRename(tgd);
 		System.out.println("TGDs in evolveRename: " + tgdsEvolveRename);
 
 		// ∀ zzz1,zzz2,zzz3 B(zzz1,zzz2,zzz3) → ∃ z1,y1,y2 H1(zzz2,z1,y1,y2) & H2(y1,y2)
@@ -246,8 +246,8 @@ public class GSatTest {
 		Collection<Variable> existentials = new HashSet<>();
 		existentials.add(Variable.create("e1"));
 
-		Map<Term, Term> mgu = GSat.getMGU(new Atom[] { U_u1u2u3 }, new Atom[] { U_z1z2z3 }, Arrays.asList(U_z1z2z3),
-				existentials);
+		Map<Term, Term> mgu = GSat.getInstance().getMGU(new Atom[] { U_u1u2u3 }, new Atom[] { U_z1z2z3 },
+				Arrays.asList(U_z1z2z3), existentials);
 
 		System.out.println(mgu);
 

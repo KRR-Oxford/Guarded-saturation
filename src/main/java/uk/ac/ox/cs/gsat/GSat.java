@@ -21,7 +21,16 @@ import uk.ac.ox.cs.pdq.fol.Variable;
  */
 public class GSat {
 
-    public static Collection<TGDGSat> runGSat(Dependency[] allDependencies) {
+    private static final GSat INSTANCE = new GSat();
+
+    private GSat() {
+    }
+
+    public static GSat getInstance() {
+        return INSTANCE;
+    }
+
+    public Collection<TGDGSat> runGSat(Dependency[] allDependencies) {
 
         System.out.println("Running GSat...");
         final long startTime = System.nanoTime();
@@ -116,7 +125,7 @@ public class GSat {
 
     }
 
-    public static Collection<TGD> HNF(TGD tgd) {
+    public Collection<TGD> HNF(TGD tgd) {
 
         Collection<TGD> result = new HashSet<>();
 
@@ -145,13 +154,13 @@ public class GSat {
 
     }
 
-    public static Collection<TGDGSat> VNFs(Collection<TGD> tgds) {
+    public Collection<TGDGSat> VNFs(Collection<TGD> tgds) {
 
         return tgds.stream().map((tgd) -> VNF(tgd)).collect(Collectors.toList());
 
     }
 
-    public static TGDGSat VNF(TGD tgd) {
+    public TGDGSat VNF(TGD tgd) {
 
         if (tgd == null)
             throw new IllegalArgumentException("Null TGD in VNF");
@@ -177,7 +186,7 @@ public class GSat {
 
     }
 
-    public static TGD evolve(TGD nftgd, TGD ftgd) {
+    public TGD evolve(TGD nftgd, TGD ftgd) {
 
         ftgd = evolveRename(ftgd);
 
@@ -196,7 +205,7 @@ public class GSat {
 
     }
 
-    public static TGD evolveRename(TGD ftgd) {
+    public TGD evolveRename(TGD ftgd) {
 
         Variable[] uVariables = ftgd.getUniversal();
 
@@ -209,7 +218,7 @@ public class GSat {
 
     }
 
-    public static Collection<Atom> getJoinAtoms(Atom[] headAtoms, Atom[] bodyAtoms) {
+    public Collection<Atom> getJoinAtoms(Atom[] headAtoms, Atom[] bodyAtoms) {
 
         Collection<Atom> result = new HashSet<>();
 
@@ -224,7 +233,7 @@ public class GSat {
 
     }
 
-    public static TGD getEvolveRule(TGD nftgd, TGD ftgd, Collection<Atom> joinAtoms) {
+    public TGD getEvolveRule(TGD nftgd, TGD ftgd, Collection<Atom> joinAtoms) {
 
         Collection<Atom> nftgdBodyAtoms = new HashSet<>(Arrays.asList(nftgd.getBodyAtoms()));
         Collection<Atom> nftgdHeadAtoms = new HashSet<>(Arrays.asList(nftgd.getHeadAtoms()));
@@ -250,7 +259,7 @@ public class GSat {
 
     }
 
-    public static Map<Term, Term> getMGU(Atom[] headAtoms, Atom[] bodyAtoms, Collection<Atom> joinAtoms,
+    public Map<Term, Term> getMGU(Atom[] headAtoms, Atom[] bodyAtoms, Collection<Atom> joinAtoms,
             Collection<Variable> existentials) {
         // FIXME it works only if there are no duplicate atoms in the 2 arrays
 
@@ -299,7 +308,7 @@ public class GSat {
 
     }
 
-    public static Atom[] applyMGU(Collection<Atom> nftgdHeadAtoms, Map<Term, Term> mgu) {
+    public Atom[] applyMGU(Collection<Atom> nftgdHeadAtoms, Map<Term, Term> mgu) {
 
         Collection<Atom> result = new HashSet<>();
 

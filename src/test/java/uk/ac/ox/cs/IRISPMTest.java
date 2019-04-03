@@ -58,7 +58,7 @@ public class IRISPMTest {
 			int guardedSaturationSize, int[] queryLenghts) {
 		System.out.println("Initial rules:");
 		allTGDs.forEach(System.out::println);
-		Collection<TGDGSat> guardedSaturation = GSat.runGSat(allTGDs.toArray(new TGD[allTGDs.size()]));
+		Collection<TGDGSat> guardedSaturation = GSat.getInstance().runGSat(allTGDs.toArray(new TGD[allTGDs.size()]));
 
 		System.out.println("Guarded saturation:");
 		guardedSaturation.forEach(System.out::println);

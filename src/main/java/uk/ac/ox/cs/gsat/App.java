@@ -120,7 +120,7 @@ public class App {
 		Collection<TGDGSat> guardedSaturation = null;
 		try {
 
-			guardedSaturation = GSat
+			guardedSaturation = GSat.getInstance()
 					.runGSat(ArrayUtils.addAll(allDependencies, queriesRules.toArray(new TGD[queriesRules.size()])));
 			logger.info("Rewriting completed!");
 			System.out.println("Guarded saturation:");
@@ -263,7 +263,7 @@ public class App {
 
 			Collection<TGD> tgds = IO.getPDQTGDsFromGraalRules(rules);
 			rules = null;
-			guardedSaturation = GSat.runGSat(tgds.toArray(new TGD[tgds.size()]));
+			guardedSaturation = GSat.getInstance().runGSat(tgds.toArray(new TGD[tgds.size()]));
 			logger.info("Rewriting completed!");
 			System.out.println("Guarded saturation:");
 			System.out.println("=========================================");
