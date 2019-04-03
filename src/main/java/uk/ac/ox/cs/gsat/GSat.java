@@ -47,7 +47,7 @@ public class GSat {
         int discarded = 0;
 
         for (Dependency d : allDependencies)
-            if (d instanceof TGD && ((TGD) d).isGuarded()) // Adding only Guarded TGDs
+            if (d instanceof TGD && ((TGD) d).isGuarded() && !containsSelfJoin((TGD) d)) // Adding only Guarded TGDs
                 // if (!(d instanceof EGD))
                 newTGDs.addAll(VNFs(HNF((TGD) d)));
             else
@@ -136,6 +136,29 @@ public class GSat {
 
         return fullTGDs;
 
+    }
+
+    /**
+     * 
+     * @param tgd
+     * @return true if the TGD contains 2 atoms in the body or in the head with the
+     *         same predicate name (needed only until we implement a generic MGU)
+     */
+    private boolean containsSelfJoin(TGD tgd) {
+
+        Atom[] bodyAtoms = tgd.getBodyAtoms();
+        for (int i = 0; i < bodyAtoms.length; i++)
+            for (int j = i + 1; j < bodyAtoms.length; j++)
+                if (bodyAtoms[i].getPredicate().equals(bodyAtoms[j].getPredicate()))
+                    return true;
+
+        Atom[] headAtoms = tgd.getHeadAtoms();
+        for (int i = 0; i < headAtoms.length; i++)
+            for (int j = i + 1; j < headAtoms.length; j++)
+                if (headAtoms[i].getPredicate().equals(headAtoms[j].getPredicate()))
+                    return true;
+
+        return false;
     }
 
     /**
