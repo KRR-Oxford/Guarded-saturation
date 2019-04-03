@@ -23,6 +23,13 @@ public class GSat {
 
     private static final GSat INSTANCE = new GSat();
 
+    // New variable name for Universally Quantified Variables
+    public String uVariable = "GSat_u";
+    // New variable name for Existentially Quantified Variables
+    public String eVariable = "GSat_e";
+    // New variable name for evolveRename
+    public String zVariable = "GSat_z";
+
     private GSat() {
     }
 
@@ -45,6 +52,12 @@ public class GSat {
                 newTGDs.addAll(VNFs(HNF((TGD) d)));
             else
                 discarded++;
+
+        while (checkRenameVariablesInTGDs(newTGDs)) {
+            uVariable += "0";
+            eVariable += "0";
+            zVariable += "0";
+        }
 
         App.logger.info("GSat discarded rules : " + discarded + "/" + allDependencies.length + " = "
                 + String.format(Locale.UK, "%.3f", (float) discarded / allDependencies.length * 100) + "%");
@@ -125,6 +138,23 @@ public class GSat {
 
     }
 
+    /**
+     * 
+     * @param newTGDs
+     * @return true if it founds a variable with the same name of one of our rename
+     *         variables
+     */
+    private boolean checkRenameVariablesInTGDs(Collection<TGDGSat> newTGDs) {
+
+        for (TGDGSat tgd : newTGDs)
+            for (String symbol : tgd.getAllTermSymbols())
+                if (symbol.equals(uVariable) || symbol.equals(eVariable) || symbol.equals(zVariable))
+                    return true;
+
+        return false;
+
+    }
+
     public Collection<TGD> HNF(TGD tgd) {
 
         Collection<TGD> result = new HashSet<>();
@@ -173,10 +203,10 @@ public class GSat {
         Map<Term, Term> substitution = new HashMap<>();
         int counter = 1;
         for (Variable v : uVariables)
-            substitution.put(v, Variable.create("u" + counter++));
+            substitution.put(v, Variable.create(uVariable + counter++));
         counter = 1;
         for (Variable v : eVariables)
-            substitution.put(v, Variable.create("e" + counter++));
+            substitution.put(v, Variable.create(eVariable + counter++));
 
         App.logger.debug("VNF substitution:\n" + substitution);
 
@@ -211,8 +241,11 @@ public class GSat {
 
         Map<Term, Term> substitution = new HashMap<>();
         int counter = 1;
-        for (Variable v : uVariables)
-            substitution.put(v, Variable.create("zzz" + counter++));
+        for (Variable v : uVariables) {
+            if (!v.getSymbol().startsWith(uVariable))
+                throw new IllegalArgumentException("TGD not valid in evolveRename");
+            substitution.put(v, Variable.create(zVariable + counter++));
+        }
 
         return (TGD) Logic.applySubstitution(ftgd, substitution);
 
