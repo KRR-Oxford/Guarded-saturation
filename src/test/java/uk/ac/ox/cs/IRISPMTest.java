@@ -12,6 +12,7 @@ import java.util.LinkedList;
 
 import org.junit.Test;
 
+import uk.ac.ox.cs.gsat.Configuration;
 import uk.ac.ox.cs.gsat.GSat;
 import uk.ac.ox.cs.gsat.IO;
 import uk.ac.ox.cs.gsat.Logic;
@@ -81,10 +82,8 @@ public class IRISPMTest {
 			for (ConjunctiveQuery q : allQueries) {
 
 				IO.writeDatalogQueries(Arrays.asList(q), baseOutputPath + "query.rul");
-				SolverOutput output = Logic.invokeSolver(
-						"executables" + File.separator + "idlv_1.1.2_windows_x86-64.exe", "--query",
-						Arrays.asList(baseOutputPath + "rules.rul", baseOutputPath + "facts.data",
-								baseOutputPath + "query.rul"));
+				SolverOutput output = Logic.invokeSolver(Configuration.getSolverPath(), "--query", Arrays.asList(
+						baseOutputPath + "rules.rul", baseOutputPath + "facts.data", baseOutputPath + "query.rul"));
 				System.out.println(output);
 
 				int expectedLines = queryLenghts[count++];
