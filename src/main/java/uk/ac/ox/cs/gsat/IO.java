@@ -100,7 +100,7 @@ public class IO {
         if (queriesDir.exists())
             for (File f : queriesDir.listFiles())
                 if (f.getName().endsWith(".txt")) {
-                    App.logger.debug("Parsing: " + f.getAbsolutePath());
+                    App.logger.fine("Parsing: " + f.getAbsolutePath());
                     queries.addAll(CommonToPDQTranslator.parseDependencies(relations2, f.getAbsolutePath()));
                     // queries.add(CommonToPDQTranslator.parseQuery(relations2,
                     // f.getAbsolutePath()));
@@ -112,7 +112,7 @@ public class IO {
                 if (!Logic.isFull((TGD) d))
                     System.out.println(d + "is not full!!");
             } else
-                App.logger.error("We accept only Guarded TGDs. Error with query " + d);
+                App.logger.warning("We accept only Guarded TGDs. Error with query " + d);
         }
         return result;
     }
@@ -137,7 +137,7 @@ public class IO {
             body.append(to_append);
             if (to_append == ":-")
                 to_append = ",";
-            App.logger.debug("Atom:" + renameVariablesAndConstantsDatalog(atom));
+            App.logger.fine("Atom:" + renameVariablesAndConstantsDatalog(atom));
             body.append(renameVariablesAndConstantsDatalog(atom).toString());
         }
         body.append(".");
@@ -147,7 +147,7 @@ public class IO {
         Collection<String> rules = new LinkedList<>();
         // if multiple atoms in the head, we have to return multiple rules
         for (Atom atom : tgd.getHeadAtoms()) {
-            App.logger.debug("Atom:" + renameVariablesAndConstantsDatalog(atom));
+            App.logger.fine("Atom:" + renameVariablesAndConstantsDatalog(atom));
             rules.add(renameVariablesAndConstantsDatalog(atom).toString() + bodyString);
         }
 
@@ -259,7 +259,7 @@ public class IO {
         String to_append = "";
         for (Formula f : query.getChildren()) {
             if (!(f instanceof Atom)) {
-                App.logger.warn("We only accept atomic queries");
+                App.logger.fine("We only accept atomic queries");
                 return "";
             }
             querySB.append(to_append);

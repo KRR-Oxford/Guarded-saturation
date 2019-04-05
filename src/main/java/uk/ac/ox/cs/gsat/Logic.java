@@ -110,7 +110,7 @@ public class Logic {
 				files_paths += program_file;
 				files_paths += " ";
 			} else
-				App.logger.warn("The file " + f.getAbsolutePath() + " does not exists.");
+				App.logger.warning("The file " + f.getAbsolutePath() + " does not exists.");
 
 		}
 
@@ -127,7 +127,7 @@ public class Logic {
 
 		stringBuffer.append(exe_path).append(" ").append(options).append(" ").append(files_paths);
 
-		App.logger.debug(stringBuffer.toString());
+		App.logger.fine(stringBuffer.toString());
 
 		final Process solver_process = Runtime.getRuntime().exec(stringBuffer.toString());
 

@@ -4,10 +4,10 @@ import java.io.File;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashSet;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 import org.apache.commons.lang3.ArrayUtils;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
 
 import fr.lirmm.graphik.graal.api.core.AtomSet;
 import fr.lirmm.graphik.graal.api.core.Rule;
@@ -18,9 +18,10 @@ import uk.ac.ox.cs.pdq.fol.TGD;
 
 public class App {
 
-	static final Logger logger = LogManager.getLogger("Guarded saturation");
+	static final Logger logger = Logger.getLogger("Global Saturation");
 
 	public static void main(String[] args) throws Exception {
+		logger.setLevel(Level.FINE);
 
 		System.out.println("Starting GSat...");
 
@@ -61,7 +62,7 @@ public class App {
 
 		} catch (Throwable t) {
 			System.err.println("Unknown error. The system will now terminate.");
-			logger.debug(t);
+			logger.severe(t.getLocalizedMessage());
 			System.exit(1);
 		}
 
@@ -105,15 +106,15 @@ public class App {
 			allDependencies = schema.getAllDependencies();
 
 			logger.info("# Dependencies: " + allDependencies.length);
-			logger.trace(schema);
+			logger.finest(schema.toString());
 
 			queriesRules = IO.readQueriesChaseBench(basePath, fact_querySize, schema);
 			logger.info("# Queries: " + queriesRules.size());
-			logger.debug(queriesRules);
+			logger.fine(queriesRules.toString());
 
 		} catch (Exception e) {
 			System.err.println("Data loading failed. The system will now terminate.");
-			logger.debug(e);
+			logger.severe(e.getLocalizedMessage());
 			System.exit(1);
 		}
 
@@ -130,7 +131,7 @@ public class App {
 
 		} catch (Exception e) {
 			System.err.println("Guarded Saturation algorithm failed. The system will now terminate.");
-			logger.debug(e);
+			logger.severe(e.getLocalizedMessage());
 			System.exit(1);
 		}
 
@@ -204,7 +205,7 @@ public class App {
 
 		} catch (Exception e) {
 			System.err.println("Datalog solver execution failed. The system will now terminate.");
-			logger.debug(e);
+			logger.severe(e.getLocalizedMessage());
 			System.exit(1);
 		}
 
@@ -240,10 +241,10 @@ public class App {
 				Object o = parser.next();
 				// logger.debug("Object:" + o);
 				if (o instanceof Rule) {
-					logger.debug("Rule: " + (Rule) o);
+					logger.fine("Rule: " + (Rule) o);
 					rules.add((Rule) o);
 				} else if (o instanceof AtomSet && fullGrounding) {
-					logger.debug("Atom: " + (AtomSet) o);
+					logger.fine("Atom: " + (AtomSet) o);
 					atomSets.add((AtomSet) o);
 				}
 			}
@@ -252,7 +253,7 @@ public class App {
 
 		} catch (Exception e) {
 			System.err.println("Data loading failed. The system will now terminate.");
-			logger.debug(e);
+			logger.severe(e.getLocalizedMessage());
 			System.exit(1);
 		}
 
@@ -272,7 +273,7 @@ public class App {
 
 		} catch (Exception e) {
 			System.err.println("Guarded Saturation algorithm failed. The system will now terminate.");
-			logger.debug(e);
+			logger.severe(e.getLocalizedMessage());
 			System.exit(1);
 		}
 

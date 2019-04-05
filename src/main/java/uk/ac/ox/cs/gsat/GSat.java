@@ -62,8 +62,8 @@ public class GSat {
         App.logger.info("GSat discarded rules : " + discarded + "/" + allDependencies.length + " = "
                 + String.format(Locale.UK, "%.3f", (float) discarded / allDependencies.length * 100) + "%");
 
-        App.logger.debug("# initial TGDs: " + newTGDs.size());
-        newTGDs.forEach(App.logger::debug);
+        App.logger.fine("# initial TGDs: " + newTGDs.size());
+        newTGDs.forEach(tgd -> App.logger.fine(tgd.toString()));
 
         Collection<TGDGSat> nonFullTGDs = new HashSet<>();
         Collection<TGDGSat> fullTGDs = new HashSet<>();
@@ -82,14 +82,14 @@ public class GSat {
         // }
         // }
         //
-        // App.logger.debug("# nonFullTGDs: " + nonFullTGDs.size());
-        // nonFullTGDs.forEach(App.logger.debug);
-        // App.logger.debug("# fullTGDs: " + fullTGDs.size());
-        // fullTGDs.forEach(App.logger.debug);
+        // App.logger.fine("# nonFullTGDs: " + nonFullTGDs.size());
+        // nonFullTGDs.forEach(App.logger.fine);
+        // App.logger.fine("# fullTGDs: " + fullTGDs.size());
+        // fullTGDs.forEach(App.logger.fine);
         // if (!nonFullTGDs.isEmpty())
-        // App.logger.debug("First non full TGD: " + nonFullTGDs.toArray()[0]);
+        // App.logger.fine("First non full TGD: " + nonFullTGDs.toArray()[0]);
         // if (!fullTGDs.isEmpty())
-        // App.logger.debug("First full TGD: " + fullTGDs.toArray()[0]);
+        // App.logger.fine("First full TGD: " + fullTGDs.toArray()[0]);
         //
         // newTGDs.addAll(nonFullTGDs);
         // newTGDs.addAll(fullTGDs);
@@ -97,11 +97,11 @@ public class GSat {
         while (!newTGDs.isEmpty()) {
             // System.out.print('.');
 
-            App.logger.debug("# new TGDs: " + newTGDs.size());
-            newTGDs.forEach(App.logger::debug);
+            App.logger.fine("# new TGDs: " + newTGDs.size());
+            newTGDs.forEach(tgd -> App.logger.fine(tgd.toString()));
 
             TGDGSat currentTGD = newTGDs.iterator().next();
-            App.logger.debug("current TGD: " + currentTGD);
+            App.logger.fine("current TGD: " + currentTGD);
             newTGDs.remove(currentTGD);
 
             Collection<TGDGSat> tempTGDsSet = new ArrayList<>();
@@ -118,7 +118,7 @@ public class GSat {
 
             for (TGDGSat d : tempTGDsSet)
                 if ((Logic.isFull(d) && !fullTGDs.contains(d)) || (!Logic.isFull(d) && !nonFullTGDs.contains(d))) {
-                    App.logger.debug("adding new TGD: " + d + "\t" + d.equals(currentTGD) + ": "
+                    App.logger.fine("adding new TGD: " + d + "\t" + d.equals(currentTGD) + ": "
                             + nonFullTGDs.contains(currentTGD) + ": " + nonFullTGDs.contains(d) + ": "
                             + Objects.equals(d, currentTGD));
                     newTGDs.add(d);
@@ -220,8 +220,8 @@ public class GSat {
 
         Variable[] uVariables = tgd.getUniversal();
         Variable[] eVariables = tgd.getExistential();
-        App.logger.trace(uVariables);
-        App.logger.trace(eVariables);
+        App.logger.finest(uVariables.toString());
+        App.logger.finest(eVariables.toString());
 
         Map<Term, Term> substitution = new HashMap<>();
         int counter = 1;
@@ -231,10 +231,10 @@ public class GSat {
         for (Variable v : eVariables)
             substitution.put(v, Variable.create(eVariable + counter++));
 
-        App.logger.debug("VNF substitution:\n" + substitution);
+        App.logger.fine("VNF substitution:\n" + substitution);
 
         TGDGSat applySubstitution = new TGDGSat((TGD) Logic.applySubstitution(tgd, substitution));
-        App.logger.debug("VNF: " + tgd + "===>>>" + applySubstitution);
+        App.logger.fine("VNF: " + tgd + "===>>>" + applySubstitution);
         return applySubstitution;
 
     }
@@ -243,13 +243,13 @@ public class GSat {
 
         ftgd = evolveRename(ftgd);
 
-        App.logger.debug("Composing:\n" + nftgd + "\nand\n" + ftgd);
+        App.logger.fine("Composing:\n" + nftgd + "\nand\n" + ftgd);
 
         Collection<Atom> joinAtoms = getJoinAtoms(nftgd.getHeadAtoms(), ftgd.getBodyAtoms());
         if (joinAtoms.isEmpty())
             return null;
-        App.logger.debug("Join atoms:");
-        joinAtoms.forEach(App.logger::debug);
+        App.logger.fine("Join atoms:");
+        joinAtoms.forEach(tgd -> App.logger.fine(tgd.toString()));
 
         // TGD evolveRule =
         // if (existentialVariableCheck(evolveRule, joinAtoms))
@@ -303,11 +303,11 @@ public class GSat {
         Map<Term, Term> mgu = getMGU(nftgd.getHeadAtoms(), ftgd.getBodyAtoms(), joinAtoms,
                 Arrays.asList(nftgd.getExistential()));
 
-        App.logger.debug("MGU: " + mgu);
+        App.logger.fine("MGU: " + mgu);
 
         if (mgu != null) {
             TGD newTGD = TGD.create(applyMGU(nftgdBodyAtoms, mgu), applyMGU(nftgdHeadAtoms, mgu));
-            App.logger.debug("After applying MGU: " + newTGD);
+            App.logger.fine("After applying MGU: " + newTGD);
             return newTGD;
         }
 

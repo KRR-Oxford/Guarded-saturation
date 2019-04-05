@@ -4,6 +4,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import java.io.File;
 
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
 import uk.ac.ox.cs.gsat.App;
@@ -14,12 +15,14 @@ import uk.ac.ox.cs.gsat.SolverOutput;
  * 
  * @author Stefano
  */
+@DisplayName("Tests from ChaseBench scenarios")
 public class ChaseBenchTest {
 
         private static final String baseChaseBench = "test" + File.separator + "ChaseBench" + File.separator
                         + "scenarios" + File.separator;
 
         @Test
+        @DisplayName("Correctness tests")
         public void correctness() {
 
                 String fact_querySize = "";
@@ -45,6 +48,7 @@ public class ChaseBenchTest {
         }
 
         @Test
+        @DisplayName("Testing Deep 100")
         public void deep_100() {
 
                 String baseTest = "deep";
@@ -62,6 +66,7 @@ public class ChaseBenchTest {
         }
 
         @Test
+        @DisplayName("Testing Doctors 10k")
         public void doctors_10k() {
 
                 String baseTest = "doctors";
@@ -79,6 +84,7 @@ public class ChaseBenchTest {
         }
 
         @Test
+        @DisplayName("Testing LUBM 001")
         public void LUBM_001() {
 
                 String baseTest = "LUBM";

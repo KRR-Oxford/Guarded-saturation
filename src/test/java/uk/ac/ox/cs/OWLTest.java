@@ -4,6 +4,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import java.io.File;
 
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 
 import uk.ac.ox.cs.gsat.App;
@@ -18,7 +19,8 @@ public class OWLTest {
 
 	private static final String baseChaseBench = "test" + File.separator + "OWL" + File.separator;
 
-	// @Test
+	@Disabled("Disabled because it is too slow")
+	@Test
 	public void galenModule1NoFunctionality() {
 
 		String path = baseChaseBench + "00033.owl";
@@ -40,7 +42,8 @@ public class OWLTest {
 
 	}
 
-	// @Test
+	@Disabled("Disabled until bug with OWL in GSat has been resolved")
+	@Test
 	public void GardinerCorpusHttp___www_daml_ecs_soton_ac_uk_ont_currency_daml() {
 
 		String path = baseChaseBench + "00198.owl";
