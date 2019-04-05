@@ -42,7 +42,6 @@ public class OWLTest {
 
 	}
 
-	@Disabled("Disabled until bug with OWL in GSat has been resolved")
 	@Test
 	public void GardinerCorpusHttp___www_daml_ecs_soton_ac_uk_ont_currency_daml() {
 
@@ -50,7 +49,7 @@ public class OWLTest {
 
 		int executeChaseBenchScenario = App.fromOWL(path);
 
-		assertEquals(12, executeChaseBenchScenario);
+		assertEquals(85, executeChaseBenchScenario);
 
 	}
 

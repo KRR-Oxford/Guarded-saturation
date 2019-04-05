@@ -259,7 +259,7 @@ public class IO {
         String to_append = "";
         for (Formula f : query.getChildren()) {
             if (!(f instanceof Atom)) {
-                App.logger.fine("We only accept atomic queries");
+                App.logger.warning("We only accept atomic queries");
                 return "";
             }
             querySB.append(to_append);
@@ -390,7 +390,8 @@ public class IO {
         for (Rule rule : rules) {
             Collection<Atom> body = getPDQAtomsFromGraalAtomSet(rule.getBody());
             Collection<Atom> head = getPDQAtomsFromGraalAtomSet(rule.getHead());
-            tgds.add(TGD.create(body.toArray(new Atom[body.size()]), head.toArray(new Atom[head.size()])));
+            if (!body.isEmpty() && !head.isEmpty())
+                tgds.add(TGD.create(body.toArray(new Atom[body.size()]), head.toArray(new Atom[head.size()])));
         }
 
         return tgds;
