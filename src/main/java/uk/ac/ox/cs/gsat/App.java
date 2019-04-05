@@ -4,10 +4,9 @@ import java.io.File;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashSet;
+import java.util.LinkedList;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-
-import org.apache.commons.lang3.ArrayUtils;
 
 import fr.lirmm.graphik.graal.api.core.AtomSet;
 import fr.lirmm.graphik.graal.api.core.Rule;
@@ -21,7 +20,7 @@ public class App {
 	static final Logger logger = Logger.getLogger("Global Saturation");
 
 	public static void main(String[] args) throws Exception {
-		logger.setLevel(Level.FINE);
+		logger.setLevel(Level.INFO);
 
 		System.out.println("Starting GSat...");
 
@@ -120,9 +119,10 @@ public class App {
 
 		Collection<TGDGSat> guardedSaturation = null;
 		try {
-
-			guardedSaturation = GSat.getInstance()
-					.runGSat(ArrayUtils.addAll(allDependencies, queriesRules.toArray(new TGD[queriesRules.size()])));
+			Collection<Dependency> allRules = new LinkedList<>();
+			allRules.addAll(Arrays.asList(allDependencies));
+			allRules.addAll(queriesRules);
+			guardedSaturation = GSat.getInstance().runGSat(allRules.toArray(new Dependency[allRules.size()]));
 			logger.info("Rewriting completed!");
 			System.out.println("Guarded saturation:");
 			System.out.println("=========================================");

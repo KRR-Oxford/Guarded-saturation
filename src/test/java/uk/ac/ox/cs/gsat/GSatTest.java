@@ -219,20 +219,27 @@ public class GSatTest {
 
 	@Test
 	public void evolveTest() {
-		Atom P_x = Atom.create(Predicate.create("P", 1), Variable.create(GSat.getInstance().uVariable + "1"));
-		Atom R_x_y = Atom.create(Predicate.create("R", 2), Variable.create(GSat.getInstance().uVariable + "1"),
-				Variable.create(GSat.getInstance().eVariable + "1"));
-		Atom S_y = Atom.create(Predicate.create("S", 1), Variable.create(GSat.getInstance().eVariable + "1"));
-		TGD nonFull = TGD.create(new Atom[] { P_x }, new Atom[] { R_x_y, S_y });
+		// TODO
+		// Atom P_x = Atom.create(Predicate.create("P", 1),
+		// Variable.create(GSat.getInstance().uVariable + "1"));
+		// Atom R_x_y = Atom.create(Predicate.create("R", 2),
+		// Variable.create(GSat.getInstance().uVariable + "1"),
+		// Variable.create(GSat.getInstance().eVariable + "1"));
+		// Atom S_y = Atom.create(Predicate.create("S", 1),
+		// Variable.create(GSat.getInstance().eVariable + "1"));
+		// TGD nonFull = TGD.create(new Atom[] { P_x }, new Atom[] { R_x_y, S_y });
 
-		Atom R_z1_z2 = Atom.create(Predicate.create("R", 2), Variable.create(GSat.getInstance().uVariable + "1"),
-				Variable.create(GSat.getInstance().uVariable + "2"));
-		Atom S_z1 = Atom.create(Predicate.create("S", 1), Variable.create(GSat.getInstance().uVariable + "1"));
-		Atom T_z2 = Atom.create(Predicate.create("T", 1), Variable.create(GSat.getInstance().uVariable + "2"));
-		TGD full = TGD.create(new Atom[] { R_z1_z2, S_z1 }, new Atom[] { T_z2 });
-		System.out.println(nonFull.toString());
-		System.out.println(full.toString());
-		System.out.println(GSat.getInstance().evolve(nonFull, full));
+		// Atom R_z1_z2 = Atom.create(Predicate.create("R", 2),
+		// Variable.create(GSat.getInstance().uVariable + "1"),
+		// Variable.create(GSat.getInstance().uVariable + "2"));
+		// Atom S_z1 = Atom.create(Predicate.create("S", 1),
+		// Variable.create(GSat.getInstance().uVariable + "1"));
+		// Atom T_z2 = Atom.create(Predicate.create("T", 1),
+		// Variable.create(GSat.getInstance().uVariable + "2"));
+		// TGD full = TGD.create(new Atom[] { R_z1_z2, S_z1 }, new Atom[] { T_z2 });
+		// System.out.println(nonFull.toString());
+		// System.out.println(full.toString());
+		// System.out.println(GSat.getInstance().evolve(nonFull, full));
 	}
 
 	@Test
