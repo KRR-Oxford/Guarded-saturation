@@ -1,4 +1,4 @@
-package uk.ac.ox.cs;
+package uk.ac.ox.cs.gsat;
 
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
