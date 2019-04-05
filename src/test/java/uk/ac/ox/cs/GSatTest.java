@@ -1,16 +1,16 @@
 package uk.ac.ox.cs;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.Map;
 
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 import uk.ac.ox.cs.gsat.GSat;
 import uk.ac.ox.cs.gsat.TGDGSat;
@@ -196,7 +196,7 @@ public class GSatTest {
 		TGDGSat tgdExpected = new TGDGSat(TGD.create(new Atom[] { B_u1u2u3 }, new Atom[] { H1_u2e1e2e3, H2_e2e3 }));
 
 		assertEquals(1, tgdsVNFs.size());
-		assertTrue("Expecting: " + tgdExpected + ", got: " + tgdsVNFs, tgdsVNFs.contains(tgdExpected));
+		assertTrue(tgdsVNFs.contains(tgdExpected), "Expecting: " + tgdExpected + ", got: " + tgdsVNFs);
 
 	}
 
@@ -219,7 +219,20 @@ public class GSatTest {
 
 	@Test
 	public void evolveTest() {
-		// TODO
+		Atom P_x = Atom.create(Predicate.create("P", 1), Variable.create(GSat.getInstance().uVariable + "1"));
+		Atom R_x_y = Atom.create(Predicate.create("R", 2), Variable.create(GSat.getInstance().uVariable + "1"),
+				Variable.create(GSat.getInstance().eVariable + "1"));
+		Atom S_y = Atom.create(Predicate.create("S", 1), Variable.create(GSat.getInstance().eVariable + "1"));
+		TGD nonFull = TGD.create(new Atom[] { P_x }, new Atom[] { R_x_y, S_y });
+
+		Atom R_z1_z2 = Atom.create(Predicate.create("R", 2), Variable.create(GSat.getInstance().uVariable + "1"),
+				Variable.create(GSat.getInstance().uVariable + "2"));
+		Atom S_z1 = Atom.create(Predicate.create("S", 1), Variable.create(GSat.getInstance().uVariable + "1"));
+		Atom T_z2 = Atom.create(Predicate.create("T", 1), Variable.create(GSat.getInstance().uVariable + "2"));
+		TGD full = TGD.create(new Atom[] { R_z1_z2, S_z1 }, new Atom[] { T_z2 });
+		System.out.println(nonFull.toString());
+		System.out.println(full.toString());
+		System.out.println(GSat.getInstance().evolve(nonFull, full));
 	}
 
 	@Test

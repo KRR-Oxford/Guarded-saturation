@@ -1,9 +1,9 @@
 package uk.ac.ox.cs;
 
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 import uk.ac.ox.cs.gsat.Logic;
 import uk.ac.ox.cs.pdq.fol.Atom;
@@ -83,27 +83,27 @@ public class LogicTest {
 		// ∀ x2,x1,x3 B(x2,x1,x3) → ∃ z1,y1,y2 H1(x1,z1,y1,y2) & H2(y1,y2)
 		TGD tgd = TGD.create(new Atom[] { B_x2x1x3 }, new Atom[] { H1_x1z1y1y2, H2_y1y2 });
 		System.out.println("TGD: " + tgd);
-		assertFalse("This is a 'non-full' TGD", Logic.isFull(tgd));
+		assertFalse(Logic.isFull(tgd), "This is a 'non-full' TGD");
 
 		// ∀ u1,u2,u3 B(u1,u2,u3) → ∃ e1,e2,e3 H1(u2,e1,e2,e3) & H2(e2,e3)
 		tgd = TGD.create(new Atom[] { b_u1u2u3 }, new Atom[] { h1_u2e1e2e3, h2_e2e3 });
 		System.out.println("TGD: " + tgd);
-		assertFalse("This is a 'non-full' TGD", Logic.isFull(tgd));
+		assertFalse(Logic.isFull(tgd), "This is a 'non-full' TGD");
 
 		// ∀ x1,x2 B(x1,x2) → ∃ y1 H1(x1,y1) ∧ H2(x2)
 		tgd = TGD.create(new Atom[] { B_x1x2 }, new Atom[] { H1_x1y1, H_x2 });
 		System.out.println("TGD: " + tgd);
-		assertFalse("This is a 'non-full' TGD", Logic.isFull(tgd));
+		assertFalse(Logic.isFull(tgd), "This is a 'non-full' TGD");
 
 		// ∀ x1,x2 B(x1,x2) → ∃ y1 H1(x1,y1)
 		tgd = TGD.create(new Atom[] { B_x1x2 }, new Atom[] { H1_x1y1 });
 		System.out.println("TGD: " + tgd);
-		assertFalse("This is a 'non-full' TGD", Logic.isFull(tgd));
+		assertFalse(Logic.isFull(tgd), "This is a 'non-full' TGD");
 
 		// ∀ x1,x2 B(x1,x2) → H2(x2)
 		tgd = TGD.create(new Atom[] { B_x1x2 }, new Atom[] { H_x2 });
 		System.out.println("TGD: " + tgd);
-		assertTrue("This is a 'full' TGD", Logic.isFull(tgd));
+		assertTrue(Logic.isFull(tgd), "This is a 'full' TGD");
 
 		// ∀ x1 R(x1) → ∃ y1,y2 T(x1,y1,y2)
 		TGD t1 = TGD.create(new Atom[] { R_x1 }, new Atom[] { T_x1y1y2 });
@@ -115,13 +115,13 @@ public class LogicTest {
 		TGD t4 = TGD.create(new Atom[] { T_x1x2x3, V_x1x2, S_x1 }, new Atom[] { M_x1 });
 
 		System.out.println("TGD: " + t1);
-		assertFalse("This is a 'non-full' TGD", Logic.isFull(t1));
+		assertFalse(Logic.isFull(t1), "This is a 'non-full' TGD");
 		System.out.println("TGD: " + t2);
-		assertFalse("This is a 'non-full' TGD", Logic.isFull(t2));
+		assertFalse(Logic.isFull(t2), "This is a 'non-full' TGD");
 		System.out.println("TGD: " + t3);
-		assertTrue("This is a 'full' TGD", Logic.isFull(t3));
+		assertTrue(Logic.isFull(t3), "This is a 'full' TGD");
 		System.out.println("TGD: " + t4);
-		assertTrue("This is a 'full' TGD", Logic.isFull(t4));
+		assertTrue(Logic.isFull(t4), "This is a 'full' TGD");
 
 		// ∀ x1,x2 R(x1,x2) → ∃ y1,y2 S(x1,x2,y1,y2) ∧ T(x1,x2,y2)
 		t1 = TGD.create(new Atom[] { R_x1x2 }, new Atom[] { S_x1x2y1y2, T_x1x2y2 });
@@ -130,16 +130,16 @@ public class LogicTest {
 		// ∀ z1,z2,z3 T(z1,z2,z3) ∧ U(z3) → P(z1)
 		t3 = TGD.create(new Atom[] { T_z1z2z3, U_z3 }, new Atom[] { P_z1 });
 		System.out.println("TGD: " + t1);
-		assertFalse("This is a 'non-full' TGD", Logic.isFull(t1));
+		assertFalse(Logic.isFull(t1), "This is a 'non-full' TGD");
 		System.out.println("TGD: " + t2);
-		assertTrue("This is a 'full' TGD", Logic.isFull(t2));
+		assertTrue(Logic.isFull(t2), "This is a 'full' TGD");
 		System.out.println("TGD: " + t3);
-		assertTrue("This is a 'full' TGD", Logic.isFull(t3));
+		assertTrue(Logic.isFull(t3), "This is a 'full' TGD");
 
 		// ∀ u1,u2,u3 U(u1,u2,u3) → ∃ z1,z2,z3 U(z1,z2,z3)
 		tgd = TGD.create(new Atom[] { U_u1u2u3 }, new Atom[] { U_z1z2z3 });
 		System.out.println("TGD: " + tgd);
-		assertFalse("This is a 'non-full' TGD", Logic.isFull(tgd));
+		assertFalse(Logic.isFull(tgd), "This is a 'non-full' TGD");
 
 	}
 
