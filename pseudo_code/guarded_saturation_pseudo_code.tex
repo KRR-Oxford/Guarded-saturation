@@ -1,0 +1,133 @@
+\documentclass{article}
+\usepackage[english]{babel} 
+\usepackage[utf8x]{inputenc}
+\usepackage[final]{microtype}
+\usepackage[bottom]{footmisc}
+%% Hyperlinks 
+\usepackage[hidelinks]{hyperref}
+\hypersetup{
+ colorlinks,
+ linktoc=page,
+ linkcolor=blue,
+ citecolor=blue,
+ urlcolor=blue
+}
+%% Graphics
+\usepackage{graphicx}
+\usepackage{float}
+
+\usepackage{enumerate}
+% Math packages
+\usepackage{amsmath}
+\usepackage{mathtools}
+\usepackage{amssymb}
+\usepackage{mathpartir}
+
+% Proof system
+\usepackage{amsthm}
+%\usepackage{xpatch}
+\makeatletter
+
+% paper margins
+\usepackage[tmargin=1in,lmargin=1in,rmargin=1in,bmargin=1in]{geometry}
+% citations
+\usepackage{cite}
+% Graphs
+\usepackage{tikz}
+\usetikzlibrary{quotes,angles}
+
+\usepackage[ruled,vlined,linesnumbered]{algorithm2e}
+
+% multiple colums
+\usepackage{multicol}
+
+% Custom commands
+\newcommand\restr[2]{{% we make the whole thing an ordinary symbol
+  \left.\kern-\nulldelimiterspace % automatically resize the bar with \right
+  #1 % the function
+  \vphantom{\big|} % pretend it's a little taller at normal size
+  \right|_{#2} % this is the delimiter
+  }}
+\newcommand{\kw}[1]{{\mathsf{#1}}\xspace}
+\newcommand{\tgd}{\kw{TGD}}
+\newcommand{\var}{\kw{Var}}
+\newcommand{\body}{\beta}
+\newcommand{\head}{\eta}
+\newcommand{\guard}{G}
+\newcommand{\guards}{\mathcal{G}}
+\newcommand{\hnf}{\kw{HNF}}
+\newcommand{\vnf}{\kw{VNF}}
+\newcommand{\rphi}{\varphi}
+\newcommand{\workingSet}{\mathcal{W}}
+\newcommand{\fullSet}{\mathcal{F}}
+\newcommand{\nonFullSet}{\mathcal{N}}
+\newcommand{\comment}[1]{\tcp*[f]{#1}}
+\newcommand{\evolve}{\kw{EVOLVE}}
+\newcommand{\evolvedSet}{\mathcal{E}}
+\newcommand{\gsat}{\kw{GSat}}
+\newcommand{\vars}{\kw{Vars}}
+
+\pagestyle{plain}
+
+%Title page settings
+
+% Line breaks after paragraph
+% double line spacing
+%\linespread{1.5}
+%------------------------------------------------------------------------------
+\begin{document}
+\begin{algorithm}[H]
+\DontPrintSemicolon
+\SetAlgoLined
+\SetKwProg{Fn}{Function}{: }{}
+\SetKwInOut{Input}{Input}\SetKwInOut{Output}{Output}
+\Fn{$\gsat$}{
+\Input{Guarded TGDs $\Sigma$}
+\Output{Atomic rewriting of $\Sigma$}
+\BlankLine
+$\workingSet = \vnf\bigl(\hnf(\Sigma)\bigr)$\comment{working set}\;
+$\fullSet = \nonFullSet =\emptyset$\comment{full and non-full set}\;
+\While{$\workingSet\neq\emptyset$}{
+    Let $\sigma$ be a rule in $\workingSet$\;
+    \eIf{$\sigma$ is full}{
+	$\fullSet = \fullSet\cup\{\sigma\}$\;
+    $\evolvedSet = \bigl\{\evolve(\tau,\sigma)\mid \tau\in\nonFullSet\bigr\}$\;
+    }{
+	$\nonFullSet = \nonFullSet\cup\{\sigma\}$\;
+	$\evolvedSet = \bigl\{\evolve(\sigma,\tau)\mid \tau\in\fullSet\bigr\}$\;
+    }
+	$\workingSet = \workingSet\cup\evolvedSet\setminus\{\sigma\}$\;
+}
+\KwRet{$\fullSet$}\;
+}\;
+\Fn{$\evolve$}{
+\Input{Non-full $\sigma=\body(\vec x)\rightarrow\exists\vec y\,\head$ and full $\sigma'=\body'\rightarrow\head'$}
+\Output{Derived rules of $\sigma$, $\sigma'$}
+\BlankLine
+Rename $\sigma'$ s.t.\ $\vars(\sigma)\cap\vars(\sigma')=\emptyset$\;
+Let $\guard'$ be a guard of $\sigma'$\;
+$\evolvedSet = \emptyset$\;
+\ForEach{$H\in\head$}{
+    \If{there is an mgu $\theta$ of $\guard'$ and $H$ with $\restr{\theta}{\vec y}=id_{\vec y}$ and $\vec x\theta\cap\vec y=\emptyset$} {
+        $\sigma=\sigma\theta$\;
+        $\sigma'=\sigma'\theta$\;
+        $S'=(B_1',\dotsc,B_n')$ s.t.\ $B_i'\in \body'$ and $B_i'\cap\vec y\neq\emptyset$ and $\guard'=B_1'$\;
+     \For{$2\leq i\leq n$}{
+         \tcp{get matches for $B_i=R(w_1,\dotsc,w_m)$ by selecting atoms with matching}
+         \tcp{predicates and positions of existentials}
+         $S_i=\{R(v_1,\dotsc,v_m)\in\head\mid \forall 1\leq j\leq m.\ v_j\in\vec y\lor w_j\in\vec y\implies v_j=w_j \}$\;
+     }
+    \ForEach{$S\in \bigl(\{\guard'\}\times S_2\times\dotsb\times S_n\bigr)$}{
+        Let $\theta^*$ be the mgu of $S$ and $S'$\;
+        \tcp{Note: evc is satisfied by construction}
+        $\body''=\bigl(\body\cup\bigl(\body'\setminus\{B_1,\dotsc,B_n\}\bigr)\bigr)\theta^*$\;
+        $\head''=\bigl(\head\cup\head'\bigr)\theta^*$\;
+        $\evolvedSet = \evolvedSet\cup\vnf\bigl(\hnf(\body''\rightarrow\exists\vec y\,\head'')\bigr)$\;
+    }
+}
+}
+\KwRet{$\evolvedSet$}\;
+}
+\caption{Guarded Saturation}
+\end{algorithm}
+\end{document}
