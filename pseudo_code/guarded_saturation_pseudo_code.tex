@@ -96,7 +96,7 @@ $\fullSet = \nonFullSet =\emptyset$\comment{full and non-full set}\;
 	$\nonFullSet = \nonFullSet\cup\{\sigma\}$\;
 	$\evolvedSet = \bigl\{\evolve(\sigma,\tau)\mid \tau\in\fullSet\bigr\}$\;
     }
-	$\workingSet = \workingSet\cup\evolvedSet\setminus\{\sigma\}$\;
+	$\workingSet = \workingSet\cup\evolvedSet\setminus\bigl(\fullSet\cup\nonFullSet\cup\{\sigma\}\bigr)$\;
 }
 \KwRet{$\fullSet$}\;
 }\;
@@ -113,11 +113,11 @@ $\evolvedSet = \emptyset$\;
         $\sigma'=\sigma'\theta$\;
         $S'=(B_1',\dotsc,B_n')$ s.t.\ $B_i'\in \body'$ and $B_i'\cap\vec y\neq\emptyset$ and $\guard'=B_1'$\;
      \For{$2\leq i\leq n$}{
-         \tcp{get matches for $B_i=R(w_1,\dotsc,w_m)$ by selecting atoms with matching}
+         \tcp{get matches for $B_i'=R(w_1,\dotsc,w_m)$ by selecting atoms with matching}
          \tcp{predicates and positions of existentials}
          $S_i=\{R(v_1,\dotsc,v_m)\in\head\mid \forall 1\leq j\leq m.\ v_j\in\vec y\lor w_j\in\vec y\implies v_j=w_j \}$\;
      }
-    \ForEach{$S\in \bigl(\{\guard'\}\times S_2\times\dotsb\times S_n\bigr)$}{
+    \ForEach{$S\in \bigl(\{H\}\times S_2\times\dotsb\times S_n\bigr)$}{
         Let $\theta^*$ be the mgu of $S$ and $S'$\;
         \tcp{Note: evc is satisfied by construction}
         $\body''=\bigl(\body\cup\bigl(\body'\setminus\{B_1,\dotsc,B_n\}\bigr)\bigr)\theta^*$\;
