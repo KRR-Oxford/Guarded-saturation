@@ -5,6 +5,8 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.LinkedList;
+import java.util.logging.ConsoleHandler;
+import java.util.logging.Handler;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -17,10 +19,15 @@ import uk.ac.ox.cs.pdq.fol.TGD;
 
 public class App {
 
+	private static final Level level = Level.INFO;
 	static final Logger logger = Logger.getLogger("Global Saturation");
 
 	public static void main(String[] args) throws Exception {
-		logger.setLevel(Level.INFO);
+		Handler handlerObj = new ConsoleHandler();
+		handlerObj.setLevel(level);
+		logger.addHandler(handlerObj);
+		logger.setLevel(level);
+		logger.setUseParentHandlers(false);
 
 		System.out.println("Starting GSat...");
 
