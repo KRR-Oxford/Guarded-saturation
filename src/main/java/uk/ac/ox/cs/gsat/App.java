@@ -10,8 +10,12 @@ import java.util.logging.Handler;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+import fr.lirmm.graphik.graal.api.core.Atom;
 import fr.lirmm.graphik.graal.api.core.AtomSet;
+import fr.lirmm.graphik.graal.api.core.ConjunctiveQuery;
+import fr.lirmm.graphik.graal.api.core.Query;
 import fr.lirmm.graphik.graal.api.core.Rule;
+import fr.lirmm.graphik.graal.io.dlp.DlgpParser;
 import fr.lirmm.graphik.graal.io.owl.OWL2Parser;
 import uk.ac.ox.cs.pdq.db.Schema;
 import uk.ac.ox.cs.pdq.fol.Dependency;
@@ -55,7 +59,10 @@ public class App {
 					} else
 						printHelp("Wrong number of parameters for cb");
 				else if (args[0].equals("dlgp"))
-					System.err.println("Not yet implemented!");
+					if (args.length == 2) {
+						fromDLGP(args[1]);
+					} else
+						printHelp("Wrong number of parameters for dlgp");
 				else if (args[0].equals("owl"))
 					if (args.length == 2) {
 						fromOWL(args[1]);
@@ -220,6 +227,66 @@ public class App {
 		}
 
 		return solverOutput;
+
+	}
+
+	public static int fromDLGP(String path) {
+
+		boolean fullGrounding = Configuration.isFullGrounding();
+
+		Collection<Atom> atoms = new HashSet<>();
+		Collection<Rule> rules = new HashSet<>();
+		Collection<Query> queries = new HashSet<>();
+
+		try {
+
+			DlgpParser parser = new DlgpParser(new File(path));
+
+			while (parser.hasNext()) {
+				Object o = parser.next();
+				if (o instanceof Atom) {
+					logger.fine("Atom: " + ((Atom) o));
+					atoms.add((Atom) o);
+				} else if (o instanceof Rule) {
+					logger.fine("Rule: " + ((Rule) o));
+					rules.add((Rule) o);
+				} else if (o instanceof ConjunctiveQuery) {
+					logger.fine("ConjunctiveQuery: " + ((Query) o));
+					queries.add((Query) o);
+				}
+			}
+
+			parser.close();
+
+		} catch (Exception e) {
+			System.err.println("Data loading failed. The system will now terminate.");
+			logger.severe(e.getLocalizedMessage());
+			System.exit(1);
+		}
+
+		System.out.println("# Rules: " + rules.size() + "; # Atoms: " + atoms.size());
+
+		Collection<TGDGSat> guardedSaturation = null;
+		try {
+
+			Collection<TGD> tgds = IO.getPDQTGDsFromGraalRules(rules);
+			rules = null;
+
+			guardedSaturation = GSat.getInstance().runGSat(tgds.toArray(new TGD[tgds.size()]));
+
+			logger.info("Rewriting completed!");
+			System.out.println("Guarded saturation:");
+			System.out.println("=========================================");
+			guardedSaturation.forEach(System.out::println);
+			System.out.println("=========================================");
+
+		} catch (Exception e) {
+			System.err.println("Guarded Saturation algorithm failed. The system will now terminate.");
+			logger.severe(e.getLocalizedMessage());
+			System.exit(1);
+		}
+
+		return guardedSaturation.size();
 
 	}
 

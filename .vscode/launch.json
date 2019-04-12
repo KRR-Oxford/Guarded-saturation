@@ -62,6 +62,22 @@
         },
         {
             "type": "java",
+            "name": "DLGP Animals - App<Guarded-saturation>",
+            "request": "launch",
+            "projectName": "guarded-saturation",
+            "mainClass": "uk.ac.ox.cs.gsat.App",
+            "args": "dlgp test\\DLGP\\animals.dlp"
+        },
+        {
+            "type": "java",
+            "name": "DLGP A - App<Guarded-saturation>",
+            "request": "launch",
+            "projectName": "guarded-saturation",
+            "mainClass": "uk.ac.ox.cs.gsat.App",
+            "args": "dlgp test\\DLGP\\A.dlp"
+        },
+        {
+            "type": "java",
             "name": "Debug (Launch) - Current File",
             "request": "launch",
             "mainClass": "${file}"
