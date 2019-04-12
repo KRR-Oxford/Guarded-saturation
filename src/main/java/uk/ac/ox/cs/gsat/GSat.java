@@ -5,6 +5,8 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.LinkedList;
+import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Objects;
@@ -364,14 +366,102 @@ public class GSat {
 
     }
 
-    public Atom[] applyMGU(Collection<Atom> nftgdHeadAtoms, Map<Term, Term> mgu) {
+    public Atom[] applyMGU(Collection<Atom> atoms, Map<Term, Term> mgu) {
 
         Collection<Atom> result = new HashSet<>();
 
-        nftgdHeadAtoms.forEach(atom -> result.add((Atom) Logic.applySubstitution(atom, mgu)));
+        atoms.forEach(atom -> result.add((Atom) Logic.applySubstitution(atom, mgu)));
 
         return result.toArray(new Atom[result.size()]);
 
+    }
+
+    /**
+     * 
+     * @param nftgd non-full TGD (guarded)
+     * @param ftgd  full TGD (guarded)
+     * @return the derived rules of nftgd and ftgd according to the EVOLVE inference
+     *         rule
+     */
+    public Collection<? extends TGD> evolveNew(TGD nftgd, TGD ftgd) {
+
+        ftgd = evolveRename(ftgd);
+
+        App.logger.fine("Composing:\n" + nftgd + "\nand\n" + ftgd);
+
+        Atom guard = new TGDGSat(ftgd).getGuard();
+        Collection<TGD> results = new HashSet<>();
+
+        for (Atom H : nftgd.getHeadAtoms()) {
+            Map<Term, Term> guardMGU = getGuardMGU(guard, H);
+            if (guardMGU != null && !guardMGU.isEmpty()) {
+                TGD new_nftgd = applyMGU(nftgd, guardMGU);
+                TGD new_ftgd = applyMGU(ftgd, guardMGU);
+                Collection<Atom> Sbody = getSbody(new_ftgd.getBodyAtoms(), guard,
+                        Arrays.asList(new_nftgd.getExistential()));
+                Collection<Collection<Atom>> Shead = getShead(new_nftgd.getHeadAtoms(), Sbody);
+                for (Collection<Atom> S : getProduct(Shead)) {
+                    Map<Term, Term> mgu = getMGU(S, Sbody);
+
+                    Collection<Atom> new_body = new HashSet<>();
+                    new_body.addAll(Arrays.asList(new_nftgd.getBodyAtoms()));
+                    new_body.addAll(Arrays.asList(new_ftgd.getBodyAtoms()));
+                    new_body.removeAll(Sbody);
+
+                    Collection<Atom> new_head = new HashSet<>();
+                    new_head.addAll(Arrays.asList(new_nftgd.getHeadAtoms()));
+                    new_head.addAll(Arrays.asList(new_ftgd.getHeadAtoms()));
+
+                    results.addAll(VNFs(HNF(applyMGU(TGD.create(new_body.toArray(new Atom[new_body.size()]),
+                            new_head.toArray(new Atom[new_head.size()])), mgu))));
+                }
+
+            }
+        }
+
+        Collection<Atom> joinAtoms = getJoinAtoms(nftgd.getHeadAtoms(), ftgd.getBodyAtoms());
+        if (joinAtoms.isEmpty())
+            return null;
+        App.logger.fine("Join atoms:");
+        joinAtoms.forEach(tgd -> App.logger.fine(tgd.toString()));
+
+        return results;
+
+    }
+
+    private Map<Term, Term> getMGU(Collection<Atom> s, Collection<Atom> sbody) {
+        // TODO
+        return null;
+    }
+
+    private Collection<Collection<Atom>> getProduct(Collection<Collection<Atom>> shead) {
+        // TODO
+        return null;
+    }
+
+    private Collection<Collection<Atom>> getShead(Atom[] headAtoms, Collection<Atom> sbody) {
+        // TODO
+        return null;
+    }
+
+    private Collection<Atom> getSbody(Atom[] bodyAtoms, Atom guard, List<Variable> eVariables) {
+        // TODO
+        return null;
+    }
+
+    private boolean containsY(Atom atom, List<Variable> eVariables) {
+        // TODO
+        return false;
+    }
+
+    private TGD applyMGU(TGD tgd, Map<Term, Term> mgu) {
+        // TODO
+        return null;
+    }
+
+    private Map<Term, Term> getGuardMGU(Atom guard, Atom h) {
+        // TODO
+        return null;
     }
 
 }
