@@ -1,7 +1,9 @@
 package uk.ac.ox.cs.gsat;
 
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.LinkedList;
+import java.util.List;
 import java.util.Set;
 
 import uk.ac.ox.cs.pdq.fol.Atom;
@@ -75,6 +77,17 @@ public class TGDGSat extends TGD implements Comparable<TGDGSat> {
                 throw new IllegalArgumentException("Term type not supported: " + term + " : " + term.getClass());
         }
         return result;
+
+    }
+
+    public Atom getGuard() {
+
+        List<Variable> universalList = Arrays.asList(getUniversal());
+        for (Atom atom : getBodyAtoms())
+            if (Arrays.asList(atom.getTerms()).containsAll(universalList))
+                return atom;
+
+        throw new IllegalArgumentException("The TGD must be guarded to find get a Guard");
 
     }
 
