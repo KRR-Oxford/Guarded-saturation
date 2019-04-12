@@ -460,8 +460,25 @@ public class GSat {
     }
 
     private Map<Term, Term> getGuardMGU(Atom guard, Atom h) {
-        // TODO
-        return null;
+
+        Map<Term, Term> result = new HashMap<>();
+
+        Term[] guardTerms = guard.getTerms();
+        for (int i = 0; i < guardTerms.length; i++) {
+
+            Term guardTerm = guardTerms[i];
+            Term headTerm = h.getTerm(i);
+
+            if (result.containsKey(guardTerm)) {
+                if (result.get(guardTerm) != headTerm)
+                    return null;
+            } else
+                result.put(guardTerm, headTerm);
+
+        }
+
+        return result;
+
     }
 
 }
