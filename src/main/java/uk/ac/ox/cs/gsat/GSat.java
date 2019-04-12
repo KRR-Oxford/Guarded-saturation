@@ -436,8 +436,8 @@ public class GSat {
                 TGD new_ftgd = applyMGU(ftgd, guardMGU);
                 Collection<Atom> Sbody = getSbody(new_ftgd.getBodyAtoms(), guard,
                         Arrays.asList(new_nftgd.getExistential()));
-                Collection<Collection<Atom>> Shead = getShead(new_nftgd.getHeadAtoms(), Sbody);
-                for (Collection<Atom> S : getProduct(Shead)) {
+                List<List<Atom>> Shead = getShead(new_nftgd.getHeadAtoms(), Sbody);
+                for (List<Atom> S : getProduct(Shead)) {
                     Map<Term, Term> mgu = getMGU(S, Sbody);
 
                     Collection<Atom> new_body = new HashSet<>();
@@ -471,12 +471,34 @@ public class GSat {
         return null;
     }
 
-    private Collection<Collection<Atom>> getProduct(Collection<Collection<Atom>> shead) {
-        // TODO
-        return null;
+    /**
+     * Mainly from https://stackoverflow.com/a/9496234
+     * 
+     * @param shead
+     * @return
+     */
+    private List<List<Atom>> getProduct(List<List<Atom>> shead) {
+
+        List<List<Atom>> resultLists = new ArrayList<List<Atom>>();
+        if (shead.size() == 0) {
+            resultLists.add(new ArrayList<Atom>());
+            return resultLists;
+        } else {
+            List<Atom> firstList = shead.get(0);
+            List<List<Atom>> remainingLists = getProduct(shead.subList(1, shead.size()));
+            for (Atom condition : firstList) {
+                for (List<Atom> remainingList : remainingLists) {
+                    ArrayList<Atom> resultList = new ArrayList<Atom>();
+                    resultList.add(condition);
+                    resultList.addAll(remainingList);
+                    resultLists.add(resultList);
+                }
+            }
+        }
+        return resultLists;
     }
 
-    private Collection<Collection<Atom>> getShead(Atom[] headAtoms, Collection<Atom> sbody) {
+    private List<List<Atom>> getShead(Atom[] headAtoms, Collection<Atom> sbody) {
         // TODO
         return null;
     }
