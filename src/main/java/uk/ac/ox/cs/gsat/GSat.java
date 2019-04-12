@@ -122,11 +122,13 @@ public class GSat {
             if (Logic.isFull(currentTGD)) {
                 fullTGDs.add(currentTGD);
                 for (TGDGSat nftgd : nonFullTGDs)
-                    tempTGDsSet.addAll(VNFs(HNF(evolve(nftgd, currentTGD))));
+                    // tempTGDsSet.addAll(VNFs(HNF(evolve(nftgd, currentTGD))));
+                    tempTGDsSet.addAll(evolveNew(nftgd, currentTGD));
             } else {
                 nonFullTGDs.add(currentTGD);
                 for (TGDGSat ftgd : fullTGDs)
-                    tempTGDsSet.addAll(VNFs(HNF(evolve(currentTGD, ftgd))));
+                    // tempTGDsSet.addAll(VNFs(HNF(evolve(currentTGD, ftgd))));
+                    tempTGDsSet.addAll(evolveNew(currentTGD, ftgd));
             }
 
             for (TGDGSat d : tempTGDsSet)
@@ -420,14 +422,14 @@ public class GSat {
      * @return the derived rules of nftgd and ftgd according to the EVOLVE inference
      *         rule
      */
-    public Collection<? extends TGD> evolveNew(TGD nftgd, TGD ftgd) {
+    public Collection<TGDGSat> evolveNew(TGD nftgd, TGD ftgd) {
 
         ftgd = evolveRename(ftgd);
 
         App.logger.fine("Composing:\n" + nftgd + "\nand\n" + ftgd);
 
         Atom guard = new TGDGSat(ftgd).getGuard();
-        Collection<TGD> results = new HashSet<>();
+        Collection<TGDGSat> results = new HashSet<>();
 
         for (Atom H : nftgd.getHeadAtoms()) {
             Map<Term, Term> guardMGU = getGuardMGU(guard, H);
@@ -456,12 +458,6 @@ public class GSat {
             }
         }
 
-        Collection<Atom> joinAtoms = getJoinAtoms(nftgd.getHeadAtoms(), ftgd.getBodyAtoms());
-        if (joinAtoms.isEmpty())
-            return null;
-        App.logger.fine("Join atoms:");
-        joinAtoms.forEach(tgd -> App.logger.fine(tgd.toString()));
-
         return results;
 
     }
@@ -472,7 +468,7 @@ public class GSat {
 
         int counter = 0;
         for (Atom bodyAtom : sbody)
-            if (bodyAtom.getPredicate().equals(s.get(counter).getPredicate())) {
+            if (s.size() > counter && bodyAtom.getPredicate().equals(s.get(counter).getPredicate())) {
                 counter++;
                 for (int i = 0; i < bodyAtom.getPredicate().getArity(); i++) {
                     Term currentTermBody = bodyAtom.getTerm(i);
@@ -598,6 +594,9 @@ public class GSat {
     }
 
     private Map<Term, Term> getGuardMGU(Atom guard, Atom h) {
+
+        if (!guard.getPredicate().equals(h.getPredicate()))
+            return null;
 
         Map<Term, Term> result = new HashMap<>();
 
