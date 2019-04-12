@@ -436,7 +436,8 @@ public class GSat {
                 TGD new_ftgd = applyMGU(ftgd, guardMGU);
                 Collection<Atom> Sbody = getSbody(new_ftgd.getBodyAtoms(), guard,
                         Arrays.asList(new_nftgd.getExistential()));
-                List<List<Atom>> Shead = getShead(new_nftgd.getHeadAtoms(), Sbody);
+                List<List<Atom>> Shead = getShead(new_nftgd.getHeadAtoms(), Sbody,
+                        Arrays.asList(new_nftgd.getExistential()));
                 for (List<Atom> S : getProduct(Shead)) {
                     Map<Term, Term> mgu = getMGU(S, Sbody);
 
@@ -498,9 +499,38 @@ public class GSat {
         return resultLists;
     }
 
-    private List<List<Atom>> getShead(Atom[] headAtoms, Collection<Atom> sbody) {
-        // TODO
-        return null;
+    private List<List<Atom>> getShead(Atom[] headAtoms, Collection<Atom> sbody, List<Variable> eVariables) {
+
+        List<List<Atom>> resultLists = new ArrayList<List<Atom>>();
+
+        for (Atom bodyAtom : sbody) {
+            List<Atom> temp = new ArrayList<>();
+
+            for (Atom headAtom : headAtoms)
+                if (headAtom.getPredicate().equals(bodyAtom.getPredicate())) {
+                    boolean valid = true;
+
+                    Term[] headTerms = headAtom.getTerms();
+                    for (int i = 0; i < headTerms.length; i++) {
+                        Term headTerm = headTerms[i];
+                        if (eVariables.contains(headTerm) && !bodyAtom.getTerm(i).equals(headTerm)) {
+                            valid = false;
+                            break;
+                        }
+                    }
+
+                    if (valid)
+                        temp.add(headAtom);
+
+                }
+
+            if (!temp.isEmpty())
+                resultLists.add(temp);
+
+        }
+
+        return resultLists;
+
     }
 
     private Collection<Atom> getSbody(Atom[] bodyAtoms, Atom guard, List<Variable> eVariables) {
