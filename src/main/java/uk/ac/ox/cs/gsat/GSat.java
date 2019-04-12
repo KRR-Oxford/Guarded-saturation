@@ -35,10 +35,21 @@ public class GSat {
     private GSat() {
     }
 
+    /**
+     * 
+     * @return Singleton instace of GSat
+     */
     public static GSat getInstance() {
         return INSTANCE;
     }
 
+    /**
+     * 
+     * Main method to run the Guarded Saturation algorithm
+     * 
+     * @param allDependencies the Guarded TGDs to process
+     * @return the Guarded Saturation of allDependencies
+     */
     public Collection<TGDGSat> runGSat(Dependency[] allDependencies) {
 
         System.out.println("Running GSat...");
@@ -142,7 +153,9 @@ public class GSat {
 
     /**
      * 
-     * @param tgd
+     * A checker for self-join
+     * 
+     * @param tgd a TGD
      * @return true if the TGD contains 2 atoms in the body or in the head with the
      *         same predicate name (needed only until we implement a generic MGU)
      */
@@ -165,13 +178,16 @@ public class GSat {
 
     /**
      * 
-     * @param newTGDs
+     * Check if the variables we use in the rename are already used in the input
+     * TGDs
+     * 
+     * @param TGDs
      * @return true if it founds a variable with the same name of one of our rename
      *         variables
      */
-    private boolean checkRenameVariablesInTGDs(Collection<TGDGSat> newTGDs) {
+    private boolean checkRenameVariablesInTGDs(Collection<TGDGSat> TGDs) {
 
-        for (TGDGSat tgd : newTGDs)
+        for (TGDGSat tgd : TGDs)
             for (String symbol : tgd.getAllTermSymbols())
                 if (symbol.equals(uVariable) || symbol.equals(eVariable) || symbol.equals(zVariable))
                     return true;
@@ -180,6 +196,13 @@ public class GSat {
 
     }
 
+    /**
+     * 
+     * Returns the Head Normal Form (HNF) of the input TGD
+     * 
+     * @param tgd an input TGD
+     * @return Head Normal Form of tgd
+     */
     public Collection<TGD> HNF(TGD tgd) {
 
         Collection<TGD> result = new HashSet<>();
@@ -209,12 +232,26 @@ public class GSat {
 
     }
 
+    /**
+     * 
+     * Returns the Variable Normal Form (VNF) of all the input TGDs
+     * 
+     * @param tgds a collection of TGDs
+     * @return Variable Normal Form of tgds
+     */
     public Collection<TGDGSat> VNFs(Collection<TGD> tgds) {
 
         return tgds.stream().map((tgd) -> VNF(tgd)).collect(Collectors.toList());
 
     }
 
+    /**
+     * 
+     * Returns the Variable Normal Form (VNF) of the input TGD
+     * 
+     * @param tgd an input TGD
+     * @return Variable Normal Form of tgd
+     */
     public TGDGSat VNF(TGD tgd) {
 
         if (tgd == null)
