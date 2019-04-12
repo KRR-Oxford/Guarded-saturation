@@ -434,8 +434,7 @@ public class GSat {
             if (guardMGU != null && !guardMGU.isEmpty()) {
                 TGD new_nftgd = applyMGU(nftgd, guardMGU);
                 TGD new_ftgd = applyMGU(ftgd, guardMGU);
-                Collection<Atom> Sbody = getSbody(new_ftgd.getBodyAtoms(), guard,
-                        Arrays.asList(new_nftgd.getExistential()));
+                List<Atom> Sbody = getSbody(new_ftgd.getBodyAtoms(), guard, Arrays.asList(new_nftgd.getExistential()));
                 List<List<Atom>> Shead = getShead(new_nftgd.getHeadAtoms(), Sbody,
                         Arrays.asList(new_nftgd.getExistential()));
                 for (List<Atom> S : getProduct(Shead)) {
@@ -467,9 +466,44 @@ public class GSat {
 
     }
 
-    private Map<Term, Term> getMGU(Collection<Atom> s, Collection<Atom> sbody) {
-        // TODO
-        return null;
+    private Map<Term, Term> getMGU(List<Atom> s, List<Atom> sbody) {
+
+        Map<Term, Term> result = new HashMap<>();
+
+        int counter = 0;
+        for (Atom bodyAtom : sbody)
+            if (bodyAtom.getPredicate().equals(s.get(counter).getPredicate())) {
+                counter++;
+                for (int i = 0; i < bodyAtom.getPredicate().getArity(); i++) {
+                    Term currentTermBody = bodyAtom.getTerm(i);
+                    Term currentTermHead = s.get(counter).getTerm(i);
+                    if (currentTermBody.isVariable() && currentTermHead.isVariable())
+                        if (result.containsKey(currentTermBody)) {
+                            if (!result.get(currentTermBody).equals(currentTermHead))
+                                return null;
+                        } else
+                            result.put(currentTermBody, currentTermHead);
+                    else if (!currentTermBody.isVariable() && !currentTermHead.isVariable()) {
+                        if (!currentTermBody.equals(currentTermHead)) // Clash
+                            return null;
+                    } else if (!currentTermBody.isVariable())// currentTermBody is the constant
+                        if (result.containsKey(currentTermHead)) {
+                            if (!result.get(currentTermBody).equals(currentTermHead))
+                                return null;
+                        } else
+                            result.put(currentTermHead, currentTermBody);
+                    else // currentTermHead is the constant
+                    if (result.containsKey(currentTermBody)) {
+                        if (!result.get(currentTermBody).equals(currentTermHead))
+                            return null;
+                    } else
+                        result.put(currentTermBody, currentTermHead);
+
+                }
+            }
+
+        return result;
+
     }
 
     /**
@@ -533,9 +567,9 @@ public class GSat {
 
     }
 
-    private Collection<Atom> getSbody(Atom[] bodyAtoms, Atom guard, List<Variable> eVariables) {
+    private List<Atom> getSbody(Atom[] bodyAtoms, Atom guard, List<Variable> eVariables) {
 
-        Collection<Atom> results = new LinkedList<>();
+        List<Atom> results = new LinkedList<>();
 
         results.add(guard);
         for (Atom atom : bodyAtoms)
