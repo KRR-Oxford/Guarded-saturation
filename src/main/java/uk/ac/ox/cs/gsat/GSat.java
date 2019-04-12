@@ -445,13 +445,26 @@ public class GSat {
     }
 
     private Collection<Atom> getSbody(Atom[] bodyAtoms, Atom guard, List<Variable> eVariables) {
-        // TODO
-        return null;
+
+        Collection<Atom> results = new LinkedList<>();
+
+        results.add(guard);
+        for (Atom atom : bodyAtoms)
+            if (!atom.equals(guard) && !containsY(atom, eVariables))
+                results.add(atom);
+
+        return results;
+
     }
 
     private boolean containsY(Atom atom, List<Variable> eVariables) {
-        // TODO
+
+        for (Term term : atom.getTerms())
+            if (eVariables.contains(term))
+                return true;
+
         return false;
+
     }
 
     private TGD applyMGU(TGD tgd, Map<Term, Term> mgu) {
