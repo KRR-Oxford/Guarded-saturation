@@ -455,8 +455,10 @@ public class GSat {
     }
 
     private TGD applyMGU(TGD tgd, Map<Term, Term> mgu) {
-        // TODO
-        return null;
+
+        return TGD.create(applyMGU(Arrays.asList(tgd.getBodyAtoms()), mgu),
+                applyMGU(Arrays.asList(tgd.getBodyAtoms()), mgu));
+
     }
 
     private Map<Term, Term> getGuardMGU(Atom guard, Atom h) {
