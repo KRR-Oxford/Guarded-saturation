@@ -96,7 +96,7 @@ public class ChaseBenchTest {
                 SolverOutput executeChaseBenchScenario = App.executeChaseBenchScenario(baseTest, basePath,
                                 fact_querySize, true);
 
-                assertEquals(12306747, executeChaseBenchScenario.getOutput().length());
+                assertEquals(12308257, executeChaseBenchScenario.getOutput().length());
                 assertEquals(0, executeChaseBenchScenario.getErrors().length());
 
         }

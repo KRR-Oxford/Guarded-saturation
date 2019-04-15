@@ -436,10 +436,14 @@ public class GSat {
             if (guardMGU != null && !guardMGU.isEmpty()) {
                 TGD new_nftgd = applyMGU(nftgd, guardMGU);
                 TGD new_ftgd = applyMGU(ftgd, guardMGU);
-                List<Atom> Sbody = getSbody(new_ftgd.getBodyAtoms(), guard, Arrays.asList(new_nftgd.getExistential()));
+                List<Atom> Sbody = getSbody(new_ftgd.getBodyAtoms(), applyMGU(Arrays.asList(guard), guardMGU)[0],
+                        Arrays.asList(new_nftgd.getExistential()));
                 List<List<Atom>> Shead = getShead(new_nftgd.getHeadAtoms(), Sbody,
                         Arrays.asList(new_nftgd.getExistential()));
+                App.logger.fine("Shead:" + Shead.toString());
                 for (List<Atom> S : getProduct(Shead)) {
+                    App.logger.fine("Non-Full:" + new_nftgd.toString() + "\nFull:" + new_ftgd.toString() + "\nSbody:"
+                            + Sbody + "\nS:" + S);
                     Map<Term, Term> mgu = getMGU(S, Sbody);
 
                     Collection<Atom> new_body = new HashSet<>();
@@ -469,7 +473,6 @@ public class GSat {
         int counter = 0;
         for (Atom bodyAtom : sbody)
             if (s.size() > counter && bodyAtom.getPredicate().equals(s.get(counter).getPredicate())) {
-                counter++;
                 for (int i = 0; i < bodyAtom.getPredicate().getArity(); i++) {
                     Term currentTermBody = bodyAtom.getTerm(i);
                     Term currentTermHead = s.get(counter).getTerm(i);
@@ -496,6 +499,7 @@ public class GSat {
                         result.put(currentTermBody, currentTermHead);
 
                 }
+                counter++;
             }
 
         return result;
@@ -569,7 +573,7 @@ public class GSat {
 
         results.add(guard);
         for (Atom atom : bodyAtoms)
-            if (!atom.equals(guard) && !containsY(atom, eVariables))
+            if (!atom.equals(guard) && containsY(atom, eVariables))
                 results.add(atom);
 
         return results;
@@ -589,7 +593,7 @@ public class GSat {
     private TGD applyMGU(TGD tgd, Map<Term, Term> mgu) {
 
         return TGD.create(applyMGU(Arrays.asList(tgd.getBodyAtoms()), mgu),
-                applyMGU(Arrays.asList(tgd.getBodyAtoms()), mgu));
+                applyMGU(Arrays.asList(tgd.getHeadAtoms()), mgu));
 
     }
 

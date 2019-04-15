@@ -21,52 +21,59 @@ public class TGDGSat extends TGD implements Comparable<TGDGSat> {
     private static final long serialVersionUID = 1L;
 
     protected TGDGSat(Atom[] body, Atom[] head) {
+
         super(body, head);
+
     }
 
     public TGDGSat(TGD tgd) {
+
         super(tgd.getBodyAtoms(), tgd.getHeadAtoms());
+
     }
 
     @Override
     public boolean equals(Object obj) {
+
         if (!(obj instanceof TGDGSat))
             return false;
 
         TGDGSat tgd2 = (TGDGSat) obj;
 
-        var body1 = Set.of(this.bodyAtoms);
-        var body2 = Set.of(tgd2.bodyAtoms);
-        if (!body1.equals(body2))
-            return false;
+        var body1 = Set.of(this.getBodyAtoms());
+        var body2 = Set.of(tgd2.getBodyAtoms());
 
-        var head1 = Set.of(this.headAtoms);
-        var head2 = Set.of(tgd2.headAtoms);
-        if (!head1.equals(head2))
-            return false;
+        var head1 = Set.of(this.getHeadAtoms());
+        var head2 = Set.of(tgd2.getHeadAtoms());
 
-        return true;
+        return body1.equals(body2) && head1.equals(head2);
+
     }
 
     @Override
     public int compareTo(TGDGSat o) {
+
         if (this.equals(o))
             return 0;
 
-        return this.toString().compareTo(o.toString()); // Lexicographic order
+        return this.toString().compareTo(o.toString()); // Lexicographic order FIXME
+
     }
 
     @Override
     public int hashCode() {
+
         return this.toString().hashCode();
+
     }
 
     public Collection<String> getAllTermSymbols() {
+
         // Collection<String> result = getTypedConstants().stream().map((constant) -> )
         // .collect(Collectors.toList());
         Collection<String> result = new LinkedList<>();
 
-        for (Term term : getTerms()) {
+        for (Term term : getTerms())
             if (term.isVariable())
                 result.add(((Variable) term).getSymbol());
             else if (term.isUntypedConstant())
@@ -75,7 +82,7 @@ public class TGDGSat extends TGD implements Comparable<TGDGSat> {
                 result.add((String) ((TypedConstant) term).getValue());
             else
                 throw new IllegalArgumentException("Term type not supported: " + term + " : " + term.getClass());
-        }
+
         return result;
 
     }
@@ -83,6 +90,7 @@ public class TGDGSat extends TGD implements Comparable<TGDGSat> {
     public Atom getGuard() {
 
         List<Variable> universalList = Arrays.asList(getUniversal());
+
         for (Atom atom : getBodyAtoms())
             if (Arrays.asList(atom.getTerms()).containsAll(universalList))
                 return atom;

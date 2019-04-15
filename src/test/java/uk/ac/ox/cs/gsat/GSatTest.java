@@ -12,8 +12,6 @@ import java.util.Map;
 
 import org.junit.jupiter.api.Test;
 
-import uk.ac.ox.cs.gsat.GSat;
-import uk.ac.ox.cs.gsat.TGDGSat;
 import uk.ac.ox.cs.pdq.fol.Atom;
 import uk.ac.ox.cs.pdq.fol.Predicate;
 import uk.ac.ox.cs.pdq.fol.TGD;
@@ -308,6 +306,42 @@ public class GSatTest {
 
 		assertEquals(tgd1, tgd2);
 		assertTrue(tgd1.equals(tgd2));
+
+	}
+
+	@Test
+	public void evolveNewTest() {
+		Atom P_x = Atom.create(Predicate.create("P", 1), Variable.create(GSat.getInstance().uVariable + "1"));
+		Atom R_x_y = Atom.create(Predicate.create("R", 2), Variable.create(GSat.getInstance().uVariable + "1"),
+				Variable.create(GSat.getInstance().eVariable + "1"));
+		Atom S_y = Atom.create(Predicate.create("S", 1), Variable.create(GSat.getInstance().eVariable + "1"));
+		TGD nonFull = TGD.create(new Atom[] { P_x }, new Atom[] { R_x_y, S_y });
+
+		Atom R_z1_z2 = Atom.create(Predicate.create("R", 2), Variable.create(GSat.getInstance().uVariable + "1"),
+				Variable.create(GSat.getInstance().uVariable + "2"));
+		Atom S_z1 = Atom.create(Predicate.create("S", 1), Variable.create(GSat.getInstance().uVariable + "1"));
+		Atom T_z2 = Atom.create(Predicate.create("T", 1), Variable.create(GSat.getInstance().uVariable + "2"));
+		TGD full = TGD.create(new Atom[] { R_z1_z2, S_z1 }, new Atom[] { T_z2 });
+		System.out.println("Non-Full: " + nonFull);
+		System.out.println("Full: " + full);
+
+		Collection<TGDGSat> evolveNew = GSat.getInstance().evolveNew(nonFull, full);
+		System.out.println("evolveNew:" + evolveNew);
+
+		Atom S_x = Atom.create(Predicate.create("S", 1), Variable.create(GSat.getInstance().uVariable + "1"));
+		Atom T_y = Atom.create(Predicate.create("T", 1), Variable.create(GSat.getInstance().eVariable + "1"));
+		TGDGSat expectedTGDSat = new TGDGSat(new Atom[] { P_x, S_x }, new Atom[] { R_x_y, S_y, T_y });
+		// Collection<TGDGSat> expected = new HashSet<>();
+		// expected.add(new TGDGSat(new Atom[] { P_x, S_x }, new Atom[] { R_x_y, S_y,
+		// T_y }));
+
+		// System.out.println(expected.iterator().next() + "..." +
+		// evolveNew.iterator().next());
+		// System.out.println(expected.iterator().next().equals(evolveNew.iterator().next()));
+		// assertEquals(expected, evolveNew);
+
+		assertEquals(evolveNew.size(), 1);
+		assertEquals(expectedTGDSat, evolveNew.iterator().next());
 
 	}
 
