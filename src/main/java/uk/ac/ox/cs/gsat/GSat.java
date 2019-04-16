@@ -261,8 +261,8 @@ public class GSat {
 
         Variable[] uVariables = tgd.getUniversal();
         Variable[] eVariables = tgd.getExistential();
-        App.logger.finest(uVariables.toString());
-        App.logger.finest(eVariables.toString());
+        // App.logger.finest(uVariables.toString());
+        // App.logger.finest(eVariables.toString());
 
         Map<Term, Term> substitution = new HashMap<>();
         int counter = 1;

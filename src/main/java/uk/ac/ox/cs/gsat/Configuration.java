@@ -79,18 +79,27 @@ public class Configuration {
 
     }
 
-    private static void initialize() {
+    private static synchronized void initialize() {
 
+        FileInputStream inStream = null;
         if (Configuration.prop == null)
             try {
                 Configuration.prop = new Properties();
                 App.logger.fine("loading configuration from '" + Configuration.file + "'");
-                Configuration.prop.load(new FileInputStream(Configuration.file));
+                inStream = new FileInputStream(Configuration.file);
+                Configuration.prop.load(inStream);
             } catch (final IOException e) {
                 App.logger.warning("Could not open configuration file.");
                 App.logger.warning(e.toString());
                 App.logger.warning("Falling back to defaults.");
                 Configuration.prop = null;
+            } finally {
+                if (inStream != null)
+                    try {
+                        inStream.close();
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }
             }
 
     }

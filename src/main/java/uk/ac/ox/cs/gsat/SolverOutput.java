@@ -10,7 +10,7 @@ public class SolverOutput implements Cloneable {
     protected String errors;
 
     public SolverOutput() {
-        output = new String();
+        output = "";
     }
 
     public SolverOutput(final String initial_output) {

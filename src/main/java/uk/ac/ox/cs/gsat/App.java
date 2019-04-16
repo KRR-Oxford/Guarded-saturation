@@ -159,7 +159,9 @@ public class App {
 		String baseOutputPath = "test" + File.separator + "datalog" + File.separator + scenario + File.separator
 				+ fact_querySize + File.separator;
 		try {
-			new File(baseOutputPath).mkdirs();
+			boolean mkdirs = new File(baseOutputPath).mkdirs();
+			if (!mkdirs)
+				throw new IllegalArgumentException("Output path not available");
 
 			if (!new File(baseOutputPath + "datalog.data").exists()) {
 
@@ -176,6 +178,8 @@ public class App {
 
 			}
 
+		} catch (RuntimeException e) {
+			throw e;
 		} catch (Exception e) {
 			System.err.println("Facts conversion to Datalog failed. The system will now terminate.");
 			System.exit(1);
@@ -220,6 +224,8 @@ public class App {
 
 			}
 
+		} catch (RuntimeException e) {
+			throw e;
 		} catch (Exception e) {
 			System.err.println("Datalog solver execution failed. The system will now terminate.");
 			logger.severe(e.getLocalizedMessage());
@@ -264,7 +270,8 @@ public class App {
 			System.exit(1);
 		}
 
-		System.out.println("# Rules: " + rules.size() + "; # Atoms: " + atoms.size());
+		System.out
+				.println("# Rules: " + rules.size() + "; # Atoms: " + atoms.size() + "; # Queries: " + queries.size());
 
 		Collection<TGDGSat> guardedSaturation = null;
 		try {

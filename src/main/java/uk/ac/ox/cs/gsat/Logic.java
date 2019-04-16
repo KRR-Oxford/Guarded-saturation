@@ -4,7 +4,9 @@ import java.io.BufferedReader;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.io.OutputStreamWriter;
 import java.io.PrintWriter;
+import java.nio.charset.StandardCharsets;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
@@ -100,9 +102,9 @@ public class Logic {
 	 */
 	public static SolverOutput invokeSolver(String exe_path, String options, List<String> files)
 			throws InterruptedException, IOException {
-		String files_paths = new String();
+		String files_paths = "";
 
-		String final_program = new String();
+		String final_program = "";
 
 		for (final String program_file : files) {
 			File f = new File(program_file);
@@ -134,8 +136,8 @@ public class Logic {
 		Thread threadOutput = new Thread() {
 			@Override
 			public void run() {
-				final BufferedReader bufferedReaderOutput = new BufferedReader(
-						new InputStreamReader(solver_process.getInputStream()));
+				InputStreamReader in = new InputStreamReader(solver_process.getInputStream(), StandardCharsets.UTF_8);
+				final BufferedReader bufferedReaderOutput = new BufferedReader(in);
 
 				// Read output of the solver and store in solverOutput
 				String currentLine;
@@ -144,6 +146,13 @@ public class Logic {
 						solverOutput.append(currentLine + "\n");
 				} catch (IOException e) {
 					System.err.println("Error while reading the output of the solver.");
+				} finally {
+					if (bufferedReaderOutput != null)
+						try {
+							bufferedReaderOutput.close();
+						} catch (IOException e) {
+							e.printStackTrace();
+						}
 				}
 			}
 		};
@@ -154,14 +163,21 @@ public class Logic {
 		Thread threadError = new Thread() {
 			@Override
 			public void run() {
-				final BufferedReader bufferedReaderError = new BufferedReader(
-						new InputStreamReader(solver_process.getErrorStream()));
+				InputStreamReader in = new InputStreamReader(solver_process.getErrorStream(), StandardCharsets.UTF_8);
+				final BufferedReader bufferedReaderError = new BufferedReader(in);
 				String currentErrLine;
 				try {
 					while ((currentErrLine = bufferedReaderError.readLine()) != null)
 						solverError.append(currentErrLine + "\n");
 				} catch (IOException e) {
 					System.err.println("Error while reading the output of the solver.");
+				} finally {
+					if (bufferedReaderError != null)
+						try {
+							bufferedReaderError.close();
+						} catch (IOException e) {
+							e.printStackTrace();
+						}
 				}
 			}
 		};
@@ -169,7 +185,8 @@ public class Logic {
 		threadError.start();
 		threadError.join();
 
-		final PrintWriter writer = new PrintWriter(solver_process.getOutputStream());
+		final PrintWriter writer = new PrintWriter(
+				new OutputStreamWriter(solver_process.getOutputStream(), StandardCharsets.UTF_8), true);
 		writer.println(final_program);
 
 		if (writer != null)

@@ -73,15 +73,18 @@ public class IO {
     static Collection<Atom> readFactsChaseBench(String basePath, String fact_querySize, Schema schema) {
         File dataDir = new File(basePath + "data" + File.separator + fact_querySize);
         Collection<Atom> facts = new ArrayList<>();
-        if (dataDir.exists())
-            for (File f : dataDir.listFiles())
-                if (f.getName().endsWith(".csv")) {
-                    String name = f.getName().substring(0, f.getName().indexOf("."));
-                    if (schema.getRelation(name) == null)
-                        System.out.println("Can't process file: " + f.getAbsolutePath());
-                    else
-                        facts.addAll(CommonToPDQTranslator.importFacts(schema, name, f.getAbsolutePath()));
-                }
+        if (dataDir.exists()) {
+            File[] listFiles = dataDir.listFiles();
+            if (listFiles != null)
+                for (File f : listFiles)
+                    if (f.getName().endsWith(".csv")) {
+                        String name = f.getName().substring(0, f.getName().indexOf("."));
+                        if (schema.getRelation(name) == null)
+                            System.out.println("Can't process file: " + f.getAbsolutePath());
+                        else
+                            facts.addAll(CommonToPDQTranslator.importFacts(schema, name, f.getAbsolutePath()));
+                    }
+        }
         return facts;
     }
 
@@ -97,14 +100,17 @@ public class IO {
         for (Relation r : schema.getRelations())
             relations2.put(r.getName(), r);
 
-        if (queriesDir.exists())
-            for (File f : queriesDir.listFiles())
-                if (f.getName().endsWith(".txt")) {
-                    App.logger.fine("Parsing: " + f.getAbsolutePath());
-                    queries.addAll(CommonToPDQTranslator.parseDependencies(relations2, f.getAbsolutePath()));
-                    // queries.add(CommonToPDQTranslator.parseQuery(relations2,
-                    // f.getAbsolutePath()));
-                }
+        if (queriesDir.exists()) {
+            File[] listFiles = queriesDir.listFiles();
+            if (listFiles != null)
+                for (File f : listFiles)
+                    if (f.getName().endsWith(".txt")) {
+                        App.logger.fine("Parsing: " + f.getAbsolutePath());
+                        queries.addAll(CommonToPDQTranslator.parseDependencies(relations2, f.getAbsolutePath()));
+                        // queries.add(CommonToPDQTranslator.parseQuery(relations2,
+                        // f.getAbsolutePath()));
+                    }
+        }
         Collection<TGD> result = new ArrayList<>();
         for (Dependency d : queries) {
             if (d instanceof TGD && ((TGD) d).isGuarded()) {// Adding only Guarded TGDs
@@ -179,16 +185,17 @@ public class IO {
                         Predicate.create(name.substring(0, 1).toLowerCase() + name.substring(1), predicate.getArity()),
                         newAtom.getTerms());
             }
-            // URL in angle bracket
-            if (name.length() > 6 && name.substring(0, 7).equals("http://")) {
-                App.logger.info("URL as predicate name. Adding angle brackets.");
-                // return Atom.create(Predicate.create('<' + name + '>', predicate.getArity()),
-                // newAtom.getTerms());
-                return Atom.create(
-                        Predicate.create(Base64.getUrlEncoder().withoutPadding().encodeToString(name.getBytes()),
-                                predicate.getArity()),
-                        newAtom.getTerms());
-            }
+            // // URL in angle bracket
+            // if (name.length() > 6 && name.substring(0, 7).equals("http://")) {
+            // App.logger.info("URL as predicate name. Adding angle brackets.");
+            // // return Atom.create(Predicate.create('<' + name + '>',
+            // predicate.getArity()),
+            // // newAtom.getTerms());
+            // return Atom.create(
+            // Predicate.create(Base64.getUrlEncoder().withoutPadding().encodeToString(name.getBytes()),
+            // predicate.getArity()),
+            // newAtom.getTerms());
+            // }
             // // remove unwanted chars
             // FIXME
             // if (!name.matches("[a-z]([A-Z_])+")) {
@@ -212,22 +219,25 @@ public class IO {
             String outputPath) throws IOException {
         Path path = Paths.get(outputPath);
         File dataDir = new File(basePath + "data" + File.separator + fact_querySize);
-        if (dataDir.exists())
-            for (File f : dataDir.listFiles())
-                if (f.getName().endsWith(".csv")) {
-                    String name = f.getName().substring(0, f.getName().indexOf("."));
-                    if (schema.getRelation(name) == null)
-                        System.out.println("Can't process file: " + f.getAbsolutePath());
-                    else {
-                        Collection<String> datalogFacts = new LinkedList<>();
+        if (dataDir.exists()) {
+            File[] listFiles = dataDir.listFiles();
+            if (listFiles != null)
+                for (File f : listFiles)
+                    if (f.getName().endsWith(".csv")) {
+                        String name = f.getName().substring(0, f.getName().indexOf("."));
+                        if (schema.getRelation(name) == null)
+                            System.out.println("Can't process file: " + f.getAbsolutePath());
+                        else {
+                            Collection<String> datalogFacts = new LinkedList<>();
 
-                        for (Atom atom : CommonToPDQTranslator.importFacts(schema, name, f.getAbsolutePath()))
-                            datalogFacts.add(renameVariablesAndConstantsDatalog(atom).toString() + '.');
+                            for (Atom atom : CommonToPDQTranslator.importFacts(schema, name, f.getAbsolutePath()))
+                                datalogFacts.add(renameVariablesAndConstantsDatalog(atom).toString() + '.');
 
-                        Files.write(path, datalogFacts, StandardCharsets.UTF_8,
-                                Files.exists(path) ? StandardOpenOption.APPEND : StandardOpenOption.CREATE);
+                            Files.write(path, datalogFacts, StandardCharsets.UTF_8,
+                                    Files.exists(path) ? StandardOpenOption.APPEND : StandardOpenOption.CREATE);
+                        }
                     }
-                }
+        }
     }
 
     public static void writeDatalogFacts(Collection<Atom> facts, String path) throws IOException {
