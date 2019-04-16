@@ -432,18 +432,30 @@ public class GSat {
         Collection<TGDGSat> results = new HashSet<>();
 
         for (Atom H : nftgd.getHeadAtoms()) {
+
             Map<Term, Term> guardMGU = getGuardMGU(guard, H);
+
             if (guardMGU != null && !guardMGU.isEmpty()) {
+
                 TGD new_nftgd = applyMGU(nftgd, guardMGU);
                 TGD new_ftgd = applyMGU(ftgd, guardMGU);
+
                 List<Atom> Sbody = getSbody(new_ftgd.getBodyAtoms(), applyMGU(Arrays.asList(guard), guardMGU)[0],
                         Arrays.asList(new_nftgd.getExistential()));
+
                 List<List<Atom>> Shead = getShead(new_nftgd.getHeadAtoms(), Sbody,
                         Arrays.asList(new_nftgd.getExistential()));
+
+                if (Shead == null)
+                    continue;
+
                 App.logger.fine("Shead:" + Shead.toString());
+
                 for (List<Atom> S : getProduct(Shead)) {
+
                     App.logger.fine("Non-Full:" + new_nftgd.toString() + "\nFull:" + new_ftgd.toString() + "\nSbody:"
                             + Sbody + "\nS:" + S);
+
                     Map<Term, Term> mgu = getMGU(S, Sbody);
 
                     Collection<Atom> new_body = new HashSet<>();
@@ -457,9 +469,11 @@ public class GSat {
 
                     results.addAll(VNFs(HNF(applyMGU(TGD.create(new_body.toArray(new Atom[new_body.size()]),
                             new_head.toArray(new Atom[new_head.size()])), mgu))));
+
                 }
 
             }
+
         }
 
         return results;
@@ -538,6 +552,7 @@ public class GSat {
         List<List<Atom>> resultLists = new ArrayList<List<Atom>>();
 
         for (Atom bodyAtom : sbody) {
+
             List<Atom> temp = new ArrayList<>();
 
             for (Atom headAtom : headAtoms)
@@ -558,8 +573,10 @@ public class GSat {
 
                 }
 
-            if (!temp.isEmpty())
-                resultLists.add(temp);
+            if (temp.isEmpty())
+                return null;
+
+            resultLists.add(temp);
 
         }
 
