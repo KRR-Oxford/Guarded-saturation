@@ -132,7 +132,7 @@ public class GSat {
             }
 
             for (TGDGSat d : tempTGDsSet)
-                if ((Logic.isFull(d) && !fullTGDs.contains(d)) || (!Logic.isFull(d) && !nonFullTGDs.contains(d))) {
+                if (Logic.isFull(d) && !fullTGDs.contains(d) || !Logic.isFull(d) && !nonFullTGDs.contains(d)) {
                     App.logger.fine("adding new TGD: " + d + "\t" + d.equals(currentTGD) + ": "
                             + nonFullTGDs.contains(currentTGD) + ": " + nonFullTGDs.contains(d) + ": "
                             + Objects.equals(d, currentTGD));

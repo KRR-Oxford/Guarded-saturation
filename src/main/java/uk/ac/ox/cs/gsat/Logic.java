@@ -81,7 +81,7 @@ public class Logic {
 			}
 			return Atom.create(((Atom) formula).getPredicate(), nterms);
 		}
-		throw new java.lang.RuntimeException("Unsupported formula type: " + formula);
+		throw new RuntimeException("Unsupported formula type: " + formula);
 	}
 
 	static boolean containsAny(Atom atom, Variable[] eVariables) {

@@ -232,7 +232,7 @@ public class App {
 
 	public static int fromDLGP(String path) {
 
-		boolean fullGrounding = Configuration.isFullGrounding();
+		// boolean fullGrounding = Configuration.isFullGrounding();
 
 		Collection<Atom> atoms = new HashSet<>();
 		Collection<Rule> rules = new HashSet<>();
