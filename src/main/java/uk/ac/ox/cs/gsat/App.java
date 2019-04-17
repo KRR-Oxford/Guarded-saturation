@@ -1,6 +1,8 @@
 package uk.ac.ox.cs.gsat;
 
 import java.io.File;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashSet;
@@ -159,11 +161,14 @@ public class App {
 		String baseOutputPath = "test" + File.separator + "datalog" + File.separator + scenario + File.separator
 				+ fact_querySize + File.separator;
 		try {
-			boolean mkdirs = new File(baseOutputPath).mkdirs();
-			if (!mkdirs)
-				throw new IllegalArgumentException("Output path not available");
 
-			if (!new File(baseOutputPath + "datalog.data").exists()) {
+			if (Files.notExists(Paths.get(baseOutputPath))) {
+				boolean mkdirs = new File(baseOutputPath).mkdirs();
+				if (!mkdirs)
+					throw new IllegalArgumentException("Output path not available: " + baseOutputPath);
+			}
+
+			if (Files.notExists(Paths.get(baseOutputPath, "datalog.data"))) {
 
 				// Collection<Atom> facts = IO.readFactsChaseBench(basePath, fact_querySize,
 				// schema);
@@ -384,9 +389,14 @@ public class App {
 		// atomSets = null;
 		// System.out.println("# PDQ Atoms: " + atoms.size());
 
-		// new File(baseOutputPath).mkdirs();
+		// if (Files.notExists(Paths.get(baseOutputPath))) {
+		// boolean mkdirs = new File(baseOutputPath).mkdirs();
+		// if (!mkdirs)
+		// throw new IllegalArgumentException("Output path not available: " +
+		// baseOutputPath);
+		// }
 
-		// // if (!new File(baseOutputPath + "datalog.data").exists())
+		// if (Files.notExists(Paths.get(baseOutputPath, "datalog.data"))) {
 		// IO.writeDatalogFacts(atoms, baseOutputPath + "datalog.data");
 
 		// } catch (Exception e) {
