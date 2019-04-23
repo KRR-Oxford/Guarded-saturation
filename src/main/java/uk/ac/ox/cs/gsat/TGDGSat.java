@@ -27,7 +27,6 @@ public class TGDGSat extends TGD implements Comparable<TGDGSat> {
     }
 
     public TGDGSat(TGD tgd) {
-
         super(tgd.getBodyAtoms(), tgd.getHeadAtoms());
 
     }
@@ -40,6 +39,8 @@ public class TGDGSat extends TGD implements Comparable<TGDGSat> {
 
         TGDGSat tgd2 = (TGDGSat) obj;
 
+        // shouldn't we just store the atoms in a set
+        // in the first place?
         var body1 = Set.of(this.getBodyAtoms());
         var body2 = Set.of(tgd2.getBodyAtoms());
 

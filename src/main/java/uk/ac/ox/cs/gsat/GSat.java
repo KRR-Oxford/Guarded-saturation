@@ -60,6 +60,9 @@ public class GSat {
         int discarded = 0;
 
         for (Dependency d : allDependencies)
+            // should this use TGDGSat.isGuarded()?
+            // Moreoever, I think the self join problem should be fixed
+            // if the implementation corresponds to the pseudo code
             if (d instanceof TGD && ((TGD) d).isGuarded() && !containsSelfJoin((TGD) d)) // Adding only Guarded TGDs
                 // if (!(d instanceof EGD))
                 newTGDs.addAll(VNFs(HNF((TGD) d)));
@@ -562,7 +565,11 @@ public class GSat {
                     Term[] headTerms = headAtom.getTerms();
                     for (int i = 0; i < headTerms.length; i++) {
                         Term headTerm = headTerms[i];
+                        // Term bodyTerm = bodyAtom.getTerm(i)
                         if (eVariables.contains(headTerm) && !bodyAtom.getTerm(i).equals(headTerm)) {
+                            // wrong condition; should be:
+                            // (eVariables.contains(headTerm) || eVariables.contains(bodyTerm)) &&
+                            // !bodyTerm.equals(headTerm)
                             valid = false;
                             break;
                         }
