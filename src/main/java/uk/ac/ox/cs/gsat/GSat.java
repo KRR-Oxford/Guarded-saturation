@@ -299,7 +299,7 @@ public class GSat {
 
     }
 
-    public TGD evolveRename(TGD ftgd) {
+    private TGD evolveRename(TGD ftgd) {
 
         Variable[] uVariables = ftgd.getUniversal();
 
@@ -315,7 +315,7 @@ public class GSat {
 
     }
 
-    public Collection<Atom> getJoinAtoms(Atom[] headAtoms, Atom[] bodyAtoms) {
+    private Collection<Atom> getJoinAtoms(Atom[] headAtoms, Atom[] bodyAtoms) {
 
         Collection<Atom> result = new HashSet<>();
 
@@ -330,7 +330,7 @@ public class GSat {
 
     }
 
-    public TGD getEvolveRule(TGD nftgd, TGD ftgd, Collection<Atom> joinAtoms) {
+    private TGD getEvolveRule(TGD nftgd, TGD ftgd, Collection<Atom> joinAtoms) {
 
         Collection<Atom> nftgdBodyAtoms = new HashSet<>(Arrays.asList(nftgd.getBodyAtoms()));
         Collection<Atom> nftgdHeadAtoms = new HashSet<>(Arrays.asList(nftgd.getHeadAtoms()));
@@ -356,9 +356,9 @@ public class GSat {
 
     }
 
-    public Map<Term, Term> getMGU(Atom[] headAtoms, Atom[] bodyAtoms, Collection<Atom> joinAtoms,
+    private Map<Term, Term> getMGU(Atom[] headAtoms, Atom[] bodyAtoms, Collection<Atom> joinAtoms,
             Collection<Variable> existentials) {
-        // FIXME it works only if there are no duplicate atoms in the 2 arrays
+        // it works only if there are no duplicate atoms in the 2 arrays
 
         Map<Term, Term> result = new HashMap<>();
 
@@ -405,7 +405,7 @@ public class GSat {
 
     }
 
-    public Atom[] applyMGU(Collection<Atom> atoms, Map<Term, Term> mgu) {
+    private Atom[] applyMGU(Collection<Atom> atoms, Map<Term, Term> mgu) {
 
         Collection<Atom> result = new HashSet<>();
 

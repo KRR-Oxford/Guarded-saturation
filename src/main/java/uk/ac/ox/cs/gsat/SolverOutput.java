@@ -3,7 +3,8 @@ package uk.ac.ox.cs.gsat;
 /**
  * From EmbASP code
  */
-public class SolverOutput implements Cloneable {
+public class SolverOutput {
+
     /** Variable in which results are stored */
     protected String output;
     /** The errors thrown by the solver */
@@ -11,10 +12,12 @@ public class SolverOutput implements Cloneable {
 
     public SolverOutput() {
         output = "";
+        errors = "";
     }
 
     public SolverOutput(final String initial_output) {
         output = initial_output;
+        errors = "";
     }
 
     public SolverOutput(final String out, final String err) {
@@ -22,9 +25,8 @@ public class SolverOutput implements Cloneable {
         errors = err;
     }
 
-    @Override
-    public Object clone() throws CloneNotSupportedException {
-        return super.clone();
+    public int getNumberOfLinesOutput() {
+        return output.split("\r\n|\r|\n").length;
     }
 
     public String getErrors() {
@@ -33,9 +35,6 @@ public class SolverOutput implements Cloneable {
 
     public String getOutput() {
         return output;
-    }
-
-    protected void parse() {
     }
 
     public void setErrors(final String err) {
@@ -50,4 +49,5 @@ public class SolverOutput implements Cloneable {
     public String toString() {
         return "Output:\n" + output + "\n" + errors;
     }
+
 }

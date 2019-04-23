@@ -208,7 +208,8 @@ public class App {
 
 				// System.out.println(solverOutput2);
 				System.out.println("Output size: " + solverOutputQuery.getOutput().length() + ", "
-						+ solverOutputQuery.getErrors().length());
+						+ solverOutputQuery.getErrors().length() + "; number of lines (atoms): "
+						+ solverOutputQuery.getNumberOfLinesOutput());
 				IO.writeSolverOutput(solverOutputQuery, baseOutputPath + Configuration.getSolverName() + "."
 						+ query.getHead().getAtoms()[0].getPredicate() + ".output");
 
@@ -224,7 +225,8 @@ public class App {
 
 				// System.out.println(solverOutput);
 				System.out.println(
-						"Output size: " + solverOutput.getOutput().length() + ", " + solverOutput.getErrors().length());
+						"Output size: " + solverOutput.getOutput().length() + ", " + solverOutput.getErrors().length()
+								+ "; number of lines (atoms): " + solverOutput.getNumberOfLinesOutput());
 				IO.writeSolverOutput(solverOutput, baseOutputPath + Configuration.getSolverName() + ".output");
 
 			}
@@ -304,17 +306,6 @@ public class App {
 
 	public static int fromOWL(String path) {
 
-		// OWLAPI
-		// OWLOntologyManager manager = OWLManager.createOWLOntologyManager();
-		// try {
-		// OWLOntology ontology = manager.loadOntologyFromOntologyDocument(new
-		// File(path));
-		// ontology.saveOntology(new FunctionalSyntaxDocumentFormat(), System.out);
-		// } catch (OWLOntologyCreationException | OWLOntologyStorageException e) {
-		// // TODO Auto-generated catch block
-		// e.printStackTrace();
-		// }
-
 		// logger.debug("\n----\nGRAAL\n----\n");
 
 		boolean fullGrounding = Configuration.isFullGrounding();
@@ -369,8 +360,6 @@ public class App {
 		}
 
 		return guardedSaturation.size();
-
-		// FIXME find a way to convert IRI into valid predicate names
 
 		// SolverOutput solverOutput = null;
 
