@@ -1,21 +1,17 @@
 package uk.ac.ox.cs.gsat;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashSet;
-import java.util.Map;
 
 import org.junit.jupiter.api.Test;
 
 import uk.ac.ox.cs.pdq.fol.Atom;
 import uk.ac.ox.cs.pdq.fol.Predicate;
 import uk.ac.ox.cs.pdq.fol.TGD;
-import uk.ac.ox.cs.pdq.fol.Term;
 import uk.ac.ox.cs.pdq.fol.Variable;
 
 /**
@@ -71,18 +67,23 @@ public class GSatTest {
 			Variable.create(GSat.getInstance().eVariable + "2"), Variable.create(GSat.getInstance().eVariable + "3"));
 	private static final Atom H2_e2e3 = Atom.create(Predicate.create("H2", 2),
 			Variable.create(GSat.getInstance().eVariable + "2"), Variable.create(GSat.getInstance().eVariable + "3"));
-	private static final Atom U_u1u2u3 = Atom.create(Predicate.create("U", 3),
-			Variable.create(GSat.getInstance().uVariable + "1"), Variable.create(GSat.getInstance().uVariable + "2"),
-			Variable.create(GSat.getInstance().eVariable + "1"));
-	private static final Atom U_z1z2z3 = Atom.create(Predicate.create("U", 3), Variable.create("z1"),
-			Variable.create("z2"), Variable.create("z3"));
-	private static final Atom B_z1z2z3 = Atom.create(Predicate.create("B", 3),
-			Variable.create(GSat.getInstance().zVariable + "1"), Variable.create(GSat.getInstance().zVariable + "2"),
-			Variable.create(GSat.getInstance().zVariable + "3"));
-	private static final Atom H1_u2u1 = Atom.create(Predicate.create("H1", 2),
-			Variable.create(GSat.getInstance().uVariable + "2"), Variable.create(GSat.getInstance().uVariable + "1"));
-	private static final Atom H1_z2z1 = Atom.create(Predicate.create("H1", 2),
-			Variable.create(GSat.getInstance().zVariable + "2"), Variable.create(GSat.getInstance().zVariable + "1"));
+	// private static final Atom U_u1u2u3 = Atom.create(Predicate.create("U", 3),
+	// Variable.create(GSat.getInstance().uVariable + "1"),
+	// Variable.create(GSat.getInstance().uVariable + "2"),
+	// Variable.create(GSat.getInstance().eVariable + "1"));
+	// private static final Atom U_z1z2z3 = Atom.create(Predicate.create("U", 3),
+	// Variable.create("z1"),
+	// Variable.create("z2"), Variable.create("z3"));
+	// private static final Atom B_z1z2z3 = Atom.create(Predicate.create("B", 3),
+	// Variable.create(GSat.getInstance().zVariable + "1"),
+	// Variable.create(GSat.getInstance().zVariable + "2"),
+	// Variable.create(GSat.getInstance().zVariable + "3"));
+	// private static final Atom H1_u2u1 = Atom.create(Predicate.create("H1", 2),
+	// Variable.create(GSat.getInstance().uVariable + "2"),
+	// Variable.create(GSat.getInstance().uVariable + "1"));
+	// private static final Atom H1_z2z1 = Atom.create(Predicate.create("H1", 2),
+	// Variable.create(GSat.getInstance().zVariable + "2"),
+	// Variable.create(GSat.getInstance().zVariable + "1"));
 
 	@Test
 	public void runGSatTest() {
@@ -218,79 +219,50 @@ public class GSatTest {
 	@Test
 	public void evolveTest() {
 		// TODO
-		// Atom P_x = Atom.create(Predicate.create("P", 1),
-		// Variable.create(GSat.getInstance().uVariable + "1"));
-		// Atom R_x_y = Atom.create(Predicate.create("R", 2),
-		// Variable.create(GSat.getInstance().uVariable + "1"),
-		// Variable.create(GSat.getInstance().eVariable + "1"));
-		// Atom S_y = Atom.create(Predicate.create("S", 1),
-		// Variable.create(GSat.getInstance().eVariable + "1"));
-		// TGD nonFull = TGD.create(new Atom[] { P_x }, new Atom[] { R_x_y, S_y });
-
-		// Atom R_z1_z2 = Atom.create(Predicate.create("R", 2),
-		// Variable.create(GSat.getInstance().uVariable + "1"),
-		// Variable.create(GSat.getInstance().uVariable + "2"));
-		// Atom S_z1 = Atom.create(Predicate.create("S", 1),
-		// Variable.create(GSat.getInstance().uVariable + "1"));
-		// Atom T_z2 = Atom.create(Predicate.create("T", 1),
-		// Variable.create(GSat.getInstance().uVariable + "2"));
-		// TGD full = TGD.create(new Atom[] { R_z1_z2, S_z1 }, new Atom[] { T_z2 });
-		// System.out.println(nonFull.toString());
-		// System.out.println(full.toString());
-		// System.out.println(GSat.getInstance().evolve(nonFull, full));
 	}
 
-	@Test
-	public void evolveRenameTest() {
-		// ∀ x2,x1,x3 B(x2,x1,x3) → ∃ z1,y1,y2 H1(x1,z1,y1,y2) & H2(y1,y2)
-		final TGD tgd = TGD.create(new Atom[] { B_x2x1x3 }, new Atom[] { H1_x1z1y1y2, H2_y1y2 });
-		System.out.println("Original TGD: " + tgd);
+	// @Test
+	// public void evolveRenameTest() {
+	// // ∀ x2,x1,x3 B(x2,x1,x3) → ∃ z1,y1,y2 H1(x1,z1,y1,y2) & H2(y1,y2)
+	// final TGD tgd = TGD.create(new Atom[] { B_x2x1x3 }, new Atom[] { H1_x1z1y1y2,
+	// H2_y1y2 });
+	// System.out.println("Original TGD: " + tgd);
 
-		assertThrows(IllegalArgumentException.class, () -> GSat.getInstance().evolveRename(tgd),
-				"Expected evolveRename to throw IllegalArgumentException, but it didn't");
+	// assertThrows(IllegalArgumentException.class, () ->
+	// GSat.getInstance().evolveRename(tgd),
+	// "Expected evolveRename to throw IllegalArgumentException, but it didn't");
 
-		// ∀ u1,u2,u3 B(u1,u2,u3) → H1(u2,u1)
-		TGD tgd2 = new TGDGSat(TGD.create(new Atom[] { B_u1u2u3 }, new Atom[] { H1_u2u1 }));
-		System.out.println("Original TGD: " + tgd2);
+	// // ∀ u1,u2,u3 B(u1,u2,u3) → H1(u2,u1)
+	// TGD tgd2 = new TGDGSat(TGD.create(new Atom[] { B_u1u2u3 }, new Atom[] {
+	// H1_u2u1 }));
+	// System.out.println("Original TGD: " + tgd2);
 
-		TGD tgdsEvolveRename = GSat.getInstance().evolveRename(tgd2);
-		System.out.println("TGDs in evolveRename: " + tgdsEvolveRename);
+	// TGD tgdsEvolveRename = GSat.getInstance().evolveRename(tgd2);
+	// System.out.println("TGDs in evolveRename: " + tgdsEvolveRename);
 
-		// ∀ z1,z2,z3 B(z1,z2,z3) → ∃ z1,z2 H1(z2,z1)
-		TGD tgdExpected = TGD.create(new Atom[] { B_z1z2z3 }, new Atom[] { H1_z2z1 });
+	// // ∀ z1,z2,z3 B(z1,z2,z3) → ∃ z1,z2 H1(z2,z1)
+	// TGD tgdExpected = TGD.create(new Atom[] { B_z1z2z3 }, new Atom[] { H1_z2z1
+	// });
 
-		assertEquals(tgdExpected, tgdsEvolveRename);
+	// assertEquals(tgdExpected, tgdsEvolveRename);
 
-	}
+	// }
 
-	@Test
-	public void getJoinAtomsTest() {
-		// TODO
-	}
+	// @Test
+	// public void getMGUTest() {
 
-	@Test
-	public void getEvolveRuleTest() {
-		// TODO
-	}
+	// Collection<Variable> existentials = new HashSet<>();
+	// existentials.add(Variable.create(GSat.getInstance().eVariable + "1"));
 
-	@Test
-	public void getMGUTest() {
-		Collection<Variable> existentials = new HashSet<>();
-		existentials.add(Variable.create(GSat.getInstance().eVariable + "1"));
+	// Map<Term, Term> mgu = GSat.getInstance().getMGU(new Atom[] { U_u1u2u3 }, new
+	// Atom[] { U_z1z2z3 },
+	// Arrays.asList(U_z1z2z3), existentials);
 
-		Map<Term, Term> mgu = GSat.getInstance().getMGU(new Atom[] { U_u1u2u3 }, new Atom[] { U_z1z2z3 },
-				Arrays.asList(U_z1z2z3), existentials);
+	// System.out.println(mgu);
 
-		System.out.println(mgu);
+	// assertNotNull(mgu);
 
-		assertNotNull(mgu);
-
-	}
-
-	@Test
-	public void applyMGU() {
-		// TODO
-	}
+	// }
 
 	@Test
 	public void equalsTGDs() {

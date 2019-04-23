@@ -88,7 +88,7 @@ public class IRISPMTest {
 
 				int expectedLines = queryLenghts[count++];
 				if (expectedLines != -1) { // -1 disable the check
-					assertEquals(expectedLines, countLines(output.getOutput()));
+					assertEquals(expectedLines, output.getNumberOfLinesOutput());
 					assertEquals(0, output.getErrors().length());
 				}
 
@@ -97,11 +97,6 @@ public class IRISPMTest {
 			fail(e.getLocalizedMessage());
 		}
 
-	}
-
-	private static int countLines(String str) {
-		String[] lines = str.split("\r\n|\r|\n");
-		return lines.length;
 	}
 
 	@Test

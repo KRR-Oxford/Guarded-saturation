@@ -29,6 +29,7 @@ public class ChaseBenchTest {
 
                 int[] output_vals = { 145, 200, 326, 2821, 0, 18 };
                 int[] errors_vals = { 0, 0, 0, 0, 0, 0 };
+                int[] lines_vals = { 7, 10, 14, 163, 1, 1 };
                 int count = 0;
                 for (String baseTest : new String[] { "tgds", "tgds5", "tgdsEgds", "tgdsEgdsLarge", "vldb2010",
                                 "weak" }) {
@@ -40,6 +41,7 @@ public class ChaseBenchTest {
 
                         assertEquals(output_vals[count], executeChaseBenchScenario.getOutput().length());
                         assertEquals(errors_vals[count], executeChaseBenchScenario.getErrors().length());
+                        assertEquals(lines_vals[count], executeChaseBenchScenario.getNumberOfLinesOutput());
 
                         count++;
 
@@ -62,6 +64,7 @@ public class ChaseBenchTest {
 
                 assertEquals(1833, executeChaseBenchScenario.getOutput().length());
                 assertEquals(0, executeChaseBenchScenario.getErrors().length());
+                assertEquals(62, executeChaseBenchScenario.getNumberOfLinesOutput());
 
         }
 
@@ -80,6 +83,7 @@ public class ChaseBenchTest {
 
                 assertEquals(49690, executeChaseBenchScenario.getOutput().length());
                 assertEquals(0, executeChaseBenchScenario.getErrors().length());
+                assertEquals(837, executeChaseBenchScenario.getNumberOfLinesOutput());
 
         }
 
@@ -98,6 +102,7 @@ public class ChaseBenchTest {
 
                 assertEquals(12306747, executeChaseBenchScenario.getOutput().length());
                 assertEquals(0, executeChaseBenchScenario.getErrors().length());
+                assertEquals(152776, executeChaseBenchScenario.getNumberOfLinesOutput());
 
         }
 
