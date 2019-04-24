@@ -68,7 +68,7 @@ public class Logic {
 			return TGD.create(bodyAtomsF, headAtomsF);
 		} else if (formula instanceof Atom) {
 			Term[] nterms = new Term[((Atom) formula).getNumberOfTerms()];
-			for (int termIndex = 0; termIndex < ((Atom) formula).getNumberOfTerms(); ++termIndex) {
+			for (int termIndex = 0; termIndex < nterms.length; ++termIndex) {
 				Term term = ((Atom) formula).getTerm(termIndex);
 				// System.out.println(term);
 				// System.out.println(term.isVariable());

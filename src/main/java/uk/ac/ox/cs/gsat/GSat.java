@@ -14,6 +14,7 @@ import java.util.stream.Collectors;
 
 import uk.ac.ox.cs.pdq.fol.Atom;
 import uk.ac.ox.cs.pdq.fol.Dependency;
+import uk.ac.ox.cs.pdq.fol.Predicate;
 import uk.ac.ox.cs.pdq.fol.TGD;
 import uk.ac.ox.cs.pdq.fol.Term;
 import uk.ac.ox.cs.pdq.fol.Variable;
@@ -444,6 +445,8 @@ public class GSat {
                 TGD new_ftgd = applyMGU(ftgd, guardMGU);
 
                 List<Atom> Sbody = getSbody(new_ftgd.getBodyAtoms(), applyMGU(Arrays.asList(guard), guardMGU)[0],
+                        // maybe create a local variable for the existentials since it is used again
+                        // below
                         Arrays.asList(new_nftgd.getExistential()));
 
                 List<List<Atom>> Shead = getShead(new_nftgd.getHeadAtoms(), Sbody,
@@ -489,6 +492,13 @@ public class GSat {
 
         int counter = 0;
         for (Atom bodyAtom : sbody)
+            // this seems way too complicated and buggy; you can either consolidate the
+            // fixed version of getGuardMGU
+            // with this function (just call the former here for each pair) or write a
+            // simpler version of this function.
+            // At this point of the algorithm, we will not have to rename any existentials
+            // anymore and the unification will
+            // always work (as we only have to map universals to universals)
             if (s.size() > counter && bodyAtom.getPredicate().equals(s.get(counter).getPredicate())) {
                 for (int i = 0; i < bodyAtom.getPredicate().getArity(); i++) {
                     Term currentTermBody = bodyAtom.getTerm(i);
@@ -597,6 +607,7 @@ public class GSat {
 
         results.add(guard);
         for (Atom atom : bodyAtoms)
+            // why not Logic.containsAny(atom, eVariables) ?
             if (!atom.equals(guard) && containsY(atom, eVariables))
                 results.add(atom);
 
@@ -644,6 +655,39 @@ public class GSat {
 
         return result;
 
+    }
+
+    // some test cases for the MGU computation
+    public static void main(String[] args) {
+        // getGuardMGU failures:
+        Variable x1 = Variable.create("x1");
+        Variable x2 = Variable.create("x2");
+        Variable y = Variable.create("y");
+        Variable z1 = Variable.create("z1");
+        Variable z2 = Variable.create("z2");
+        GSat gsat = GSat.getInstance();
+        Atom Rx = Atom.create(Predicate.create("R", 3), x1, x2, y);
+        Atom Rz = Atom.create(Predicate.create("R", 3), z1, z1, z2);
+        Map<Term, Term> expected = new HashMap<>();
+        expected.put(z1, x2);
+        expected.put(z2, y);
+        expected.put(x1, x2);
+        // should be true, but the result is actually null
+        System.out.println(expected.equals(gsat.getGuardMGU(Rz, Rx)));
+
+        // Another one:
+        Variable z3 = Variable.create("z2");
+        Rx = Atom.create(Predicate.create("R", 4), x1, x1, x2, y);
+        Rz = Atom.create(Predicate.create("R", 4), z1, z2, z1, z3);
+        expected = new HashMap<>();
+        expected.put(z1, x2);
+        expected.put(z2, x2);
+        expected.put(z3, y);
+        expected.put(x1, x2);
+        System.out.println(expected.equals(gsat.getGuardMGU(Rz, Rx)));
+
+        // getMGU also fails:
+        System.out.println(expected.equals(gsat.getMGU(Arrays.asList(Rx), Arrays.asList(Rz))));
     }
 
 }
