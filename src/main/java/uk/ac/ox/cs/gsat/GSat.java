@@ -60,7 +60,9 @@ public class GSat {
         int discarded = 0;
 
         for (Dependency d : allDependencies)
-            if (d instanceof TGD && ((TGD) d).isGuarded() && !containsSelfJoin((TGD) d)) // Adding only Guarded TGDs
+            // if (d instanceof TGD && ((TGD) d).isGuarded() && !containsSelfJoin((TGD) d))
+            // // Adding only Guarded TGDs
+            if (d instanceof TGD && ((TGD) d).isGuarded()) // Adding only Guarded TGDs
                 // if (!(d instanceof EGD))
                 newTGDs.addAll(VNFs(HNF((TGD) d)));
             else
@@ -440,11 +442,12 @@ public class GSat {
                 TGD new_nftgd = applyMGU(nftgd, guardMGU);
                 TGD new_ftgd = applyMGU(ftgd, guardMGU);
 
-                List<Atom> Sbody = getSbody(new_ftgd.getBodyAtoms(), applyMGU(Arrays.asList(guard), guardMGU)[0],
-                        Arrays.asList(new_nftgd.getExistential()));
+                List<Variable> new_nftgd_existentials = Arrays.asList(new_nftgd.getExistential());
 
-                List<List<Atom>> Shead = getShead(new_nftgd.getHeadAtoms(), Sbody,
-                        Arrays.asList(new_nftgd.getExistential()));
+                List<Atom> Sbody = getSbody(new_ftgd.getBodyAtoms(), applyMGU(Arrays.asList(guard), guardMGU)[0],
+                        new_nftgd_existentials);
+
+                List<List<Atom>> Shead = getShead(new_nftgd.getHeadAtoms(), Sbody, new_nftgd_existentials);
 
                 if (Shead == null)
                     continue;
