@@ -100,9 +100,9 @@ public class ChaseBenchTest {
                 SolverOutput executeChaseBenchScenario = App.executeChaseBenchScenario(baseTest, basePath,
                                 fact_querySize, true);
 
-                assertEquals(12306747, executeChaseBenchScenario.getOutput().length());
+                assertEquals(11501995, executeChaseBenchScenario.getOutput().length());
                 assertEquals(0, executeChaseBenchScenario.getErrors().length());
-                assertEquals(152776, executeChaseBenchScenario.getNumberOfLinesOutput());
+                assertEquals(138254, executeChaseBenchScenario.getNumberOfLinesOutput());
 
         }
 

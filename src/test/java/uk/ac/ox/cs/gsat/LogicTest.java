@@ -1,14 +1,19 @@
 package uk.ac.ox.cs.gsat;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.Map;
+
 import org.junit.jupiter.api.Test;
 
-import uk.ac.ox.cs.gsat.Logic;
 import uk.ac.ox.cs.pdq.fol.Atom;
 import uk.ac.ox.cs.pdq.fol.Predicate;
 import uk.ac.ox.cs.pdq.fol.TGD;
+import uk.ac.ox.cs.pdq.fol.Term;
 import uk.ac.ox.cs.pdq.fol.Variable;
 
 /**
@@ -141,6 +146,134 @@ public class LogicTest {
 		System.out.println("TGD: " + tgd);
 		assertFalse(Logic.isFull(tgd), "This is a 'non-full' TGD");
 
+	}
+
+	@Test
+	public void getMGUAtomAtom() {
+
+		System.out.println("Testing getMGU(Atom, Atom)");
+
+		Variable x1 = Variable.create("x1");
+		Variable x2 = Variable.create("x2");
+		Variable y = Variable.create("y");
+		Variable z1 = Variable.create("z1");
+		Variable z2 = Variable.create("z2");
+
+		Atom Rx = Atom.create(Predicate.create("R", 3), x1, x2, y);
+		Atom Rz = Atom.create(Predicate.create("R", 3), z1, z1, z2);
+
+		Map<Term, Term> expected = new HashMap<>();
+		expected.put(z1, x2);
+		expected.put(z2, y);
+		expected.put(x1, x2);
+
+		assertEquals(expected, Logic.getMGU(Rz, Rx));
+
+		Variable z3 = Variable.create("z3");
+
+		Rx = Atom.create(Predicate.create("R", 4), x1, x1, x2, y);
+		Rz = Atom.create(Predicate.create("R", 4), z1, z2, z1, z3);
+
+		expected = new HashMap<>();
+		expected.put(z1, x2);
+		expected.put(z2, x2);
+		expected.put(z3, y);
+		expected.put(x1, x2);
+
+		assertEquals(expected, Logic.getMGU(Rz, Rx));
+
+	}
+
+	// @Test
+	// public void getMGUAtomsAtoms() {
+
+	// System.out.println("Testing getMGU(Atoms, Atoms)");
+
+	// Variable x1 = Variable.create("x1");
+	// Variable x2 = Variable.create("x2");
+	// Variable y = Variable.create("y");
+	// Variable z1 = Variable.create("z1");
+	// Variable z2 = Variable.create("z2");
+
+	// Atom Rx = Atom.create(Predicate.create("R", 3), x1, x2, y);
+	// Atom Rz = Atom.create(Predicate.create("R", 3), z1, z1, z2);
+
+	// Map<Term, Term> expected = new HashMap<>();
+	// expected.put(z1, x2);
+	// expected.put(z2, y);
+	// expected.put(x1, x2);
+
+	// assertEquals(expected, Logic.getMGU(Arrays.asList(Rz), Arrays.asList(Rx)));
+
+	// Variable z3 = Variable.create("z3");
+
+	// Rx = Atom.create(Predicate.create("R", 4), x1, x1, x2, y);
+	// Rz = Atom.create(Predicate.create("R", 4), z1, z2, z1, z3);
+
+	// expected = new HashMap<>();
+	// expected.put(z1, x2);
+	// expected.put(z2, x2);
+	// expected.put(z3, y);
+	// expected.put(x1, x2);
+
+	// assertEquals(expected, Logic.getMGU(Rz, Rx));
+
+	// }
+
+	@Test
+	public void MGUTest() {
+
+		System.out.println("MGU tests:");
+
+		// ****** MGU tests: *******
+		// 1.
+		Variable x1 = Variable.create("x1");
+		Variable x2 = Variable.create("x2");
+		Variable y1 = Variable.create("y1");
+		Variable y2 = Variable.create("y2");
+		Variable z1 = Variable.create("z1");
+		Variable z2 = Variable.create("z2");
+		Variable z3 = Variable.create("z3");
+		Atom Rx = Atom.create(Predicate.create("R", 3), x1, x2, y1);
+		Atom Rz = Atom.create(Predicate.create("R", 3), z1, z1, z2);
+		Map<Term, Term> expected = new HashMap<>();
+		expected.put(z1, x2);
+		expected.put(z2, y1);
+		expected.put(x1, x2);
+		checkMGUTest(expected, Logic.getMGU(Rz, Rx));
+
+		// 2.
+		Rx = Atom.create(Predicate.create("R", 4), x1, x1, x2, y1);
+		Rz = Atom.create(Predicate.create("R", 4), z1, z2, z1, z3);
+		expected = new HashMap<>();
+		expected.put(z1, x2);
+		expected.put(z2, x2);
+		expected.put(z3, y1);
+		expected.put(x1, x2);
+		checkMGUTest(expected, Logic.getMGU(Rz, Rx));
+
+		// 5. non-matching predicate
+		Rx = Atom.create(Predicate.create("R", 1), y1);
+		Rz = Atom.create(Predicate.create("S", 1), z1);
+		checkMGUTest(null, Logic.getMGU(Rz, Rx));
+
+		// 5.
+		Rx = Atom.create(Predicate.create("R", 4), x1, y1, y1, x2);
+		Rz = Atom.create(Predicate.create("R", 4), z1, z2, z2, z1);
+		expected = new HashMap<>();
+		expected.put(z1, x2);
+		expected.put(z2, y1);
+		expected.put(x1, x2);
+		checkMGUTest(expected, Logic.getMGU(Rz, Rx));
+
+	}
+
+	private void checkMGUTest(Map<Term, Term> expected, Map<Term, Term> result) {
+		System.out.print("Returned MGU: ");
+		System.out.println(result);
+		System.out.print("Expected MGU: ");
+		System.out.println(expected + "\n");
+		assertEquals(expected, result, "Computed wrong MGU.");
 	}
 
 }
