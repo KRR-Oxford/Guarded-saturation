@@ -458,13 +458,27 @@ public class GSat {
 
                 List<Variable> new_nftgd_existentials = Arrays.asList(new_nftgd.getExistential());
 
-                List<Atom> Sbody = getSbody(new_ftgd.getBodyAtoms(), applyMGU(Arrays.asList(guard), guardMGU)[0],
-                        new_nftgd_existentials);
+                Atom new_guard = applyMGU(Arrays.asList(guard), guardMGU)[0];
+                List<Atom> Sbody = getSbody(new_ftgd.getBodyAtoms(), new_guard, new_nftgd_existentials);
 
                 List<List<Atom>> Shead = getShead(new_nftgd.getHeadAtoms(), Sbody, new_nftgd_existentials);
 
-                if (Shead == null)
+                if (Shead == null) {
+                    if (Sbody.isEmpty()) {
+                        Collection<Atom> new_body = new HashSet<>();
+                        new_body.addAll(Arrays.asList(new_nftgd.getBodyAtoms()));
+                        new_body.addAll(Arrays.asList(new_ftgd.getBodyAtoms()));
+                        new_body.remove(new_guard);
+
+                        Collection<Atom> new_head = new HashSet<>();
+                        new_head.addAll(Arrays.asList(new_nftgd.getHeadAtoms()));
+                        new_head.addAll(Arrays.asList(new_ftgd.getHeadAtoms()));
+
+                        results.addAll(VNFs(HNF(TGD.create(new_body.toArray(new Atom[new_body.size()]),
+                                new_head.toArray(new Atom[new_head.size()])))));
+                    }
                     continue;
+                }
 
                 App.logger.fine("Shead:" + Shead.toString());
 
@@ -479,6 +493,7 @@ public class GSat {
                     new_body.addAll(Arrays.asList(new_nftgd.getBodyAtoms()));
                     new_body.addAll(Arrays.asList(new_ftgd.getBodyAtoms()));
                     new_body.removeAll(Sbody);
+                    new_body.remove(new_guard);
 
                     Collection<Atom> new_head = new HashSet<>();
                     new_head.addAll(Arrays.asList(new_nftgd.getHeadAtoms()));
@@ -638,7 +653,7 @@ public class GSat {
 
         List<Atom> results = new LinkedList<>();
 
-        results.add(guard);
+        // results.add(guard);
         for (Atom atom : bodyAtoms)
             if (!atom.equals(guard) && containsY(atom, eVariables))
                 results.add(atom);
