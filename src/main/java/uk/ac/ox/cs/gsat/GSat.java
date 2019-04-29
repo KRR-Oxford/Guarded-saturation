@@ -14,7 +14,6 @@ import java.util.stream.Collectors;
 
 import uk.ac.ox.cs.pdq.fol.Atom;
 import uk.ac.ox.cs.pdq.fol.Dependency;
-import uk.ac.ox.cs.pdq.fol.Predicate;
 import uk.ac.ox.cs.pdq.fol.TGD;
 import uk.ac.ox.cs.pdq.fol.Term;
 import uk.ac.ox.cs.pdq.fol.Variable;
@@ -208,9 +207,10 @@ public class GSat {
      * @param tgd an input TGD
      * @return Head Normal Form of tgd
      */
-    public Collection<TGD> HNF(TGD tgd) {
+    public Collection<TGDGSat> HNF(TGD tgd) {
 
-        Collection<TGD> result = new HashSet<>();
+        // should this use TGDGsat?
+        Collection<TGDGSat> result = new HashSet<>();
 
         if (tgd == null)
             return result;
@@ -227,10 +227,10 @@ public class GSat {
                 fHead.add(a);
 
         if (eHead.isEmpty() || fHead.isEmpty())
-            result.add(tgd);
+            result.add(new TGDGSat(tgd));
         else {
-            result.add(TGD.create(tgd.getBodyAtoms(), eHead.toArray(new Atom[eHead.size()])));
-            result.add(TGD.create(tgd.getBodyAtoms(), fHead.toArray(new Atom[fHead.size()])));
+            result.add(new TGDGSat(TGD.create(tgd.getBodyAtoms(), eHead.toArray(new Atom[eHead.size()]))));
+            result.add(new TGDGSat(TGD.create(tgd.getBodyAtoms(), fHead.toArray(new Atom[fHead.size()]))));
         }
 
         return result;
@@ -244,7 +244,7 @@ public class GSat {
      * @param tgds a collection of TGDs
      * @return Variable Normal Form of tgds
      */
-    public Collection<TGDGSat> VNFs(Collection<TGD> tgds) {
+    public Collection<TGDGSat> VNFs(Collection<TGDGSat> tgds) {
 
         return tgds.stream().map((tgd) -> VNF(tgd)).collect(Collectors.toList());
 
@@ -302,7 +302,7 @@ public class GSat {
 
     }
 
-    private TGD evolveRename(TGD ftgd) {
+    private TGDGSat evolveRename(TGD ftgd) {
 
         Variable[] uVariables = ftgd.getUniversal();
 
@@ -313,8 +313,8 @@ public class GSat {
                 throw new IllegalArgumentException("TGD not valid in evolveRename");
             substitution.put(v, Variable.create(zVariable + counter++));
         }
-
-        return (TGD) Logic.applySubstitution(ftgd, substitution);
+        // should this return TGDGsat?
+        return new TGDGSat((TGD) Logic.applySubstitution(ftgd, substitution));
 
     }
 
@@ -448,8 +448,12 @@ public class GSat {
                 List<Atom> Sbody = getSbody(new_ftgd.getBodyAtoms(), applyMGU(Arrays.asList(guard), guardMGU)[0],
                         new_nftgd_existentials);
 
+                // FIXME: This is also looking for matches of the guard. The guard needs to be
+                // excluded from this process. Its match is fixed to H
                 List<List<Atom>> Shead = getShead(new_nftgd.getHeadAtoms(), Sbody, new_nftgd_existentials);
 
+                // FIXME: only continue if Sbody contains an atom different to the guard and
+                // Shead == null
                 if (Shead == null)
                     continue;
 
@@ -470,7 +474,6 @@ public class GSat {
                     Collection<Atom> new_head = new HashSet<>();
                     new_head.addAll(Arrays.asList(new_nftgd.getHeadAtoms()));
                     new_head.addAll(Arrays.asList(new_ftgd.getHeadAtoms()));
-
                     results.addAll(VNFs(HNF(applyMGU(TGD.create(new_body.toArray(new Atom[new_body.size()]),
                             new_head.toArray(new Atom[new_head.size()])), mgu))));
 
@@ -484,7 +487,7 @@ public class GSat {
 
     }
 
-    private Map<Term, Term> getMGU(List<Atom> s, List<Atom> sbody) {
+    public Map<Term, Term> getMGU(List<Atom> s, List<Atom> sbody) {
 
         Map<Term, Term> result = new HashMap<>();
 
@@ -623,14 +626,14 @@ public class GSat {
 
     }
 
-    private TGD applyMGU(TGD tgd, Map<Term, Term> mgu) {
-
-        return TGD.create(applyMGU(Arrays.asList(tgd.getBodyAtoms()), mgu),
-                applyMGU(Arrays.asList(tgd.getHeadAtoms()), mgu));
+    private TGDGSat applyMGU(TGD tgd, Map<Term, Term> mgu) {
+        // should this return TGDGSat?
+        return new TGDGSat(TGD.create(applyMGU(Arrays.asList(tgd.getBodyAtoms()), mgu),
+                applyMGU(Arrays.asList(tgd.getHeadAtoms()), mgu)));
 
     }
 
-    private Map<Term, Term> getGuardMGU(Atom guard, Atom h) {
+    public Map<Term, Term> getGuardMGU(Atom guard, Atom h) {
 
         if (!guard.getPredicate().equals(h.getPredicate()))
             return null;
@@ -653,39 +656,6 @@ public class GSat {
 
         return result;
 
-    }
-
-    // some test cases for the MGU computation
-    public static void main(String[] args) {
-        // getGuardMGU failures:
-        Variable x1 = Variable.create("x1");
-        Variable x2 = Variable.create("x2");
-        Variable y = Variable.create("y");
-        Variable z1 = Variable.create("z1");
-        Variable z2 = Variable.create("z2");
-        GSat gsat = GSat.getInstance();
-        Atom Rx = Atom.create(Predicate.create("R", 3), x1, x2, y);
-        Atom Rz = Atom.create(Predicate.create("R", 3), z1, z1, z2);
-        Map<Term, Term> expected = new HashMap<>();
-        expected.put(z1, x2);
-        expected.put(z2, y);
-        expected.put(x1, x2);
-        // should be true, but the result is actually null
-        System.out.println(expected.equals(gsat.getGuardMGU(Rz, Rx)));
-
-        // Another one:
-        Variable z3 = Variable.create("z2");
-        Rx = Atom.create(Predicate.create("R", 4), x1, x1, x2, y);
-        Rz = Atom.create(Predicate.create("R", 4), z1, z2, z1, z3);
-        expected = new HashMap<>();
-        expected.put(z1, x2);
-        expected.put(z2, x2);
-        expected.put(z3, y);
-        expected.put(x1, x2);
-        System.out.println(expected.equals(gsat.getGuardMGU(Rz, Rx)));
-
-        // getMGU also fails:
-        System.out.println(expected.equals(gsat.getMGU(Arrays.asList(Rx), Arrays.asList(Rz))));
     }
 
 }
