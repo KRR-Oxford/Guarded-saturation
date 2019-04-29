@@ -138,7 +138,7 @@ public class App {
 
 			Collection<Dependency> allRules = new LinkedList<>();
 			allRules.addAll(Arrays.asList(allDependencies));
-			allRules.addAll(queriesRules);
+			// allRules.addAll(queriesRules);
 
 			guardedSaturation = GSat.getInstance().runGSat(allRules.toArray(new Dependency[allRules.size()]));
 
@@ -195,26 +195,6 @@ public class App {
 		try {
 			IO.writeDatalogRules(guardedSaturation, baseOutputPath + "datalog.rul");
 
-			if (!queriesRules.isEmpty())
-				System.out.println("Answering the queries...");
-
-			for (TGD query : queriesRules) {
-
-				IO.writeChaseBenchDatalogQueries(Arrays.asList(query), baseOutputPath + "queries.rul");
-
-				SolverOutput solverOutputQuery = Logic.invokeSolver(Configuration.getSolverPath(),
-						Configuration.getSolverOptionsQuery(), Arrays.asList(baseOutputPath + "datalog.rul",
-								baseOutputPath + "datalog.data", baseOutputPath + "queries.rul"));
-
-				// System.out.println(solverOutput2);
-				System.out.println("Output size: " + solverOutputQuery.getOutput().length() + ", "
-						+ solverOutputQuery.getErrors().length() + "; number of lines (atoms): "
-						+ solverOutputQuery.getNumberOfLinesOutput());
-				IO.writeSolverOutput(solverOutputQuery, baseOutputPath + Configuration.getSolverName() + "."
-						+ query.getHead().getAtoms()[0].getPredicate() + ".output");
-
-			}
-
 			if (fullGrounding) {
 
 				System.out.println("Performing the full grounding...");
@@ -228,6 +208,26 @@ public class App {
 						"Output size: " + solverOutput.getOutput().length() + ", " + solverOutput.getErrors().length()
 								+ "; number of lines (atoms): " + solverOutput.getNumberOfLinesOutput());
 				IO.writeSolverOutput(solverOutput, baseOutputPath + Configuration.getSolverName() + ".output");
+
+			}
+
+			if (!queriesRules.isEmpty())
+				System.out.println("Answering the queries...");
+
+			for (TGD query : queriesRules) {
+
+				IO.writeChaseBenchDatalogQueries(Arrays.asList(query), queriesRules, baseOutputPath + "queries.rul");
+
+				SolverOutput solverOutputQuery = Logic.invokeSolver(Configuration.getSolverPath(),
+						Configuration.getSolverOptionsQuery(), Arrays.asList(baseOutputPath + "datalog.rul",
+								baseOutputPath + "datalog.data", baseOutputPath + "queries.rul"));
+
+				// System.out.println(solverOutput2);
+				System.out.println("Output size: " + solverOutputQuery.getOutput().length() + ", "
+						+ solverOutputQuery.getErrors().length() + "; number of lines (atoms): "
+						+ solverOutputQuery.getNumberOfLinesOutput());
+				IO.writeSolverOutput(solverOutputQuery, baseOutputPath + Configuration.getSolverName() + "."
+						+ query.getHead().getAtoms()[0].getPredicate() + ".output");
 
 			}
 

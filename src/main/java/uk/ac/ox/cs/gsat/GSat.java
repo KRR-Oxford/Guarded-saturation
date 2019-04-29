@@ -10,6 +10,7 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Map.Entry;
 import java.util.stream.Collectors;
 
 import uk.ac.ox.cs.pdq.fol.Atom;
@@ -55,27 +56,30 @@ public class GSat {
         System.out.println("Running GSat...");
         final long startTime = System.nanoTime();
 
-        Collection<TGDGSat> newTGDs = new HashSet<>();
-
         int discarded = 0;
 
+        Collection<TGDGSat> selectedTGDs = new HashSet<>();
         for (Dependency d : allDependencies)
             // if (d instanceof TGD && ((TGD) d).isGuarded() && !containsSelfJoin((TGD) d))
             // // Adding only Guarded TGDs
             if (d instanceof TGD && ((TGD) d).isGuarded()) // Adding only Guarded TGDs
                 // if (!(d instanceof EGD))
-                newTGDs.addAll(VNFs(HNF((TGD) d)));
+                selectedTGDs.add(new TGDGSat((TGD) d));
             else
                 discarded++;
 
-        while (checkRenameVariablesInTGDs(newTGDs)) {
+        App.logger.info("GSat discarded rules : " + discarded + "/" + allDependencies.length + " = "
+                + String.format(Locale.UK, "%.3f", (float) discarded / allDependencies.length * 100) + "%");
+
+        while (checkRenameVariablesInTGDs(selectedTGDs)) {
             uVariable += "0";
             eVariable += "0";
             zVariable += "0";
         }
 
-        App.logger.info("GSat discarded rules : " + discarded + "/" + allDependencies.length + " = "
-                + String.format(Locale.UK, "%.3f", (float) discarded / allDependencies.length * 100) + "%");
+        Collection<TGDGSat> newTGDs = new HashSet<>();
+        for (TGDGSat tgd : selectedTGDs)
+            newTGDs.addAll(VNFs(HNF(tgd)));
 
         App.logger.fine("# initial TGDs: " + newTGDs.size());
         newTGDs.forEach(tgd -> App.logger.fine(tgd.toString()));
@@ -163,22 +167,22 @@ public class GSat {
      * @return true if the TGD contains 2 atoms in the body or in the head with the
      *         same predicate name (needed only until we implement a generic MGU)
      */
-    private boolean containsSelfJoin(TGD tgd) {
+    // private boolean containsSelfJoin(TGD tgd) {
 
-        Atom[] bodyAtoms = tgd.getBodyAtoms();
-        for (int i = 0; i < bodyAtoms.length; i++)
-            for (int j = i + 1; j < bodyAtoms.length; j++)
-                if (bodyAtoms[i].getPredicate().equals(bodyAtoms[j].getPredicate()))
-                    return true;
+    // Atom[] bodyAtoms = tgd.getBodyAtoms();
+    // for (int i = 0; i < bodyAtoms.length; i++)
+    // for (int j = i + 1; j < bodyAtoms.length; j++)
+    // if (bodyAtoms[i].getPredicate().equals(bodyAtoms[j].getPredicate()))
+    // return true;
 
-        Atom[] headAtoms = tgd.getHeadAtoms();
-        for (int i = 0; i < headAtoms.length; i++)
-            for (int j = i + 1; j < headAtoms.length; j++)
-                if (headAtoms[i].getPredicate().equals(headAtoms[j].getPredicate()))
-                    return true;
+    // Atom[] headAtoms = tgd.getHeadAtoms();
+    // for (int i = 0; i < headAtoms.length; i++)
+    // for (int j = i + 1; j < headAtoms.length; j++)
+    // if (headAtoms[i].getPredicate().equals(headAtoms[j].getPredicate()))
+    // return true;
 
-        return false;
-    }
+    // return false;
+    // }
 
     /**
      * 
@@ -193,8 +197,10 @@ public class GSat {
 
         for (TGDGSat tgd : TGDs)
             for (String symbol : tgd.getAllTermSymbols())
-                if (symbol.equals(uVariable) || symbol.equals(eVariable) || symbol.equals(zVariable))
+                if (symbol.startsWith(uVariable) || symbol.startsWith(eVariable) || symbol.startsWith(zVariable)) {
+                    App.logger.info("Found rename variable: " + symbol);
                     return true;
+                }
 
         return false;
 
@@ -282,24 +288,25 @@ public class GSat {
 
     }
 
-    public TGD evolve(TGD nftgd, TGD ftgd) {
+    // public TGD evolve(TGD nftgd, TGD ftgd) {
 
-        ftgd = evolveRename(ftgd);
+    // ftgd = evolveRename(ftgd);
 
-        App.logger.fine("Composing:\n" + nftgd + "\nand\n" + ftgd);
+    // App.logger.fine("Composing:\n" + nftgd + "\nand\n" + ftgd);
 
-        Collection<Atom> joinAtoms = getJoinAtoms(nftgd.getHeadAtoms(), ftgd.getBodyAtoms());
-        if (joinAtoms.isEmpty())
-            return null;
-        App.logger.fine("Join atoms:");
-        joinAtoms.forEach(tgd -> App.logger.fine(tgd.toString()));
+    // Collection<Atom> joinAtoms = getJoinAtoms(nftgd.getHeadAtoms(),
+    // ftgd.getBodyAtoms());
+    // if (joinAtoms.isEmpty())
+    // return null;
+    // App.logger.fine("Join atoms:");
+    // joinAtoms.forEach(tgd -> App.logger.fine(tgd.toString()));
 
-        // TGD evolveRule =
-        // if (existentialVariableCheck(evolveRule, joinAtoms))
-        // return evolveRule;
-        return getEvolveRule(nftgd, ftgd, joinAtoms);
+    // // TGD evolveRule =
+    // // if (existentialVariableCheck(evolveRule, joinAtoms))
+    // // return evolveRule;
+    // return getEvolveRule(nftgd, ftgd, joinAtoms);
 
-    }
+    // }
 
     private TGD evolveRename(TGD ftgd) {
 
@@ -309,7 +316,7 @@ public class GSat {
         int counter = 1;
         for (Variable v : uVariables) {
             if (!v.getSymbol().startsWith(uVariable))
-                throw new IllegalArgumentException("TGD not valid in evolveRename");
+                throw new IllegalArgumentException("TGD not valid in evolveRename: " + ftgd);
             substitution.put(v, Variable.create(zVariable + counter++));
         }
 
@@ -317,95 +324,102 @@ public class GSat {
 
     }
 
-    private Collection<Atom> getJoinAtoms(Atom[] headAtoms, Atom[] bodyAtoms) {
+    // private Collection<Atom> getJoinAtoms(Atom[] headAtoms, Atom[] bodyAtoms) {
 
-        Collection<Atom> result = new HashSet<>();
+    // Collection<Atom> result = new HashSet<>();
 
-        for (Atom bodyAtom : bodyAtoms)
-            for (Atom headAtom : headAtoms)
-                if (bodyAtom.getPredicate().equals(headAtom.getPredicate())) {
-                    result.add(bodyAtom);
-                    continue;
-                }
+    // for (Atom bodyAtom : bodyAtoms)
+    // for (Atom headAtom : headAtoms)
+    // if (bodyAtom.getPredicate().equals(headAtom.getPredicate())) {
+    // result.add(bodyAtom);
+    // continue;
+    // }
 
-        return result;
+    // return result;
 
-    }
+    // }
 
-    private TGD getEvolveRule(TGD nftgd, TGD ftgd, Collection<Atom> joinAtoms) {
+    // private TGD getEvolveRule(TGD nftgd, TGD ftgd, Collection<Atom> joinAtoms) {
 
-        Collection<Atom> nftgdBodyAtoms = new HashSet<>(Arrays.asList(nftgd.getBodyAtoms()));
-        Collection<Atom> nftgdHeadAtoms = new HashSet<>(Arrays.asList(nftgd.getHeadAtoms()));
-        Collection<Atom> ftgdBodyAtoms = new HashSet<>(Arrays.asList(ftgd.getBodyAtoms()));
-        Collection<Atom> ftgdHeadAtoms = new HashSet<>(Arrays.asList(ftgd.getHeadAtoms()));
+    // Collection<Atom> nftgdBodyAtoms = new
+    // HashSet<>(Arrays.asList(nftgd.getBodyAtoms()));
+    // Collection<Atom> nftgdHeadAtoms = new
+    // HashSet<>(Arrays.asList(nftgd.getHeadAtoms()));
+    // Collection<Atom> ftgdBodyAtoms = new
+    // HashSet<>(Arrays.asList(ftgd.getBodyAtoms()));
+    // Collection<Atom> ftgdHeadAtoms = new
+    // HashSet<>(Arrays.asList(ftgd.getHeadAtoms()));
 
-        ftgdBodyAtoms.removeAll(joinAtoms);
-        nftgdBodyAtoms.addAll(ftgdBodyAtoms);
-        nftgdHeadAtoms.addAll(ftgdHeadAtoms);
+    // ftgdBodyAtoms.removeAll(joinAtoms);
+    // nftgdBodyAtoms.addAll(ftgdBodyAtoms);
+    // nftgdHeadAtoms.addAll(ftgdHeadAtoms);
 
-        Map<Term, Term> mgu = getMGU(nftgd.getHeadAtoms(), ftgd.getBodyAtoms(), joinAtoms,
-                Arrays.asList(nftgd.getExistential()));
+    // Map<Term, Term> mgu = getMGU(nftgd.getHeadAtoms(), ftgd.getBodyAtoms(),
+    // joinAtoms,
+    // Arrays.asList(nftgd.getExistential()));
 
-        App.logger.fine("MGU: " + mgu);
+    // App.logger.fine("MGU: " + mgu);
 
-        if (mgu != null) {
-            TGD newTGD = TGD.create(applyMGU(nftgdBodyAtoms, mgu), applyMGU(nftgdHeadAtoms, mgu));
-            App.logger.fine("After applying MGU: " + newTGD);
-            return newTGD;
-        }
+    // if (mgu != null) {
+    // TGD newTGD = TGD.create(applyMGU(nftgdBodyAtoms, mgu),
+    // applyMGU(nftgdHeadAtoms, mgu));
+    // App.logger.fine("After applying MGU: " + newTGD);
+    // return newTGD;
+    // }
 
-        return null;
+    // return null;
 
-    }
+    // }
 
-    private Map<Term, Term> getMGU(Atom[] headAtoms, Atom[] bodyAtoms, Collection<Atom> joinAtoms,
-            Collection<Variable> existentials) {
-        // it works only if there are no duplicate atoms in the 2 arrays
+    // private Map<Term, Term> getMGU(Atom[] headAtoms, Atom[] bodyAtoms,
+    // Collection<Atom> joinAtoms,
+    // Collection<Variable> existentials) {
+    // // it works only if there are no duplicate atoms in the 2 arrays
 
-        Map<Term, Term> result = new HashMap<>();
+    // Map<Term, Term> result = new HashMap<>();
 
-        for (Atom bodyAtom : joinAtoms)
-            for (Atom headAtom : headAtoms)
-                if (bodyAtom.getPredicate().equals(headAtom.getPredicate()))
-                    for (int i = 0; i < bodyAtom.getPredicate().getArity(); i++) {
-                        Term currentTermBody = bodyAtom.getTerm(i);
-                        Term currentTermHead = headAtom.getTerm(i);
-                        if (currentTermBody.isVariable() && currentTermHead.isVariable())
-                            if (result.containsKey(currentTermBody)) {
-                                if (!result.get(currentTermBody).equals(currentTermHead))
-                                    return null;
-                            } else
-                                result.put(currentTermBody, currentTermHead);
-                        else if (!currentTermBody.isVariable() && !currentTermHead.isVariable()) {
-                            if (!currentTermBody.equals(currentTermHead)) // Clash
-                                return null;
-                        } else if (!currentTermBody.isVariable())// currentTermBody is the constant
-                            if (existentials.contains(currentTermHead)) // Identity on y
-                                return null;
-                            else if (result.containsKey(currentTermHead)) {
-                                if (!result.get(currentTermBody).equals(currentTermHead))
-                                    return null;
-                            } else
-                                result.put(currentTermHead, currentTermBody);
-                        else // currentTermHead is the constant
-                        if (result.containsKey(currentTermBody)) {
-                            if (!result.get(currentTermBody).equals(currentTermHead))
-                                return null;
-                        } else
-                            result.put(currentTermBody, currentTermHead);
+    // for (Atom bodyAtom : joinAtoms)
+    // for (Atom headAtom : headAtoms)
+    // if (bodyAtom.getPredicate().equals(headAtom.getPredicate()))
+    // for (int i = 0; i < bodyAtom.getPredicate().getArity(); i++) {
+    // Term currentTermBody = bodyAtom.getTerm(i);
+    // Term currentTermHead = headAtom.getTerm(i);
+    // if (currentTermBody.isVariable() && currentTermHead.isVariable())
+    // if (result.containsKey(currentTermBody)) {
+    // if (!result.get(currentTermBody).equals(currentTermHead))
+    // return null;
+    // } else
+    // result.put(currentTermBody, currentTermHead);
+    // else if (!currentTermBody.isVariable() && !currentTermHead.isVariable()) {
+    // if (!currentTermBody.equals(currentTermHead)) // Clash
+    // return null;
+    // } else if (!currentTermBody.isVariable())// currentTermBody is the constant
+    // if (existentials.contains(currentTermHead)) // Identity on y
+    // return null;
+    // else if (result.containsKey(currentTermHead)) {
+    // if (!result.get(currentTermBody).equals(currentTermHead))
+    // return null;
+    // } else
+    // result.put(currentTermHead, currentTermBody);
+    // else // currentTermHead is the constant
+    // if (result.containsKey(currentTermBody)) {
+    // if (!result.get(currentTermBody).equals(currentTermHead))
+    // return null;
+    // } else
+    // result.put(currentTermBody, currentTermHead);
 
-                    }
+    // }
 
-        // existential variable check (evc)
-        for (Atom a : bodyAtoms)
-            if (!joinAtoms.contains(a))
-                for (Term t : a.getTerms())
-                    if (result.containsKey(t) && existentials.contains(result.get(t)))
-                        return null;
+    // // existential variable check (evc)
+    // for (Atom a : bodyAtoms)
+    // if (!joinAtoms.contains(a))
+    // for (Term t : a.getTerms())
+    // if (result.containsKey(t) && existentials.contains(result.get(t)))
+    // return null;
 
-        return result;
+    // return result;
 
-    }
+    // }
 
     private Atom[] applyMGU(Collection<Atom> atoms, Map<Term, Term> mgu) {
 
@@ -459,7 +473,7 @@ public class GSat {
                     App.logger.fine("Non-Full:" + new_nftgd.toString() + "\nFull:" + new_ftgd.toString() + "\nSbody:"
                             + Sbody + "\nS:" + S);
 
-                    Map<Term, Term> mgu = getMGU(S, Sbody);
+                    Map<Term, Term> mgu = getVariableSubstitution(S, Sbody);
 
                     Collection<Atom> new_body = new HashSet<>();
                     new_body.addAll(Arrays.asList(new_nftgd.getBodyAtoms()));
@@ -483,44 +497,76 @@ public class GSat {
 
     }
 
-    private Map<Term, Term> getMGU(List<Atom> s, List<Atom> sbody) {
+    // private Map<Term, Term> getMGU(List<Atom> s, List<Atom> sbody) {
 
-        Map<Term, Term> result = new HashMap<>();
+    // Map<Term, Term> result = new HashMap<>();
 
-        int counter = 0;
-        for (Atom bodyAtom : sbody)
-            if (s.size() > counter && bodyAtom.getPredicate().equals(s.get(counter).getPredicate())) {
-                for (int i = 0; i < bodyAtom.getPredicate().getArity(); i++) {
-                    Term currentTermBody = bodyAtom.getTerm(i);
-                    Term currentTermHead = s.get(counter).getTerm(i);
-                    if (currentTermBody.isVariable() && currentTermHead.isVariable())
-                        if (result.containsKey(currentTermBody)) {
-                            if (!result.get(currentTermBody).equals(currentTermHead))
-                                return null;
-                        } else
-                            result.put(currentTermBody, currentTermHead);
-                    else if (!currentTermBody.isVariable() && !currentTermHead.isVariable()) {
-                        if (!currentTermBody.equals(currentTermHead)) // Clash
-                            return null;
-                    } else if (!currentTermBody.isVariable())// currentTermBody is the constant
-                        if (result.containsKey(currentTermHead)) {
-                            if (!result.get(currentTermBody).equals(currentTermHead))
-                                return null;
-                        } else
-                            result.put(currentTermHead, currentTermBody);
-                    else // currentTermHead is the constant
-                    if (result.containsKey(currentTermBody)) {
-                        if (!result.get(currentTermBody).equals(currentTermHead))
-                            return null;
-                    } else
-                        result.put(currentTermBody, currentTermHead);
+    // int counter = 0;
+    // for (Atom bodyAtom : sbody)
+    // if (s.size() > counter &&
+    // bodyAtom.getPredicate().equals(s.get(counter).getPredicate())) {
+    // for (int i = 0; i < bodyAtom.getPredicate().getArity(); i++) {
+    // Term currentTermBody = bodyAtom.getTerm(i);
+    // Term currentTermHead = s.get(counter).getTerm(i);
+    // if (currentTermBody.isVariable() && currentTermHead.isVariable())
+    // if (result.containsKey(currentTermBody)) {
+    // if (!result.get(currentTermBody).equals(currentTermHead))
+    // return null;
+    // } else
+    // result.put(currentTermBody, currentTermHead);
+    // else if (!currentTermBody.isVariable() && !currentTermHead.isVariable()) {
+    // if (!currentTermBody.equals(currentTermHead)) // Clash
+    // return null;
+    // } else if (!currentTermBody.isVariable())// currentTermBody is the constant
+    // if (result.containsKey(currentTermHead)) {
+    // if (!result.get(currentTermBody).equals(currentTermHead))
+    // return null;
+    // } else
+    // result.put(currentTermHead, currentTermBody);
+    // else // currentTermHead is the constant
+    // if (result.containsKey(currentTermBody)) {
+    // if (!result.get(currentTermBody).equals(currentTermHead))
+    // return null;
+    // } else
+    // result.put(currentTermBody, currentTermHead);
 
-                }
-                counter++;
-            }
+    // }
+    // counter++;
+    // }
 
-        return result;
+    // return result;
 
+    // }
+
+    public Map<Term, Term> getVariableSubstitution(List<Atom> head, List<Atom> body) {
+
+        Map<Term, Term> sigma = new HashMap<>();
+
+        if (head.size() != body.size())
+            throw new IllegalArgumentException();
+
+        // assume they are all in the same order
+        for (int i = 0; i < head.size(); i++) {
+            Atom atom_h = head.get(i);
+            Atom atom_b = body.get(i);
+
+            if (!atom_h.getPredicate().equals(atom_b.getPredicate()))
+                throw new IllegalArgumentException();
+
+            Map<Term, Term> mgu = Logic.getMGU(atom_h, atom_b);
+
+            if (mgu == null)
+                return null;
+
+            for (Entry<Term, Term> entry : mgu.entrySet())
+                if (sigma.containsKey(entry.getKey()) && !entry.getValue().equals(sigma.get(entry.getKey())))
+                    return null;
+
+            sigma.putAll(mgu);
+
+        }
+
+        return sigma;
     }
 
     /**
@@ -561,11 +607,12 @@ public class GSat {
             for (Atom headAtom : headAtoms)
                 if (headAtom.getPredicate().equals(bodyAtom.getPredicate())) {
                     boolean valid = true;
-
                     Term[] headTerms = headAtom.getTerms();
                     for (int i = 0; i < headTerms.length; i++) {
+                        Term bodyTerm = bodyAtom.getTerm(i);
                         Term headTerm = headTerms[i];
-                        if (eVariables.contains(headTerm) && !bodyAtom.getTerm(i).equals(headTerm)) {
+                        if ((eVariables.contains(headTerm) || eVariables.contains(bodyTerm))
+                                && !bodyTerm.equals(headTerm)) {
                             valid = false;
                             break;
                         }
@@ -622,23 +669,35 @@ public class GSat {
         if (!guard.getPredicate().equals(h.getPredicate()))
             return null;
 
-        Map<Term, Term> result = new HashMap<>();
+        // Term[] guardTerms = guard.getTerms();
+        // for (int i = 0; i < guardTerms.length; i++) {
 
-        Term[] guardTerms = guard.getTerms();
-        for (int i = 0; i < guardTerms.length; i++) {
+        // Term guardTerm = guardTerms[i];
+        // Term headTerm = h.getTerm(i);
 
-            Term guardTerm = guardTerms[i];
-            Term headTerm = h.getTerm(i);
+        // if (result.containsKey(guardTerm)) {
+        // if (!result.get(guardTerm).equals(headTerm))
+        // return null;
+        // } else
+        // result.put(guardTerm, headTerm);
 
-            if (result.containsKey(guardTerm)) {
-                if (result.get(guardTerm) != headTerm)
-                    return null;
-            } else
-                result.put(guardTerm, headTerm);
+        // }
+
+        Map<Term, Term> mgu = Logic.getMGU(guard, h);
+        for (Entry<Term, Term> entry : mgu.entrySet()) {
+
+            // identity on y
+            if (entry.getKey().isVariable() && ((Variable) entry.getKey()).getSymbol().startsWith(eVariable))
+                return null;
+
+            // evc xθ ∩ y = ∅
+            if (entry.getKey().isVariable() && ((Variable) entry.getKey()).getSymbol().startsWith(uVariable)
+                    && entry.getValue().isVariable() && ((Variable) entry.getValue()).getSymbol().startsWith(eVariable))
+                return null;
 
         }
 
-        return result;
+        return mgu;
 
     }
 

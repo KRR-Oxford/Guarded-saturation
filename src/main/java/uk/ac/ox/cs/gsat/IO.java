@@ -140,7 +140,7 @@ public class IO {
         String to_append = ":-";
         for (Atom atom : tgd.getBodyAtoms()) {
             body.append(to_append);
-            if (to_append == ":-")
+            if (to_append.equals(":-"))
                 to_append = ",";
             App.logger.fine("Atom:" + renameVariablesAndConstantsDatalog(atom));
             body.append(renameVariablesAndConstantsDatalog(atom).toString());
@@ -272,7 +272,7 @@ public class IO {
                 return "";
             }
             querySB.append(to_append);
-            if (to_append == "")
+            if (to_append.equals(""))
                 to_append = ",";
             querySB.append(renameVariablesAndConstantsDatalog((Atom) f).toString());
         }
@@ -282,7 +282,8 @@ public class IO {
 
     }
 
-    public static void writeChaseBenchDatalogQueries(Collection<TGD> queriesRules, String path) throws IOException {
+    public static void writeChaseBenchDatalogQueries(Collection<TGD> queriesRules, Collection<TGD> queriesRules2,
+            String path) throws IOException {
 
         Collection<String> datalogQueries = new LinkedList<>();
 
@@ -291,6 +292,8 @@ public class IO {
             // datalogQueries.addAll(getDatalogRules(query));
             datalogQueries.add(getProjectedDatalogQuery(query));
         }
+
+        queriesRules2.forEach((tgd) -> datalogQueries.addAll(getDatalogRules(tgd)));
 
         Files.write(Paths.get(path), datalogQueries, StandardCharsets.UTF_8);
 

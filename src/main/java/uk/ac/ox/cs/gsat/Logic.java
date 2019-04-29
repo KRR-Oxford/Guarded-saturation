@@ -7,9 +7,11 @@ import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
 import java.io.PrintWriter;
 import java.nio.charset.StandardCharsets;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Map.Entry;
 
 import uk.ac.ox.cs.pdq.fol.Atom;
 import uk.ac.ox.cs.pdq.fol.Conjunction;
@@ -204,5 +206,112 @@ public class Logic {
 		return new SolverOutput(solverOutput.toString(), solverError.toString());
 
 	}
+
+	public static Map<Term, Term> getMGU(Atom s, Atom t) {
+
+		if (!s.getPredicate().equals(t.getPredicate()))
+			// throw new IllegalArgumentException("Cannot compute MGU of atoms with
+			// different predicate names or arity: "+ s + " and "+ t);
+			return null;
+
+		Map<Term, Term> sigma = new HashMap<>();
+
+		while (!s.equals(t)) {
+
+			int different_position = -1;
+			for (int i = 0; i < s.getTerms().length; i++)
+				if (!s.getTerm(i).equals(t.getTerm(i))) {
+					different_position = i;
+					break;
+				}
+
+			if (different_position == -1)
+				throw new RuntimeException("Unexpected error while computing the MGU of " + s + " and " + t);
+
+			Term s_term = s.getTerm(different_position);
+			Term t_term = t.getTerm(different_position);
+			if (s_term.isVariable() || t_term.isVariable()) {
+
+				if (s_term.isVariable())
+					if (sigma.containsKey(s_term) || sigma.containsKey(t_term))
+						return null;
+					else {
+						sigma.put(s_term, t_term);
+						// s = (Atom) applySubstitution(s, Map.of(s_term, t_term));
+						// t = (Atom) applySubstitution(t, Map.of(s_term, t_term));
+					}
+
+				else if (sigma.containsKey(t_term) || sigma.containsKey(s_term))
+					return null;
+				else {
+					sigma.put(t_term, s_term);
+					// s = (Atom) applySubstitution(s, Map.of(t_term, s_term));
+					// t = (Atom) applySubstitution(t, Map.of(t_term, s_term));
+				}
+
+				s = (Atom) applySubstitution(s, sigma);
+				t = (Atom) applySubstitution(t, sigma);
+
+			} else
+				return null;
+
+		}
+
+		boolean changed = true;
+		while (changed) {
+			changed = false;
+			for (Entry<Term, Term> entry : sigma.entrySet())
+				if (sigma.containsKey(entry.getValue())) {
+					sigma.put(entry.getKey(), sigma.get(entry.getValue()));
+					changed = true;
+				}
+		}
+
+		return sigma;
+
+	}
+
+	// public static Map<Term, Term> getMGU(List<Atom> s, List<Atom> t) {
+
+	// for (int i = 0; i < s.size(); i++) {
+	// Atom s_atom = s.get(i);
+	// boolean unified = false;
+
+	// for (int j = 0; j < t.size(); j++) {
+	// Atom t_atom = t.get(j);
+
+	// Map<Term, Term> mgu = getMGU(s_atom, t_atom);
+
+	// if (mgu != null) {
+	// unified = true;
+	// Map<Term, Term> mgu2 =
+	// getMGU(s.stream().skip(i).collect(Collectors.toList()),
+	// t.stream().skip(j).collect(Collectors.toList()));
+
+	// if (mgu2 == null) {
+	// return null;
+	// }
+
+	// Set<Term> keySet = mgu.keySet();
+	// Set<Term> keySet2 = mgu2.keySet();
+	// keySet.retainAll(keySet2);
+	// if (!keySet2.isEmpty()) {
+
+	// }
+
+	// mgu.putAll(mgu2);
+	// return mgu;
+	// }
+
+	// }
+
+	// if (!unified)
+	// return null;
+
+	// }
+
+	// return new HashMap<>();
+
+	// }
 
 }
