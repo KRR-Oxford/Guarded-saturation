@@ -208,13 +208,23 @@ public class Logic {
 	}
 
 	public static Map<Term, Term> getMGU(Atom s, Atom t) {
+		return getMGU(s, t, null);
+	}
+
+	public static Map<Term, Term> getMGU(Atom s, Atom t, Map<Term, Term> renaming) {
 
 		if (!s.getPredicate().equals(t.getPredicate()))
 			// throw new IllegalArgumentException("Cannot compute MGU of atoms with
 			// different predicate names or arity: "+ s + " and "+ t);
 			return null;
 
-		Map<Term, Term> sigma = new HashMap<>();
+		Map<Term, Term> sigma;
+		if (renaming != null) {
+			sigma = new HashMap<>(renaming);
+			s = (Atom) applySubstitution(s, sigma);
+			t = (Atom) applySubstitution(t, sigma);
+		} else
+			sigma = new HashMap<>();
 
 		while (!s.equals(t)) {
 

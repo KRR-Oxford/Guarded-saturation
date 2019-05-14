@@ -312,6 +312,7 @@ public class GSatTest {
 		GSat gsat = GSat.getInstance();
 		Variable x1 = Variable.create(gsat.uVariable + "1");
 		Variable x2 = Variable.create(gsat.uVariable + "2");
+		Variable x3 = Variable.create(gsat.uVariable + "3");
 		Variable y1 = Variable.create(gsat.eVariable + "1");
 		Variable y2 = Variable.create(gsat.eVariable + "2");
 
@@ -392,6 +393,24 @@ public class GSatTest {
 		expected.add(new TGDGSat(TGD.create(new Atom[] { Rx1x1 }, new Atom[] { Ux1y1x1, Ty1 })));
 		checkEvolveNewTest(nonFull, full, expected, evolved);
 
+		// 7. Rename a variable when unifying the third atoms when it was already
+		// renamed while unifying the second atoms
+		// U(x1,x2,x3) -> \exists y. U(x1,y1,x3) & R (x2,y1) & T(y1,x2)
+		// U(x1,x2,x3) & R(x1,x2) & T(x2,x3) -> S(x1)
+		Atom Ux1x2x3 = Atom.create(Predicate.create("U", 3), x1, x2, x3);
+		Atom Ux1y1x3 = Atom.create(Predicate.create("U", 3), x1, y1, x3);
+		Atom Rx2y1 = Atom.create(Predicate.create("R", 2), x2, y1);
+		Atom Ty1x2 = Atom.create(Predicate.create("T", 2), y1, x2);
+		nonFull = TGD.create(new Atom[] { Ux1x2x3 }, new Atom[] { Ux1y1x3, Rx2y1, Ty1x2 });
+		Atom Tx2x3 = Atom.create(Predicate.create("T", 2), x2, x3);
+		full = TGD.create(new Atom[] { Ux1x2x3, Rx1x2, Tx2x3 }, new Atom[] { Sx1 });
+		evolved = gsat.evolveNew(nonFull, full);
+		expected = new HashSet<>();
+		Atom Ux1x1x1 = Atom.create(Predicate.create("U", 3), x1, x1, x1);
+		Atom Ty1x1 = Atom.create(Predicate.create("T", 2), y1, x1);
+		expected.add(new TGDGSat(TGD.create(new Atom[] { Ux1x1x1 }, new Atom[] { Ux1y1x1, Rx1y1, Ty1x1 })));
+		expected.add(new TGDGSat(TGD.create(new Atom[] { Ux1x1x1 }, new Atom[] { Sx1 })));
+		checkEvolveNewTest(nonFull, full, expected, evolved);
 	}
 
 	private void checkEvolveNewTest(TGD nonFull, TGD full, Collection<TGDGSat> expected, Collection<TGDGSat> result) {
