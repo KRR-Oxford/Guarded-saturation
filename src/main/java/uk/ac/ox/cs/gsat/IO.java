@@ -174,15 +174,14 @@ public class IO {
 
         Atom newAtom = (Atom) Logic.applySubstitution(atom, substitution);
 
-        Predicate predicate = newAtom.getPredicate();
-        String name = predicate.getName();
+        String name = newAtom.getPredicate().getName();
         if (name != null) {
-            // First char to Lower Case
-            if (name.length() > 0 && name.substring(0, 1).matches("[A-Z]")) {
+            if (name.length() > 6 && name.substring(0, 7).equals("http://")) { // URL in angle bracket
+                App.logger.info("URL as predicate name. Adding angle brackets.");
+                name = '<' + name + '>';
+            } else if (name.length() > 0 && name.substring(0, 1).matches("[A-Z]")) { // First char to Lower Case
                 App.logger.info("Predicate starting with an upper-case letter. Transforming it to lower-case.");
-                return Atom.create(
-                        Predicate.create(name.substring(0, 1).toLowerCase() + name.substring(1), predicate.getArity()),
-                        newAtom.getTerms());
+                name = name.substring(0, 1).toLowerCase() + name.substring(1);
             }
             // // URL in angle bracket
             // if (name.length() > 6 && name.substring(0, 7).equals("http://")) {
@@ -196,13 +195,20 @@ public class IO {
             // newAtom.getTerms());
             // }
             // // remove unwanted chars
-            // FIXME
             // if (!name.matches("[a-z]([A-Z_])+")) {
             // App.logger.warn("Not a valid predicate name. " + name);
             // return Atom.create(Predicate.create(name.replaceAll("", ""),
             // predicate.getArity()),
             // newAtom.getTerms());
             // }
+            // // remove unwanted chars // FIXME
+            // if (!name.matches("[a-z]([A-Z_])+")) {
+            // App.logger.warning("Not a valid predicate name. " + name);
+            // // return Atom.create(Predicate.create(name.replaceAll("", ""),
+            // // predicate.getArity()),
+            // // newAtom.getTerms());
+            // }
+            newAtom = Atom.create(Predicate.create(name, newAtom.getPredicate().getArity()), newAtom.getTerms());
         }
         return newAtom;
 

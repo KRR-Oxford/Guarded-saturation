@@ -2,6 +2,7 @@ package uk.ac.ox.cs.gsat;
 
 import java.io.File;
 import java.nio.file.Files;
+import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Arrays;
 import java.util.Collection;
@@ -359,68 +360,65 @@ public class App {
 			System.exit(1);
 		}
 
+		SolverOutput solverOutput = null;
+
+		if (fullGrounding) {
+
+			logger.info("Converting facts to Datalog");
+			// String testName =
+			// FilenameUtils.removeExtension(Paths.get(path).getFileName().toString());
+			Path testName = Paths.get(path).getFileName();
+			if (testName == null) {
+				System.err.println("Path not correct. The system will now terminate.");
+				System.exit(1);
+			}
+			String baseOutputPath = "test" + File.separator + "datalog" + File.separator + testName + File.separator;
+
+			try {
+
+				Collection<uk.ac.ox.cs.pdq.fol.Atom> atoms = IO.getPDQAtomsFromGraalAtomSets(atomSets);
+				atomSets = null;
+				System.out.println("# PDQ Atoms: " + atoms.size());
+
+				if (Files.notExists(Paths.get(baseOutputPath))) {
+					boolean mkdirs = new File(baseOutputPath).mkdirs();
+					if (!mkdirs)
+						throw new IllegalArgumentException("Output path not available: " + baseOutputPath);
+				}
+
+				if (Files.notExists(Paths.get(baseOutputPath, "datalog.data")))
+					IO.writeDatalogFacts(atoms, baseOutputPath + "datalog.data");
+
+			} catch (Exception e) {
+				System.err.println("Facts conversion to Datalog failed. The system will now terminate.");
+				logger.severe(e.getLocalizedMessage());
+				System.exit(1);
+			}
+
+			try {
+
+				IO.writeDatalogRules(guardedSaturation, baseOutputPath + "datalog.rul");
+
+				System.out.println("Performing the full grounding...");
+
+				solverOutput = Logic.invokeSolver(Configuration.getSolverPath(),
+						Configuration.getSolverOptionsGrounding(),
+						Arrays.asList(baseOutputPath + "datalog.rul", baseOutputPath + "datalog.data"));
+
+				// System.out.println(solverOutput);
+				System.out.println(
+						"Output size: " + solverOutput.getOutput().length() + ", " + solverOutput.getErrors().length());
+				IO.writeSolverOutput(solverOutput, baseOutputPath + Configuration.getSolverName() + ".output");
+
+			} catch (Exception e) {
+				System.err.println("Datalog solver execution failed. The system will now terminate.");
+				logger.severe(e.getLocalizedMessage());
+				System.exit(1);
+			}
+
+		}
+
 		return guardedSaturation.size();
-
-		// SolverOutput solverOutput = null;
-
-		// if (fullGrounding) {
-
-		// logger.info("Converting facts to Datalog");
-		// // String testName =
-		// // FilenameUtils.removeExtension(Paths.get(path).getFileName().toString());
-		// String testName = Paths.get(path).getFileName().toString();
-		// String baseOutputPath = "test" + File.separator + "datalog" + File.separator
-		// + testName + File.separator;
-
-		// try {
-
-		// Collection<Atom> atoms = IO.getPDQAtomsFromGraalAtomSets(atomSets);
-		// atomSets = null;
-		// System.out.println("# PDQ Atoms: " + atoms.size());
-
-		// if (Files.notExists(Paths.get(baseOutputPath))) {
-		// boolean mkdirs = new File(baseOutputPath).mkdirs();
-		// if (!mkdirs)
-		// throw new IllegalArgumentException("Output path not available: " +
-		// baseOutputPath);
-		// }
-
-		// if (Files.notExists(Paths.get(baseOutputPath, "datalog.data"))) {
-		// IO.writeDatalogFacts(atoms, baseOutputPath + "datalog.data");
-
-		// } catch (Exception e) {
-		// System.err.println("Facts conversion to Datalog failed. The system will now
-		// terminate.");
-		// logger.debug(e);
-		// System.exit(1);
-		// }
-
-		// try {
-
-		// IO.writeDatalogRules(guardedSaturation, baseOutputPath + "datalog.rul");
-
-		// System.out.println("Performing the full grounding...");
-
-		// solverOutput = Logic.invokeSolver(Configuration.getSolverPath(),
-		// Configuration.getSolverOptionsGrounding(),
-		// Arrays.asList(baseOutputPath + "datalog.rul", baseOutputPath +
-		// "datalog.data"));
-
-		// // System.out.println(solverOutput);
-		// System.out.println(
-		// "Output size: " + solverOutput.getOutput().length() + ", " +
-		// solverOutput.getErrors().length());
-		// IO.writeSolverOutput(solverOutput, baseOutputPath +
-		// Configuration.getSolverName() + ".output");
-
-		// } catch (Exception e) {
-		// System.err.println("Datalog solver execution failed. The system will now
-		// terminate.");
-		// logger.debug(e);
-		// System.exit(1);
-		// }
-
-		// }
 
 	}
 
