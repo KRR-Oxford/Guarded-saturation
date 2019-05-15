@@ -568,16 +568,7 @@ public class GSat {
             if (!atom_h.getPredicate().equals(atom_b.getPredicate()))
                 throw new IllegalArgumentException();
 
-            Map<Term, Term> mgu = Logic.getMGU(atom_h, atom_b);
-
-            if (mgu == null)
-                return null;
-
-            for (Entry<Term, Term> entry : mgu.entrySet())
-                if (sigma.containsKey(entry.getKey()) && !entry.getValue().equals(sigma.get(entry.getKey())))
-                    return null;
-
-            sigma.putAll(mgu);
+            sigma = Logic.getMGU(atom_h, atom_b, sigma);
 
         }
 
@@ -681,8 +672,8 @@ public class GSat {
 
     private Map<Term, Term> getGuardMGU(Atom guard, Atom h) {
 
-        if (!guard.getPredicate().equals(h.getPredicate()))
-            return null;
+        // if (!guard.getPredicate().equals(h.getPredicate()))
+        // return null;
 
         // Term[] guardTerms = guard.getTerms();
         // for (int i = 0; i < guardTerms.length; i++) {
@@ -699,6 +690,10 @@ public class GSat {
         // }
 
         Map<Term, Term> mgu = Logic.getMGU(guard, h);
+
+        if (mgu == null)
+            return null;
+
         for (Entry<Term, Term> entry : mgu.entrySet()) {
 
             // identity on y

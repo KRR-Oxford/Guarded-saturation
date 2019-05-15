@@ -4,7 +4,6 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -230,7 +229,6 @@ public class LogicTest {
 		Variable x1 = Variable.create("x1");
 		Variable x2 = Variable.create("x2");
 		Variable y1 = Variable.create("y1");
-		Variable y2 = Variable.create("y2");
 		Variable z1 = Variable.create("z1");
 		Variable z2 = Variable.create("z2");
 		Variable z3 = Variable.create("z3");
@@ -252,12 +250,12 @@ public class LogicTest {
 		expected.put(x1, x2);
 		checkMGUTest(expected, Logic.getMGU(Rz, Rx));
 
-		// 5. non-matching predicate
+		// 3. non-matching predicate
 		Rx = Atom.create(Predicate.create("R", 1), y1);
 		Rz = Atom.create(Predicate.create("S", 1), z1);
 		checkMGUTest(null, Logic.getMGU(Rz, Rx));
 
-		// 5.
+		// 4.
 		Rx = Atom.create(Predicate.create("R", 4), x1, y1, y1, x2);
 		Rz = Atom.create(Predicate.create("R", 4), z1, z2, z2, z1);
 		expected = new HashMap<>();
