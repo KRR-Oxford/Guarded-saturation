@@ -463,7 +463,9 @@ public class GSat {
 
                 List<List<Atom>> Shead = getShead(new_nftgd.getHeadAtoms(), Sbody, new_nftgd_existentials);
 
-                if (Shead == null) {
+                // if Sbody is empty, then Shead is empty, and we take this short-cut;
+                // in fact, we should never have Shead == null and Sbody.isEmpty
+                if (Shead == null || Shead.isEmpty()) {
                     if (Sbody.isEmpty()) {
                         Collection<Atom> new_body = new HashSet<>();
                         new_body.addAll(Arrays.asList(new_nftgd.getBodyAtoms()));
