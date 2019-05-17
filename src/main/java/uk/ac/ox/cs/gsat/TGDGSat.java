@@ -4,6 +4,7 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Objects;
 import java.util.Set;
 
 import uk.ac.ox.cs.pdq.fol.Atom;
@@ -16,7 +17,7 @@ import uk.ac.ox.cs.pdq.fol.Variable;
 /**
  * TGDGSat
  */
-public class TGDGSat extends TGD implements Comparable<TGDGSat> {
+public class TGDGSat extends TGD {
 
     private static final long serialVersionUID = 1L;
 
@@ -51,19 +52,9 @@ public class TGDGSat extends TGD implements Comparable<TGDGSat> {
     }
 
     @Override
-    public int compareTo(TGDGSat o) {
-
-        if (this.equals(o))
-            return 0;
-
-        return this.toString().compareTo(o.toString()); // Lexicographic order FIXME
-
-    }
-
-    @Override
     public int hashCode() {
 
-        return this.toString().hashCode();
+        return Objects.hash(Set.of(this.getBodyAtoms()), Set.of(this.getHeadAtoms()));
 
     }
 

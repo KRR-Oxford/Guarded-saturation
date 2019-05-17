@@ -9,7 +9,11 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.LinkedList;
+import java.util.logging.ConsoleHandler;
+import java.util.logging.Handler;
+import java.util.logging.Level;
 
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
 import uk.ac.ox.cs.gsat.Configuration;
@@ -54,6 +58,15 @@ public class IRISPMTest {
 	private static final Atom hasSon_xy = Atom.create(Predicate.create("hasSon", 2), Variable.create("x"),
 			Variable.create("y"));
 	private static final Atom Person_y = Atom.create(Predicate.create("Person", 1), Variable.create("y"));
+
+	@BeforeAll
+	static void initAll() {
+		Handler handlerObj = new ConsoleHandler();
+		handlerObj.setLevel(Level.WARNING);
+		App.logger.addHandler(handlerObj);
+		App.logger.setLevel(Level.WARNING);
+		App.logger.setUseParentHandlers(false);
+	}
 
 	private void fromIRISPM(Collection<TGD> allTGDs, Collection<Atom> allFacts, Collection<ConjunctiveQuery> allQueries,
 			int guardedSaturationSize, int[] queryLenghts) {

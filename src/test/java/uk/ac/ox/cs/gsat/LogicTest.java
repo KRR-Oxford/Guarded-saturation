@@ -6,7 +6,11 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.logging.ConsoleHandler;
+import java.util.logging.Handler;
+import java.util.logging.Level;
 
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
 import uk.ac.ox.cs.pdq.fol.Atom;
@@ -70,6 +74,15 @@ public class LogicTest {
 			Variable.create("u2"), Variable.create("e1"));
 	private static final Atom U_z1z2z3 = Atom.create(Predicate.create("U", 3), Variable.create("z1"),
 			Variable.create("z2"), Variable.create("z3"));
+
+	@BeforeAll
+	static void initAll() {
+		Handler handlerObj = new ConsoleHandler();
+		handlerObj.setLevel(Level.WARNING);
+		App.logger.addHandler(handlerObj);
+		App.logger.setLevel(Level.WARNING);
+		App.logger.setUseParentHandlers(false);
+	}
 
 	@Test
 	public void applySubstitutionTest() {
