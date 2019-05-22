@@ -168,7 +168,8 @@ public class IO {
         for (Variable v : atom.getVariables())
             substitution.put(v, Variable.create(v.getSymbol().toUpperCase()));
         for (Constant c : atom.getTypedAndUntypedConstants())
-            substitution.put(c, UntypedConstant.create('"' + c.toString() + '"'));
+            if (!c.toString().startsWith("\"")) // we assume that it is a quoted string
+                substitution.put(c, UntypedConstant.create('"' + c.toString() + '"'));
 
         // App.logger.info(substitution);
 
