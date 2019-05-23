@@ -230,7 +230,7 @@ public class IRISPMTest {
 		allQueries.add(ConjunctiveQuery.create(new Variable[] { Variable.create("x") }, new Atom[] { Parent_x }));
 		allQueries.add(ConjunctiveQuery.create(new Variable[] { Variable.create("x") }, new Atom[] { Person_x }));
 
-		fromIRISPM(allTGDs, allFacts, allQueries, 12, new int[] { -1, 2, 3, 5 });
+		fromIRISPM(allTGDs, allFacts, allQueries, 10, new int[] { -1, 2, 3, 5 });
 
 	}
 
