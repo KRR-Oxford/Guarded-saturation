@@ -139,19 +139,13 @@ public class GSat {
 
             for (TGDGSat d : tempTGDsSet)
                 if (Logic.isFull(d) && !fullTGDs.contains(d) || !Logic.isFull(d) && !nonFullTGDs.contains(d)) {
-                    Collection<Atom> new_head = new HashSet<>();
-                    new_head.addAll(Arrays.asList(d.getHeadAtoms()));
-                    new_head.removeAll(Arrays.asList(d.getBodyAtoms()));
-
-                    if (!new_head.isEmpty()) {
-                        // App.logger.fine("adding new TGD: " + d + "\t" + d.equals(currentTGD) + ": "
-                        // + nonFullTGDs.contains(currentTGD) + ": " + nonFullTGDs.contains(d) + ": "
-                        // + Objects.equals(d, currentTGD));
-                        newTGDs.add(new TGDGSat(d.getBodyAtoms(), new_head.toArray(new Atom[new_head.size()])));
-                    }
+                    // App.logger.fine("adding new TGD: " + d + "\t" + d.equals(currentTGD) + ": "
+                    // + nonFullTGDs.contains(currentTGD) + ": " + nonFullTGDs.contains(d) + ": "
+                    // + Objects.equals(d, currentTGD));
+                    newTGDs.add(d);
                 }
-
         }
+
         // System.out.println();
 
         final long stopTime = System.nanoTime();
@@ -237,11 +231,17 @@ public class GSat {
             else
                 fHead.add(a);
 
-        if (eHead.isEmpty() || fHead.isEmpty())
+        // Remove atoms that already appear in the body.
+        // This is only needed for fHead since we have no existentials in the body
+        fHead.removeAll(Arrays.asList(tgd.getBodyAtoms()));
+
+        if (tgd.getHeadAtoms().length == eHead.size() || tgd.getHeadAtoms().length == fHead.size())
             result.add(tgd);
         else {
-            result.add(TGD.create(tgd.getBodyAtoms(), eHead.toArray(new Atom[eHead.size()])));
-            result.add(TGD.create(tgd.getBodyAtoms(), fHead.toArray(new Atom[fHead.size()])));
+            if (!eHead.isEmpty())
+                result.add(TGD.create(tgd.getBodyAtoms(), eHead.toArray(new Atom[eHead.size()])));
+            if (!fHead.isEmpty())
+                result.add(TGD.create(tgd.getBodyAtoms(), fHead.toArray(new Atom[fHead.size()])));
         }
 
         return result;

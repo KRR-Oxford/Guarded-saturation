@@ -2,6 +2,7 @@ package uk.ac.ox.cs.gsat;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.fail;
 
 import java.util.Arrays;
 import java.util.Collection;
@@ -57,7 +58,7 @@ public class GSatTest {
 			Variable.create("x2"));
 	private static final Atom H1_x1y1 = Atom.create(Predicate.create("H1", 2), Variable.create("x1"),
 			Variable.create("y1"));
-	private static final Atom H_x2 = Atom.create(Predicate.create("H2", 1), Variable.create("x2"));
+	private static final Atom H2_x2 = Atom.create(Predicate.create("H2", 1), Variable.create("x2"));
 	private static final Atom B_x2x1x3 = Atom.create(Predicate.create("B", 3), Variable.create("x2"),
 			Variable.create("x1"), Variable.create("x3"));
 	private static final Atom H1_x1z1y1y2 = Atom.create(Predicate.create("H1", 4), Variable.create("x1"),
@@ -171,28 +172,52 @@ public class GSatTest {
 
 	@Test
 	public void HNFTest() {
+		System.out.println("HNF tests");
+		GSat gsat = GSat.getInstance();
 
+		// 1. Split non-full and full parts
 		// ∀ x1,x2 B(x1,x2) → ∃ y1 H1(x1,y1) ∧ H2(x2)
-		TGD tgd = TGD.create(new Atom[] { B_x1x2 }, new Atom[] { H1_x1y1, H_x2 });
-		System.out.println("Original TGD: " + tgd);
-
-		Collection<TGD> tgdsHNF = GSat.getInstance().HNF(tgd);
-		System.out.println("TGDs in HNF:");
-		tgdsHNF.forEach(System.out::println);
+		Atom[] body = { B_x1x2 };
+		TGD tgd = TGD.create(body, new Atom[] { H1_x1y1, H2_x2 });
+		Collection<TGD> result = gsat.HNF(tgd);
 
 		// ∀ x1,x2 B(x1,x2) → ∃ y1 H1(x1,y1)
+		TGD tgdExpected1 = TGD.create(body, new Atom[] { H1_x1y1 });
 		// ∀ x1,x2 B(x1,x2) → H2(x2)
-		Atom[] bodyE = { B_x1x2 };
-		Atom[] headE1 = { H1_x1y1 };
-		Atom[] headE2 = { H_x2 };
-		TGD tgdExpected1 = TGD.create(bodyE, headE1);
-		TGD tgdExpected2 = TGD.create(bodyE, headE2);
-		Collection<TGD> tgdsExpected = new HashSet<>();
-		tgdsExpected.add(tgdExpected1);
-		tgdsExpected.add(tgdExpected2);
+		TGD tgdExpected2 = TGD.create(body, new Atom[] { H2_x2 });
+		Collection<TGD> expected = new HashSet<>();
+		expected.add(tgdExpected1);
+		expected.add(tgdExpected2);
 
-		assertEquals(tgdsExpected, tgdsHNF);
+		checkHNFTest(tgd, expected, result);
 
+		// 2. Remove head atoms that occur in the body: create no new rule
+		// ∀ x1,x2 B(x1,x2) & H2(x2) → H2(x2) & B(x1,x2)
+		body = new Atom[] { B_x1x2, H2_x2 };
+		tgd = TGD.create(body, new Atom[] { H2_x2, B_x1x2 });
+		result = gsat.HNF(tgd);
+
+		expected = new HashSet<>();
+
+		checkHNFTest(tgd, expected, result);
+
+		// 3. Remove head atoms that occur in the body: only create non-full rule
+		// ∀ x1,x2 B(x1,x2) & H2(x2) → \exists y. H1(x1,y1) & H2(x2) & B(x1,x2)
+		tgd = TGD.create(body, new Atom[] { H1_x1y1, H2_x2, B_x1x2 });
+		result = gsat.HNF(tgd);
+
+		expected = new HashSet<>();
+		expected.add(TGD.create(body, new Atom[] { H1_x1y1 }));
+
+		checkHNFTest(tgd, expected, result);
+	}
+
+	private void checkHNFTest(TGD tgd, Collection<TGD> expected, Collection<TGD> result) {
+		System.out.println("Original TGD: " + tgd);
+		System.out.println("Created rules: " + result);
+		System.out.println("Expected rules: " + expected);
+
+		assertEquals(expected, result);
 	}
 
 	@Test
@@ -423,6 +448,15 @@ public class GSatTest {
 		expected.add(new TGDGSat(TGD.create(new Atom[] { Ux1x1x1 }, new Atom[] { Sx1 })));
 		checkEvolveNewTest(nonFull, full, expected, evolved);
 
+		// 8. Remove atoms from the head if they are occuring in the body
+		// S(x1) -> \exists y. R(x1,y1)
+		// R(x1,x2) -> S(x1)
+		nonFull = TGD.create(new Atom[] { Sx1 }, new Atom[] { Rx1y1, });
+		full = TGD.create(new Atom[] { Rx1x2 }, new Atom[] { Sx1 });
+		evolved = gsat.evolveNew(nonFull, full);
+		expected = new HashSet<>();
+		expected.add(new TGDGSat(nonFull));
+		checkEvolveNewTest(nonFull, full, expected, evolved);
 	}
 
 	private void checkEvolveNewTest(TGD nonFull, TGD full, Collection<TGDGSat> expected, Collection<TGDGSat> result) {
@@ -432,7 +466,7 @@ public class GSatTest {
 		System.out.println("Expected rules: " + expected);
 
 		if (expected.size() != result.size())
-			System.out.println("checkEvolveNewTest used in the wrong way...");
+			fail("checkEvolveNewTest used in the wrong way...");
 
 		Iterator<TGDGSat> iteratorE = expected.iterator();
 		while (iteratorE.hasNext()) {
