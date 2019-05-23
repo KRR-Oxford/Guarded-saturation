@@ -36,7 +36,7 @@ public class DLGPTest {
 
 		String path = baseChaseBench + "animals.dlp";
 
-		assertEquals(16, App.fromDLGP(path));
+		assertEquals(16, App.fromDLGP(path).getGuardedSaturation().size());
 
 	}
 
@@ -45,7 +45,16 @@ public class DLGPTest {
 
 		String path = baseChaseBench + "A.dlp";
 
-		assertEquals(76, App.fromDLGP(path));
+		assertEquals(76, App.fromDLGP(path).getGuardedSaturation().size());
+
+	}
+
+	@Test
+	public void IMDB() {
+
+		String path = baseChaseBench + "imdb.dlgp";
+
+		assertEquals(86, App.fromDLGP(path).getGuardedSaturation().size());
 
 	}
 

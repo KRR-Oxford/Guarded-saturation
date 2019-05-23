@@ -11,9 +11,6 @@ import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
-import uk.ac.ox.cs.gsat.App;
-import uk.ac.ox.cs.gsat.SolverOutput;
-
 /**
  * Unit tests for the GSat class from ChaseBench scenarios
  * 
@@ -34,6 +31,18 @@ public class ChaseBenchTest {
                 App.logger.setUseParentHandlers(false);
         }
 
+        private void fromChaseBench(String baseTest, String basePath, String fact_querySize, int output_val,
+                        int errors_val, int lines_val) {
+
+                ExecutionOutput executeChaseBenchScenario = App.executeChaseBenchScenario(baseTest, basePath,
+                                fact_querySize);
+
+                assertEquals(output_val, executeChaseBenchScenario.getSolverOutput().getOutput().length());
+                assertEquals(errors_val, executeChaseBenchScenario.getSolverOutput().getErrors().length());
+                assertEquals(lines_val, executeChaseBenchScenario.getSolverOutput().getNumberOfLinesOutput());
+
+        }
+
         @Test
         @DisplayName("Correctness tests")
         public void correctness() {
@@ -49,12 +58,8 @@ public class ChaseBenchTest {
 
                         String basePath = baseChaseBench + "correctness" + File.separator + baseTest + File.separator;
 
-                        SolverOutput executeChaseBenchScenario = App.executeChaseBenchScenario(baseTest, basePath,
-                                        fact_querySize, true);
-
-                        assertEquals(output_vals[count], executeChaseBenchScenario.getOutput().length());
-                        assertEquals(errors_vals[count], executeChaseBenchScenario.getErrors().length());
-                        assertEquals(lines_vals[count], executeChaseBenchScenario.getNumberOfLinesOutput());
+                        fromChaseBench(baseTest, basePath, fact_querySize, output_vals[count], errors_vals[count],
+                                        lines_vals[count]);
 
                         count++;
 
@@ -72,12 +77,7 @@ public class ChaseBenchTest {
 
                 String fact_querySize = "";
 
-                SolverOutput executeChaseBenchScenario = App.executeChaseBenchScenario(baseTest, basePath,
-                                fact_querySize, true);
-
-                assertEquals(1833, executeChaseBenchScenario.getOutput().length());
-                assertEquals(0, executeChaseBenchScenario.getErrors().length());
-                assertEquals(62, executeChaseBenchScenario.getNumberOfLinesOutput());
+                fromChaseBench(baseTest, basePath, fact_querySize, 1833, 0, 62);
 
         }
 
@@ -91,12 +91,7 @@ public class ChaseBenchTest {
 
                 String fact_querySize = "10k";
 
-                SolverOutput executeChaseBenchScenario = App.executeChaseBenchScenario(baseTest, basePath,
-                                fact_querySize, true);
-
-                assertEquals(49690, executeChaseBenchScenario.getOutput().length());
-                assertEquals(0, executeChaseBenchScenario.getErrors().length());
-                assertEquals(837, executeChaseBenchScenario.getNumberOfLinesOutput());
+                fromChaseBench(baseTest, basePath, fact_querySize, 49690, 0, 837);
 
         }
 
@@ -110,12 +105,7 @@ public class ChaseBenchTest {
 
                 String fact_querySize = "";
 
-                SolverOutput executeChaseBenchScenario = App.executeChaseBenchScenario(baseTest, basePath,
-                                fact_querySize, true);
-
-                assertEquals(11501995, executeChaseBenchScenario.getOutput().length());
-                assertEquals(0, executeChaseBenchScenario.getErrors().length());
-                assertEquals(138254, executeChaseBenchScenario.getNumberOfLinesOutput());
+                fromChaseBench(baseTest, basePath, fact_querySize, 11501995, 0, 138254);
 
         }
 
