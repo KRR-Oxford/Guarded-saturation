@@ -104,4 +104,15 @@ public class Configuration {
 
     }
 
+    public static boolean isGSatOnly() {
+
+        Configuration.initialize();
+
+        if (Configuration.prop == null)
+            return true;
+
+        return Boolean.parseBoolean(Configuration.prop.getProperty("gsat_only"));
+
+    }
+
 }
