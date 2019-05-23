@@ -92,11 +92,11 @@ public class DLGPIO implements ExecutionSteps {
         Path testName = Paths.get(path).getFileName();
 
         if (testName == null) {
-            System.err.println("Path not correct. The system will now terminate.");
-            System.exit(1);
+            System.err.println("Path not correct. Using the default value 'dlgp'");
+            return "dlgp";
         }
 
-        return "test" + File.separator + "datalog" + File.separator + testName + File.separator;
+        return testName.toString();
 
     }
 

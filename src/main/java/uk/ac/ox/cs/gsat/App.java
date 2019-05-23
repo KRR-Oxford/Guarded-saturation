@@ -176,6 +176,7 @@ public class App {
 			}
 
 			try {
+
 				IO.writeDatalogRules(executionOutput.getGuardedSaturation(), baseOutputPath + "datalog.rul");
 
 				if (Configuration.isFullGrounding()) {
