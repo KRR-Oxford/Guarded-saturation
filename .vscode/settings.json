@@ -20,5 +20,6 @@
         "latex",
         "plaintext",
         "java"
-    ]
+    ],
+    "java.configuration.updateBuildConfiguration": "interactive"
 }

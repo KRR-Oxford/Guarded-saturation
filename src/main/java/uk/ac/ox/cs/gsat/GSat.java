@@ -14,8 +14,6 @@ import java.util.stream.Collectors;
 
 import uk.ac.ox.cs.pdq.fol.Atom;
 import uk.ac.ox.cs.pdq.fol.Dependency;
-import uk.ac.ox.cs.pdq.fol.LogicalSymbols;
-import uk.ac.ox.cs.pdq.fol.Predicate;
 import uk.ac.ox.cs.pdq.fol.TGD;
 import uk.ac.ox.cs.pdq.fol.Term;
 import uk.ac.ox.cs.pdq.fol.Variable;
@@ -117,7 +115,8 @@ public class GSat {
         while (!newTGDs.isEmpty()) {
             // System.out.print('.');
 
-            // FIXME we should use two different sets, so we can do this
+            // FIXME we should use two different sets, so we can optimise this by stopping
+            // when we cannot evolve anything anymore
             // if (nonFullTGDs.isEmpty() || fullTGDs.isEmpty())
             // break; // we cannot evolve anything
 

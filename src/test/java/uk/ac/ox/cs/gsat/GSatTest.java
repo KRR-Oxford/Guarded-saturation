@@ -53,7 +53,6 @@ public class GSatTest {
 	private static final Atom S_x1x2y1y2 = Atom.create(Predicate.create("S", 4), x1, x2, y1, y2);
 	private static final Atom T_x1x2y2 = Atom.create(Predicate.create("T", 3), x1, x2, y2);
 	private static final Atom S_x1x2x3x4 = Atom.create(Predicate.create("S", 4), x1, x2, x3, x4);
-	private static final Atom U_x2 = Atom.create(Predicate.create("U", 1), x2);
 	private static final Atom U_x4 = Atom.create(Predicate.create("U", 1), x4);
 	private static final Atom T_z1z2z3 = Atom.create(Predicate.create("T", 3), z1, z2, z3);
 	private static final Atom U_z3 = Atom.create(Predicate.create("U", 1), z3);

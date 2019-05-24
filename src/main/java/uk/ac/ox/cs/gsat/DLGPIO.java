@@ -11,10 +11,13 @@ import java.util.LinkedList;
 import fr.lirmm.graphik.graal.api.core.Atom;
 import fr.lirmm.graphik.graal.api.core.AtomSet;
 import fr.lirmm.graphik.graal.api.core.ConjunctiveQuery;
+import fr.lirmm.graphik.graal.api.core.NegativeConstraint;
 import fr.lirmm.graphik.graal.api.core.Predicate;
 import fr.lirmm.graphik.graal.api.core.Query;
 import fr.lirmm.graphik.graal.api.core.Rule;
 import fr.lirmm.graphik.graal.api.core.Term;
+import fr.lirmm.graphik.graal.api.io.ParseException;
+import fr.lirmm.graphik.graal.api.io.Parser;
 import fr.lirmm.graphik.graal.io.dlp.DlgpParser;
 import fr.lirmm.graphik.util.stream.CloseableIterator;
 import fr.lirmm.graphik.util.stream.IteratorException;
@@ -30,9 +33,10 @@ public class DLGPIO implements ExecutionSteps {
 
     protected String path;
     protected boolean gSatOnly;
-    private HashSet<Atom> atoms;
+    protected HashSet<Atom> atoms;
+    protected HashSet<AtomSet> atomSets;
     protected HashSet<Rule> rules;
-    private HashSet<Query> queries;
+    protected HashSet<Query> queries;
 
     public DLGPIO(String path, boolean gSatOnly) {
         this.path = path;
@@ -42,32 +46,43 @@ public class DLGPIO implements ExecutionSteps {
     @Override
     public Collection<Dependency> getRules() throws Exception {
 
+        parseInput(new DlgpParser(new File(path)));
+        return getPDQTGDsFromGraalRules(rules);
+
+    }
+
+    protected void parseInput(Parser<Object> parser) throws ParseException {
+
         atoms = new HashSet<>();
+        atomSets = new HashSet<>();
         rules = new HashSet<>();
         queries = new HashSet<>();
-
-        DlgpParser parser = new DlgpParser(new File(path));
 
         while (parser.hasNext()) {
             Object o = parser.next();
             if (o instanceof Atom && !gSatOnly) {
                 App.logger.fine("Atom: " + ((Atom) o));
                 atoms.add((Atom) o);
+            } else if (o instanceof AtomSet && !gSatOnly) {
+                App.logger.fine("Atom Set: " + (AtomSet) o);
+                atomSets.add((AtomSet) o);
             } else if (o instanceof Rule) {
                 App.logger.fine("Rule: " + ((Rule) o));
                 rules.add((Rule) o);
             } else if (o instanceof ConjunctiveQuery) {
                 App.logger.fine("Conjunctive Query: " + ((Query) o));
                 queries.add((Query) o);
+            } else if (o instanceof NegativeConstraint) {
+                App.logger.fine("Negative Constraint: " + ((NegativeConstraint) o));
+                rules.add((NegativeConstraint) o);
             }
         }
 
         parser.close();
 
-        System.out
-                .println("# Rules: " + rules.size() + "; # Atoms: " + atoms.size() + "; # Queries: " + queries.size());
-
-        return getPDQTGDsFromGraalRules(rules);
+        System.out.println("# Rules: " + rules.size() + "; # Atoms: " + atoms.size() + "; # AtomSets: "
+                + atomSets.size() + "; # Queries: " + queries.size() + "; # Constraints: "
+                + rules.stream().filter(r -> r instanceof NegativeConstraint).count());
 
     }
 
@@ -107,9 +122,14 @@ public class DLGPIO implements ExecutionSteps {
         for (Rule rule : rules) {
             Collection<uk.ac.ox.cs.pdq.fol.Atom> body = getPDQAtomsFromGraalAtomSet(rule.getBody());
             Collection<uk.ac.ox.cs.pdq.fol.Atom> head = getPDQAtomsFromGraalAtomSet(rule.getHead());
-            if (!body.isEmpty() && !head.isEmpty())
-                tgds.add(TGD.create(body.toArray(new uk.ac.ox.cs.pdq.fol.Atom[body.size()]),
-                        head.toArray(new uk.ac.ox.cs.pdq.fol.Atom[head.size()])));
+
+            if (!body.isEmpty())
+                if (rule instanceof NegativeConstraint)
+                    tgds.add(TGD.create(body.toArray(new uk.ac.ox.cs.pdq.fol.Atom[body.size()]),
+                            new uk.ac.ox.cs.pdq.fol.Atom[] { TGDGSat.Bottom }));
+                else if (!head.isEmpty())
+                    tgds.add(TGD.create(body.toArray(new uk.ac.ox.cs.pdq.fol.Atom[body.size()]),
+                            head.toArray(new uk.ac.ox.cs.pdq.fol.Atom[head.size()])));
         }
 
         return tgds;

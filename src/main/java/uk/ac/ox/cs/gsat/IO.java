@@ -55,11 +55,15 @@ public class IO {
         String bodyString = body.toString();
 
         Collection<String> rules = new LinkedList<>();
-        // if multiple atoms in the head, we have to return multiple rules
-        for (Atom atom : tgd.getHeadAtoms()) {
-            App.logger.fine("Atom:" + renameVariablesAndConstantsDatalog(atom));
-            rules.add(renameVariablesAndConstantsDatalog(atom).toString() + bodyString);
-        }
+
+        if (tgd.getHeadAtoms().length == 1 && tgd.getHeadAtoms()[0].equals(TGDGSat.Bottom))
+            rules.add(bodyString); // Negative Constraint
+        else
+            // if multiple atoms in the head, we have to return multiple rules
+            for (Atom atom : tgd.getHeadAtoms()) {
+                App.logger.fine("Atom:" + renameVariablesAndConstantsDatalog(atom));
+                rules.add(renameVariablesAndConstantsDatalog(atom).toString() + bodyString);
+            }
 
         return rules;
 

@@ -78,6 +78,30 @@
         },
         {
             "type": "java",
+            "name": "OWL family-small - App<Guarded-saturation>",
+            "request": "launch",
+            "projectName": "guarded-saturation",
+            "mainClass": "uk.ac.ox.cs.gsat.App",
+            "args": "owl test\\OWL\\family-small.owl"
+        },
+        {
+            "type": "java",
+            "name": "OWL family-full - App<Guarded-saturation>",
+            "request": "launch",
+            "projectName": "guarded-saturation",
+            "mainClass": "uk.ac.ox.cs.gsat.App",
+            "args": "owl test\\OWL\\family-full.rdf.owl"
+        },
+        {
+            "type": "java",
+            "name": "DLGP IMDB - App<Guarded-saturation>",
+            "request": "launch",
+            "projectName": "guarded-saturation",
+            "mainClass": "uk.ac.ox.cs.gsat.App",
+            "args": "dlgp test\\DLGP\\imdb.dlgp"
+        },
+        {
+            "type": "java",
             "name": "Debug (Launch) - Current File",
             "request": "launch",
             "mainClass": "${file}"

@@ -45,7 +45,7 @@ public class DLGPTest {
 
 		String path = baseChaseBench + "A.dlp";
 
-		assertEquals(76, App.fromDLGP(path).getGuardedSaturation().size());
+		assertEquals(95, App.fromDLGP(path).getGuardedSaturation().size());
 
 	}
 
@@ -54,7 +54,7 @@ public class DLGPTest {
 
 		String path = baseChaseBench + "imdb.dlgp";
 
-		assertEquals(86, App.fromDLGP(path).getGuardedSaturation().size());
+		assertEquals(89, App.fromDLGP(path).getGuardedSaturation().size());
 
 	}
 

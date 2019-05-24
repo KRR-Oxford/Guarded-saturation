@@ -175,7 +175,8 @@ public class App {
 					.setGuardedSaturation(GSat.getInstance().runGSat(rules.toArray(new Dependency[rules.size()])));
 
 			logger.info("Rewriting completed!");
-			System.out.println("Guarded saturation:");
+			System.out
+					.println("Guarded saturation: (" + executionOutput.getGuardedSaturation().size() + " dependecies)");
 			System.out.println("=========================================");
 			executionOutput.getGuardedSaturation().forEach(System.out::println);
 			System.out.println("=========================================");

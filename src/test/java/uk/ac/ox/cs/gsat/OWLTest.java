@@ -62,7 +62,7 @@ public class OWLTest {
 
 		ExecutionOutput executeChaseBenchScenario = App.fromOWL(path);
 
-		assertEquals(85, executeChaseBenchScenario.getGuardedSaturation().size());
+		assertEquals(86, executeChaseBenchScenario.getGuardedSaturation().size());
 
 	}
 
