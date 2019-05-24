@@ -72,6 +72,11 @@ public class App {
 
 	}
 
+	/**
+	 * Prints the help message of the program
+	 * 
+	 * @param message the error message
+	 */
 	private static void printHelp(String message) {
 
 		System.err.println();
@@ -94,6 +99,16 @@ public class App {
 
 	}
 
+	/**
+	 * Runs a scenario in the ChaseBench format
+	 * 
+	 * @param scenario       the name of the scenario
+	 * @param basePath       the path of folder containing the scenario
+	 * @param fact_querySize the size (i.e. the name of the subfolder) of data/query
+	 *                       we want to run for the specific scenario (this is
+	 *                       strictly related to the ChaseBench format)
+	 * @return the results of `executeAllSteps`
+	 */
 	public static ExecutionOutput executeChaseBenchScenario(String scenario, String basePath, String fact_querySize) {
 
 		System.out.println("Executing ChaseBench scenario: " + scenario + " " + basePath + " " + fact_querySize);
@@ -102,6 +117,12 @@ public class App {
 
 	}
 
+	/**
+	 * Runs a file in the DLGP format
+	 * 
+	 * @param path the path of the DLGP file we want to process
+	 * @return the results of `executeAllSteps`
+	 */
 	public static ExecutionOutput fromDLGP(String path) {
 
 		System.out.println("Executing from DLGP files");
@@ -110,6 +131,12 @@ public class App {
 
 	}
 
+	/**
+	 * Runs a file in the OWL format
+	 * 
+	 * @param path the path of the OWL file we want to process
+	 * @return the results of `executeAllSteps`
+	 */
 	public static ExecutionOutput fromOWL(String path) {
 
 		System.out.println("Executing from OWL files");
@@ -118,7 +145,16 @@ public class App {
 
 	}
 
-	public static ExecutionOutput executeAllSteps(ExecutionSteps executionSteps) {
+	/**
+	 * Runs all the steps needed in order to get the Guarded Saturation, the full
+	 * grounding and the answers to all the queries
+	 * 
+	 * @param executionSteps the specific executor (implementing `ExecutionSteps`)
+	 *                       to use for the basic operations
+	 * @return the results of the Guarded Saturation and, possibly, also of the full
+	 *         gounding (if the specific option is enabled)
+	 */
+	private static ExecutionOutput executeAllSteps(ExecutionSteps executionSteps) {
 
 		ExecutionOutput executionOutput = new ExecutionOutput(null, null);
 
