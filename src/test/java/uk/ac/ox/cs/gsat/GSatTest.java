@@ -2,7 +2,6 @@ package uk.ac.ox.cs.gsat;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
-import static org.junit.jupiter.api.Assertions.fail;
 
 import java.util.Arrays;
 import java.util.Collection;
@@ -166,19 +165,23 @@ public class GSatTest {
 		body = new Atom[] { B_x1x2, H2_x2 };
 		tgd = TGD.create(body, new Atom[] { H2_x2, B_x1x2 });
 		result = gsat.HNF(tgd);
-
 		expected = new HashSet<>();
-
 		checkHNFTest(tgd, expected, result);
 
 		// 3. Remove head atoms that occur in the body: only create non-full rule
 		// ∀ x1,x2 B(x1,x2) & H2(x2) → \exists y. H1(x1,y1) & H2(x2) & B(x1,x2)
 		tgd = TGD.create(body, new Atom[] { H1_x1y1, H2_x2, B_x1x2 });
 		result = gsat.HNF(tgd);
-
 		expected = new HashSet<>();
 		expected.add(TGD.create(body, new Atom[] { H1_x1y1 }));
+		checkHNFTest(tgd, expected, result);
 
+		// 4. Rule containing bottom in the head. Remove all head atoms.
+		// ∀ x1,x2 B(x1,x2) → ∃ y1 H1(x1,y1) ∧ H2(x2) & ⊥
+		tgd = TGD.create(body, new Atom[] { H1_x1y1, H2_x2, TGDGSat.Bottom });
+		result = gsat.HNF(tgd);
+		expected = new HashSet<>();
+		expected.add(TGD.create(body, new Atom[] { TGDGSat.Bottom }));
 		checkHNFTest(tgd, expected, result);
 	}
 
@@ -390,7 +393,7 @@ public class GSatTest {
 		TGD nonFull2 = TGD.create(new Atom[] { Px1 }, new Atom[] { Rx1y1, Rx1y2, Ty2 }); // to avoid errors
 		expected.add(new TGDGSat(nonFull2));
 		expected.add(new TGDGSat(TGD.create(new Atom[] { Px1 }, new Atom[] { Sx1 })));
-		// checkEvolveNewTest(nonFull, full, expected, evolved);
+		checkEvolveNewTest(nonFull, full, expected, evolved);
 
 		// 6. Rename universal variables in non-full rule
 		// R(x1,x2) -> ∃ y. U(x1,y1,x2)
@@ -469,6 +472,17 @@ public class GSatTest {
 		full = TGD.create(new Atom[] { Rc1x1 }, new Atom[] { Px1 });
 		evolved = gsat.evolveNew(nonFull, full);
 		expected = new HashSet<>();
+		checkEvolveNewTest(nonFull, full, expected, evolved);
+
+		// 12: Derive with a rule containing bottom. Remove all head atoms in the
+		// resulting rule.
+		// S(x1) -> \exists y. R(x1,y1)
+		// R(x1,x2) -> P(x1) & ⊥
+		nonFull = TGD.create(new Atom[] { Sx1 }, new Atom[] { Rx1y1, });
+		full = TGD.create(new Atom[] { Rx1x2 }, new Atom[] { Px1, TGDGSat.Bottom });
+		evolved = gsat.evolveNew(nonFull, full);
+		expected = new HashSet<>();
+		expected.add(new TGDGSat(TGD.create(new Atom[] { Sx1 }, new Atom[] { TGDGSat.Bottom })));
 		checkEvolveNewTest(nonFull, full, expected, evolved);
 	}
 
