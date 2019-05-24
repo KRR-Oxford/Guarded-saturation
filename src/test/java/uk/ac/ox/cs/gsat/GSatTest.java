@@ -16,8 +16,10 @@ import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
 import uk.ac.ox.cs.pdq.fol.Atom;
+import uk.ac.ox.cs.pdq.fol.Constant;
 import uk.ac.ox.cs.pdq.fol.Predicate;
 import uk.ac.ox.cs.pdq.fol.TGD;
+import uk.ac.ox.cs.pdq.fol.UntypedConstant;
 import uk.ac.ox.cs.pdq.fol.Variable;
 
 /**
@@ -27,44 +29,42 @@ import uk.ac.ox.cs.pdq.fol.Variable;
  */
 public class GSatTest {
 
-	private static final Atom R_x1 = Atom.create(Predicate.create("R", 1), Variable.create("x1"));
-	private static final Atom T_x1y1y2 = Atom.create(Predicate.create("T", 3), Variable.create("x1"),
-			Variable.create("y1"), Variable.create("y2"));
-	private static final Atom T_x1x2x3 = Atom.create(Predicate.create("T", 3), Variable.create("x1"),
-			Variable.create("x2"), Variable.create("x3"));
-	private static final Atom U_x1x2y = Atom.create(Predicate.create("U", 3), Variable.create("x1"),
-			Variable.create("x2"), Variable.create("y"));
-	private static final Atom U_x1x2x3 = Atom.create(Predicate.create("U", 3), Variable.create("x1"),
-			Variable.create("x2"), Variable.create("x3"));
-	private static final Atom P_x1 = Atom.create(Predicate.create("P", 1), Variable.create("x1"));
-	private static final Atom V_x1x2 = Atom.create(Predicate.create("V", 2), Variable.create("x1"),
-			Variable.create("x2"));
-	private static final Atom S_x1 = Atom.create(Predicate.create("S", 1), Variable.create("x1"));
-	private static final Atom M_x1 = Atom.create(Predicate.create("M", 1), Variable.create("x1"));
-	private static final Atom R_x1x2 = Atom.create(Predicate.create("R", 2), Variable.create("x1"),
-			Variable.create("x2"));
-	private static final Atom S_x1x2y1y2 = Atom.create(Predicate.create("S", 4), Variable.create("x1"),
-			Variable.create("x2"), Variable.create("y1"), Variable.create("y2"));
-	private static final Atom T_x1x2y2 = Atom.create(Predicate.create("T", 3), Variable.create("x1"),
-			Variable.create("x2"), Variable.create("y2"));
-	private static final Atom S_x1x2x3x4 = Atom.create(Predicate.create("S", 4), Variable.create("x1"),
-			Variable.create("x2"), Variable.create("x3"), Variable.create("x4"));
-	private static final Atom U_x4 = Atom.create(Predicate.create("U", 1), Variable.create("x4"));
-	private static final Atom T_z1z2z3 = Atom.create(Predicate.create("T", 3), Variable.create("z1"),
-			Variable.create("z2"), Variable.create("z3"));
-	private static final Atom U_z3 = Atom.create(Predicate.create("U", 1), Variable.create("z3"));
-	private static final Atom P_z1 = Atom.create(Predicate.create("P", 1), Variable.create("z1"));
-	private static final Atom B_x1x2 = Atom.create(Predicate.create("B", 2), Variable.create("x1"),
-			Variable.create("x2"));
-	private static final Atom H1_x1y1 = Atom.create(Predicate.create("H1", 2), Variable.create("x1"),
-			Variable.create("y1"));
-	private static final Atom H2_x2 = Atom.create(Predicate.create("H2", 1), Variable.create("x2"));
-	private static final Atom B_x2x1x3 = Atom.create(Predicate.create("B", 3), Variable.create("x2"),
-			Variable.create("x1"), Variable.create("x3"));
-	private static final Atom H1_x1z1y1y2 = Atom.create(Predicate.create("H1", 4), Variable.create("x1"),
-			Variable.create("z1"), Variable.create("y1"), Variable.create("y2"));
-	private static final Atom H2_y1y2 = Atom.create(Predicate.create("H2", 2), Variable.create("y1"),
-			Variable.create("y2"));
+	// Variables
+	private static final Variable x1 = Variable.create("x1");
+	private static final Variable x2 = Variable.create("x2");
+	private static final Variable x3 = Variable.create("x3");
+	private static final Variable x4 = Variable.create("x4");
+	private static final Variable y1 = Variable.create("y1");
+	private static final Variable y2 = Variable.create("y2");
+	private static final Variable z1 = Variable.create("z1");
+	private static final Variable z2 = Variable.create("z2");
+	private static final Variable z3 = Variable.create("z3");
+
+	// Atoms
+	private static final Atom R_x1 = Atom.create(Predicate.create("R", 1), x1);
+	private static final Atom T_x1y1y2 = Atom.create(Predicate.create("T", 3), x1, y1, y2);
+	private static final Atom T_x1x2x3 = Atom.create(Predicate.create("T", 3), x1, x2, x3);
+	private static final Atom U_x1x2y1 = Atom.create(Predicate.create("U", 3), x1, x2, y1);
+	private static final Atom U_x1x2x3 = Atom.create(Predicate.create("U", 3), x1, x2, x3);
+	private static final Atom P_x1 = Atom.create(Predicate.create("P", 1), x1);
+	private static final Atom V_x1x2 = Atom.create(Predicate.create("V", 2), x1, x2);
+	private static final Atom S_x1 = Atom.create(Predicate.create("S", 1), x1);
+	private static final Atom M_x1 = Atom.create(Predicate.create("M", 1), x1);
+	private static final Atom R_x1x2 = Atom.create(Predicate.create("R", 2), x1, x2);
+	private static final Atom S_x1x2y1y2 = Atom.create(Predicate.create("S", 4), x1, x2, y1, y2);
+	private static final Atom T_x1x2y2 = Atom.create(Predicate.create("T", 3), x1, x2, y2);
+	private static final Atom S_x1x2x3x4 = Atom.create(Predicate.create("S", 4), x1, x2, x3, x4);
+	private static final Atom U_x2 = Atom.create(Predicate.create("U", 1), x2);
+	private static final Atom U_x4 = Atom.create(Predicate.create("U", 1), x4);
+	private static final Atom T_z1z2z3 = Atom.create(Predicate.create("T", 3), z1, z2, z3);
+	private static final Atom U_z3 = Atom.create(Predicate.create("U", 1), z3);
+	private static final Atom P_z1 = Atom.create(Predicate.create("P", 1), z1);
+	private static final Atom B_x1x2 = Atom.create(Predicate.create("B", 2), x1, x2);
+	private static final Atom H1_x1y1 = Atom.create(Predicate.create("H1", 2), x1, y1);
+	private static final Atom H2_x2 = Atom.create(Predicate.create("H2", 1), x2);
+	private static final Atom B_x2x1x3 = Atom.create(Predicate.create("B", 3), x2, x1, x3);
+	private static final Atom H1_x1z1y1y2 = Atom.create(Predicate.create("H1", 4), x1, z1, y1, y2);
+	private static final Atom H2_y1y2 = Atom.create(Predicate.create("H2", 2), y1, y2);
 	private static final Atom B_u1u2u3 = Atom.create(Predicate.create("B", 3),
 			Variable.create(GSat.getInstance().uVariable + "1"), Variable.create(GSat.getInstance().uVariable + "2"),
 			Variable.create(GSat.getInstance().uVariable + "3"));
@@ -73,23 +73,6 @@ public class GSatTest {
 			Variable.create(GSat.getInstance().eVariable + "2"), Variable.create(GSat.getInstance().eVariable + "3"));
 	private static final Atom H2_e2e3 = Atom.create(Predicate.create("H2", 2),
 			Variable.create(GSat.getInstance().eVariable + "2"), Variable.create(GSat.getInstance().eVariable + "3"));
-	// private static final Atom U_u1u2u3 = Atom.create(Predicate.create("U", 3),
-	// Variable.create(GSat.getInstance().uVariable + "1"),
-	// Variable.create(GSat.getInstance().uVariable + "2"),
-	// Variable.create(GSat.getInstance().eVariable + "1"));
-	// private static final Atom U_z1z2z3 = Atom.create(Predicate.create("U", 3),
-	// Variable.create("z1"),
-	// Variable.create("z2"), Variable.create("z3"));
-	// private static final Atom B_z1z2z3 = Atom.create(Predicate.create("B", 3),
-	// Variable.create(GSat.getInstance().zVariable + "1"),
-	// Variable.create(GSat.getInstance().zVariable + "2"),
-	// Variable.create(GSat.getInstance().zVariable + "3"));
-	// private static final Atom H1_u2u1 = Atom.create(Predicate.create("H1", 2),
-	// Variable.create(GSat.getInstance().uVariable + "2"),
-	// Variable.create(GSat.getInstance().uVariable + "1"));
-	// private static final Atom H1_z2z1 = Atom.create(Predicate.create("H1", 2),
-	// Variable.create(GSat.getInstance().zVariable + "2"),
-	// Variable.create(GSat.getInstance().zVariable + "1"));
 
 	@BeforeAll
 	static void initAll() {
@@ -102,72 +85,59 @@ public class GSatTest {
 
 	@Test
 	public void runGSatTest() {
-
-		/**
-		 * Example 1
-		 */
+		System.out.println("runGSat tests");
+		GSat gsat = GSat.getInstance();
+		// Example 1
 		// ∀ x1 R(x1) → ∃ y1,y2 T(x1,y1,y2)
-		// ∀ x1,x2,x3 T(x1,x2,x3) → ∃ y U(x1,x2,y)
+		// ∀ x1,x2,x3 T(x1,x2,x3) → ∃ y1 U(x1,x2,y1)
 		// ∀ x1,x2,x3 U(x1,x2,x3) → P(x1) ∧ V(x1,x2)
 		// ∀ x1,x2,x3 T(x1,x2,x3) ∧ V(x1,x2) ∧ S(x1) → M(x1)
-
 		TGD t1 = TGD.create(new Atom[] { R_x1 }, new Atom[] { T_x1y1y2 });
-		TGD t2 = TGD.create(new Atom[] { T_x1x2x3 }, new Atom[] { U_x1x2y });
+		TGD t2 = TGD.create(new Atom[] { T_x1x2x3 }, new Atom[] { U_x1x2y1 });
 		TGD t3 = TGD.create(new Atom[] { U_x1x2x3 }, new Atom[] { P_x1, V_x1x2 });
 		TGD t4 = TGD.create(new Atom[] { T_x1x2x3, V_x1x2, S_x1 }, new Atom[] { M_x1 });
 
-		Collection<TGD> allTGDs = new HashSet<>();
-		allTGDs.add(t1);
-		allTGDs.add(t2);
-		allTGDs.add(t3);
-		allTGDs.add(t4);
-		System.out.println("Initial rules:");
-		allTGDs.forEach(System.out::println);
+		Collection<TGD> initial = new HashSet<>();
+		initial.add(t1);
+		initial.add(t2);
+		initial.add(t3);
+		initial.add(t4);
 
-		Collection<TGDGSat> guardedSaturation = GSat.getInstance().runGSat(allTGDs.toArray(new TGD[allTGDs.size()]));
-
-		System.out.println("Guarded saturation:");
-		guardedSaturation.forEach(System.out::println);
+		Collection<TGDGSat> result = gsat.runGSat(initial.toArray(new TGD[initial.size()]));
 		// ∀ u1,u2,u3 T(u1,u2,u3) → P(u1) ∧ V(u1,u2)
 		// ∀ u1 R(u1) ∧ S(u1) → P(u1)
 		// ∀ u1,u2,u3 T(u1,u2,u3) ∧ V(u1,u2) ∧ S(u1) → M(u1)
 		// ∀ u1 R(u1) → P(u1)
 		// ∀ u1,u2,u3 U(u1,u2,u3) → P(u1) ∧ V(u1,u2)
 		// ∀ u1 R(u1) ∧ S(u1) → M(u1)
+		checkRunGSatTest(initial, 6, result);
 
-		assertEquals(6, guardedSaturation.size());
-
-		// TGD tgdExpected = TGD.create(bodyE, headE);
-		// assertTrue(guardedSaturation.stream().anyMatch(tgdExpected));
-
-		/**
-		 * Example 2
-		 */
+		// Example 2
 		// ∀ x1,x2 R(x1,x2) → ∃ y1,y2 S(x1,x2,y1,y2) ∧ T(x1,x2,y2)
 		// ∀ x1,x2,x3,x4 S(x1,x2,x3,x4) → U(x4)
 		// ∀ z1,z2,z3 T(z1,z2,z3) ∧ U(z3) → P(z1)
-
 		t1 = TGD.create(new Atom[] { R_x1x2 }, new Atom[] { S_x1x2y1y2, T_x1x2y2 });
 		t2 = TGD.create(new Atom[] { S_x1x2x3x4 }, new Atom[] { U_x4 });
 		t3 = TGD.create(new Atom[] { T_z1z2z3, U_z3 }, new Atom[] { P_z1 });
 
-		allTGDs = new HashSet<>();
-		allTGDs.add(t1);
-		allTGDs.add(t2);
-		allTGDs.add(t3);
-		System.out.println("Initial rules:");
-		allTGDs.forEach(System.out::println);
+		initial = new HashSet<>();
+		initial.add(t1);
+		initial.add(t2);
+		initial.add(t3);
 
-		guardedSaturation = GSat.getInstance().runGSat(allTGDs.toArray(new TGD[allTGDs.size()]));
+		result = gsat.runGSat(initial.toArray(new TGD[initial.size()]));
 
-		System.out.println("Guarded saturation:");
-		guardedSaturation.forEach(System.out::println);
 		// ∀ u1,u2,u3 T(u1,u2,u3) ∧ U(u3) → P(u1)
 		// ∀ u1,u2,u3,u4 S(u1,u2,u3,u4) → U(u4)
 		// ∀ u1,u2 R(u1,u2) → P(u1)
+		checkRunGSatTest(initial, 3, result);
+	}
 
-		assertEquals(3, guardedSaturation.size());
+	private void checkRunGSatTest(Collection<TGD> initial, int expected, Collection<TGDGSat> result) {
+		System.out.println("Initial TGDs:  " + initial);
+		System.out.println("Created rules: " + result);
 
+		assertEquals(expected, result.size());
 	}
 
 	@Test
@@ -351,6 +321,9 @@ public class GSatTest {
 		Variable x3 = Variable.create(gsat.uVariable + "3");
 		Variable y1 = Variable.create(gsat.eVariable + "1");
 		Variable y2 = Variable.create(gsat.eVariable + "2");
+		Constant c1 = UntypedConstant.create("c1");
+		Constant c2 = UntypedConstant.create("c2");
+		Constant c3 = UntypedConstant.create("c3");
 
 		// 1. evolve a single new rule
 		// P(x) -> ∃ y. R(x,y) & S(y)
@@ -417,7 +390,7 @@ public class GSatTest {
 		TGD nonFull2 = TGD.create(new Atom[] { Px1 }, new Atom[] { Rx1y1, Rx1y2, Ty2 }); // to avoid errors
 		expected.add(new TGDGSat(nonFull2));
 		expected.add(new TGDGSat(TGD.create(new Atom[] { Px1 }, new Atom[] { Sx1 })));
-		checkEvolveNewTest(nonFull, full, expected, evolved);
+		// checkEvolveNewTest(nonFull, full, expected, evolved);
 
 		// 6. Rename universal variables in non-full rule
 		// R(x1,x2) -> ∃ y. U(x1,y1,x2)
@@ -459,6 +432,43 @@ public class GSatTest {
 		evolved = gsat.evolveNew(nonFull, full);
 		expected = new HashSet<>();
 		expected.add(new TGDGSat(nonFull));
+		checkEvolveNewTest(nonFull, full, expected, evolved);
+
+		// 9: Evolve with constants
+		// R(x1,c1) → ∃ y1,y2 U(c2,x1,y1) ∧ R(x1,y1)
+		// U(x1,c3,x2) → P(x1)
+		Atom Rx1c1 = Atom.create(Predicate.create("R", 2), x1, c1);
+		Atom Uc2x1y1 = Atom.create(Predicate.create("U", 3), c2, x1, y1);
+		nonFull = TGD.create(new Atom[] { Rx1c1 }, new Atom[] { Uc2x1y1, Rx1y1 });
+		Atom Ux1c3x2 = Atom.create(Predicate.create("U", 3), x1, c3, x2);
+		full = TGD.create(new Atom[] { Ux1c3x2 }, new Atom[] { Px1 });
+		evolved = gsat.evolveNew(nonFull, full);
+		expected = new HashSet<>();
+		Atom Rc3c1 = Atom.create(Predicate.create("R", 2), c3, c1);
+		Atom Rc3y1 = Atom.create(Predicate.create("R", 2), c3, y1);
+		Atom Uc2c3y1 = Atom.create(Predicate.create("U", 3), c2, c3, y1);
+		expected.add(new TGDGSat(TGD.create(new Atom[] { Rc3c1 }, new Atom[] { Uc2c3y1, Rc3y1 })));
+		Atom Pc2 = Atom.create(Predicate.create("P", 1), c2);
+		expected.add(new TGDGSat(TGD.create(new Atom[] { Rc3c1 }, new Atom[] { Pc2 })));
+		checkEvolveNewTest(nonFull, full, expected, evolved);
+
+		// 10: Evolve no rule for c1 cannot be unified with y1
+		// R(x1,c1) → ∃ y1,y2 R(c3,y1)
+		// R(x1,c1) → P(x1)
+		nonFull = TGD.create(new Atom[] { Rx1c1 }, new Atom[] { Rc3y1 });
+		full = TGD.create(new Atom[] { Rx1c1 }, new Atom[] { Px1 });
+		evolved = gsat.evolveNew(nonFull, full);
+		expected = new HashSet<>();
+		checkEvolveNewTest(nonFull, full, expected, evolved);
+
+		// 11: Evolve no rule for c1 cannot be unified with c3
+		// R(x1,c1) → ∃ y1,y2 R(c3,y1)
+		// R(c1,x1) → P(x1)
+		nonFull = TGD.create(new Atom[] { Rx1c1 }, new Atom[] { Rc3y1 });
+		Atom Rc1x1 = Atom.create(Predicate.create("R", 2), c1, x1);
+		full = TGD.create(new Atom[] { Rc1x1 }, new Atom[] { Px1 });
+		evolved = gsat.evolveNew(nonFull, full);
+		expected = new HashSet<>();
 		checkEvolveNewTest(nonFull, full, expected, evolved);
 	}
 
