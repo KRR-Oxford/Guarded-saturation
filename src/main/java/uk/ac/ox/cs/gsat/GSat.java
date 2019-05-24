@@ -32,6 +32,9 @@ public class GSat {
     // New variable name for evolveRename
     public String zVariable = "GSat_z";
 
+    /**
+     * Private construtor, we want this class to be a Singleton
+     */
     private GSat() {
     }
 
@@ -59,10 +62,7 @@ public class GSat {
 
         Collection<TGDGSat> selectedTGDs = new HashSet<>();
         for (Dependency d : allDependencies)
-            // if (d instanceof TGD && ((TGD) d).isGuarded() && !containsSelfJoin((TGD) d))
-            // // Adding only Guarded TGDs
-            if (d instanceof TGD && ((TGD) d).isGuarded()) // Adding only Guarded TGDs
-                // if (!(d instanceof EGD))
+            if (isSupportedRule(d))
                 selectedTGDs.add(new TGDGSat((TGD) d));
             else
                 discarded++;
@@ -114,6 +114,10 @@ public class GSat {
 
         while (!newTGDs.isEmpty()) {
             // System.out.print('.');
+
+            // FIXME we should use two different sets, so we can do this
+            // if (nonFullTGDs.isEmpty() || fullTGDs.isEmpty())
+            // break; // we cannot evolve anything
 
             App.logger.fine("# new TGDs: " + newTGDs.size());
             newTGDs.forEach(tgd -> App.logger.fine(tgd.toString()));
@@ -182,6 +186,13 @@ public class GSat {
 
     // return false;
     // }
+
+    private boolean isSupportedRule(Dependency d) {
+        // if (d instanceof TGD && ((TGD) d).isGuarded() && !containsSelfJoin((TGD) d))
+        // // Adding only Guarded TGDs
+        return d instanceof TGD && ((TGD) d).isGuarded(); // Adding only Guarded TGDs
+        // if (!(d instanceof EGD))
+    }
 
     /**
      * 
