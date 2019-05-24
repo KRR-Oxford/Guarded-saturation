@@ -234,6 +234,7 @@ public class App {
 				}
 
 				Collection<Atom> queries = executionSteps.getQueries();
+				// FIXME Get query rules for Conjunctive queries
 
 				if (queries != null && !queries.isEmpty()) {
 
@@ -241,11 +242,11 @@ public class App {
 
 					for (Atom query : queries) {
 
-						IO.writeDatalogQuery(query, baseOutputPath + "query.rul");
+						IO.writeDatalogQuery(query, baseOutputPath + "datalog.query");
 
 						SolverOutput solverOutputQuery = Logic.invokeSolver(Configuration.getSolverPath(),
 								Configuration.getSolverOptionsQuery(), Arrays.asList(baseOutputPath + "datalog.rul",
-										baseOutputPath + "datalog.data", baseOutputPath + "query.rul"));
+										baseOutputPath + "datalog.data", baseOutputPath + "datalog.query"));
 
 						// System.out.println(solverOutput2);
 						System.out.println("Output size: " + solverOutputQuery.getOutput().length() + ", "

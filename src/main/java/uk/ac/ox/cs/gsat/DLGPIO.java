@@ -233,7 +233,7 @@ public class DLGPIO implements ExecutionSteps {
 
     }
 
-    public static Collection<uk.ac.ox.cs.pdq.fol.Atom> getPDQAtomsFromGraalQueries(HashSet<Query> query) {
+    public static Collection<uk.ac.ox.cs.pdq.fol.Atom> getPDQAtomsFromGraalQueries(HashSet<Query> queries) {
         // TODO
         return null;
     }

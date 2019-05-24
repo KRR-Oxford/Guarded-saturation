@@ -85,16 +85,6 @@ public class LogicTest {
 	}
 
 	@Test
-	public void applySubstitutionTest() {
-		// TODO
-	}
-
-	@Test
-	public void containsAnyTest() {
-		// TODO
-	}
-
-	@Test
 	public void isFullTest() {
 
 		// ∀ x2,x1,x3 B(x2,x1,x3) → ∃ z1,y1,y2 H1(x1,z1,y1,y2) & H2(y1,y2)
