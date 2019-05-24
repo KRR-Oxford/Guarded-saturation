@@ -14,6 +14,8 @@ import java.util.stream.Collectors;
 
 import uk.ac.ox.cs.pdq.fol.Atom;
 import uk.ac.ox.cs.pdq.fol.Dependency;
+import uk.ac.ox.cs.pdq.fol.LogicalSymbols;
+import uk.ac.ox.cs.pdq.fol.Predicate;
 import uk.ac.ox.cs.pdq.fol.TGD;
 import uk.ac.ox.cs.pdq.fol.Term;
 import uk.ac.ox.cs.pdq.fol.Variable;
@@ -225,7 +227,11 @@ public class GSat {
         Collection<Atom> fHead = new HashSet<>();
 
         for (Atom a : tgd.getHeadAtoms())
-            if (Logic.containsAny(a, eVariables))
+            if (a.equals(TGDGSat.Bottom)) {
+                // remove all head atoms since ⊥ & S ≡ ⊥ for any conjunction S
+                result.add(TGD.create(tgd.getBodyAtoms(), new Atom[] { TGDGSat.Bottom }));
+                return result;
+            } else if (Logic.containsAny(a, eVariables))
                 eHead.add(a);
             else
                 fHead.add(a);

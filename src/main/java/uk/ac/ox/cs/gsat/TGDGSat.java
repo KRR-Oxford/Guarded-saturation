@@ -8,6 +8,8 @@ import java.util.Objects;
 import java.util.Set;
 
 import uk.ac.ox.cs.pdq.fol.Atom;
+import uk.ac.ox.cs.pdq.fol.LogicalSymbols;
+import uk.ac.ox.cs.pdq.fol.Predicate;
 import uk.ac.ox.cs.pdq.fol.TGD;
 import uk.ac.ox.cs.pdq.fol.Term;
 import uk.ac.ox.cs.pdq.fol.TypedConstant;
@@ -20,6 +22,12 @@ import uk.ac.ox.cs.pdq.fol.Variable;
 public class TGDGSat extends TGD {
 
     private static final long serialVersionUID = 1L;
+
+    /**
+     * Bottom/False We assume that LogicalSymbols.BOTTOM does not appear as a
+     * predicate symbol in the input.
+     */
+    public final static Atom Bottom = Atom.create(Predicate.create(LogicalSymbols.BOTTOM.toString(), 0));
 
     protected TGDGSat(Atom[] body, Atom[] head) {
 
