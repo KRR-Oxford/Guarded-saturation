@@ -96,7 +96,7 @@ $\fullSet = \nonFullSet =\emptyset$\comment{full and non-full set}\;
 	$\nonFullSet = \nonFullSet\cup\{\sigma\}$\;
 	$\evolvedSet = \bigl\{\evolve(\sigma,\tau)\mid \tau\in\fullSet\bigr\}$\;
     }
-	$\workingSet = \workingSet\cup\evolvedSet\setminus\bigl(\fullSet\cup\nonFullSet\cup\{\sigma\}\bigr)$\;
+	$\workingSet = \workingSet\cup\evolvedSet\setminus\bigl(\fullSet\cup\nonFullSet\bigr)$\;
 }
 \KwRet{$\fullSet$}\;
 }\;
@@ -119,7 +119,7 @@ $\evolvedSet = \emptyset$\;
      }
     \ForEach{$S\in \bigl(\{H\}\times S_2\times\dotsb\times S_n\bigr)$}{
         Let $\theta^*$ be the mgu of $S$ and $S'$\;
-        \tcp{Note: evc is satisfied by construction}
+	\tcp{Note: evc is satisfied by construction (update: if we use constants, this unification can fail)}
         $\body''=\bigl(\body\cup\bigl(\body'\setminus\{B_1',\dotsc,B_n'\}\bigr)\bigr)\theta^*$\;
         $\head''=\bigl(\head\cup\head'\bigr)\theta^*$\;
         $\evolvedSet = \evolvedSet\cup\vnf\bigl(\hnf(\body''\rightarrow\exists\vec y\,\head'')\bigr)$\;
