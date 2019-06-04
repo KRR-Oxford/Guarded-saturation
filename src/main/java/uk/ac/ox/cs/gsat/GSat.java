@@ -39,7 +39,7 @@ public class GSat {
     }
 
     /**
-     * 
+     *
      * @return Singleton instace of GSat
      */
     public static GSat getInstance() {
@@ -47,9 +47,9 @@ public class GSat {
     }
 
     /**
-     * 
+     *
      * Main method to run the Guarded Saturation algorithm
-     * 
+     *
      * @param allDependencies the Guarded TGDs to process
      * @return the Guarded Saturation of allDependencies
      */
@@ -164,9 +164,9 @@ public class GSat {
     }
 
     /**
-     * 
+     *
      * A checker for self-join
-     * 
+     *
      * @param tgd a TGD
      * @return true if the TGD contains 2 atoms in the body or in the head with the
      *         same predicate name (needed only until we implement a generic MGU)
@@ -196,10 +196,10 @@ public class GSat {
     }
 
     /**
-     * 
+     *
      * Check if the variables we use in the rename are already used in the input
      * TGDs
-     * 
+     *
      * @param TGDs
      * @return true if it founds a variable with the same name of one of our rename
      *         variables
@@ -218,9 +218,9 @@ public class GSat {
     }
 
     /**
-     * 
+     *
      * Returns the Head Normal Form (HNF) of the input TGD
-     * 
+     *
      * @param tgd an input TGD
      * @return Head Normal Form of tgd
      */
@@ -264,9 +264,9 @@ public class GSat {
     }
 
     /**
-     * 
+     *
      * Returns the Variable Normal Form (VNF) of all the input TGDs
-     * 
+     *
      * @param tgds a collection of TGDs
      * @return Variable Normal Form of tgds
      */
@@ -277,9 +277,9 @@ public class GSat {
     }
 
     /**
-     * 
+     *
      * Returns the Variable Normal Form (VNF) of the input TGD
-     * 
+     *
      * @param tgd an input TGD
      * @return Variable Normal Form of tgd
      */
@@ -453,7 +453,7 @@ public class GSat {
     }
 
     /**
-     * 
+     *
      * @param nftgd non-full TGD (guarded)
      * @param ftgd  full TGD (guarded)
      * @return the derived rules of nftgd and ftgd according to the EVOLVE inference
@@ -500,6 +500,7 @@ public class GSat {
                         results.addAll(VNFs(HNF(TGD.create(new_body.toArray(new Atom[new_body.size()]),
                                 new_head.toArray(new Atom[new_head.size()])))));
                     }
+                    // no matching head atom for some atom in Sbody -> continue
                     continue;
                 }
 
@@ -511,6 +512,9 @@ public class GSat {
                             + Sbody + "\nS:" + S);
 
                     Map<Term, Term> mgu = getVariableSubstitution(S, Sbody);
+                    if (mgu == null)
+                        // unification failed -> continue with next sequence
+                        continue;
 
                     Collection<Atom> new_body = new HashSet<>();
                     new_body.addAll(Arrays.asList(new_nftgd.getBodyAtoms()));
@@ -522,8 +526,13 @@ public class GSat {
                     new_head.addAll(Arrays.asList(new_nftgd.getHeadAtoms()));
                     new_head.addAll(Arrays.asList(new_ftgd.getHeadAtoms()));
 
-                    results.addAll(VNFs(HNF(applyMGU(TGD.create(new_body.toArray(new Atom[new_body.size()]),
-                            new_head.toArray(new Atom[new_head.size()])), mgu))));
+                    if (mgu.isEmpty())
+                        // no need to apply the MGU
+                        results.addAll(VNFs(HNF(TGD.create(new_body.toArray(new Atom[new_body.size()]),
+                                new_head.toArray(new Atom[new_head.size()])))));
+                    else
+                        results.addAll(VNFs(HNF(applyMGU(TGD.create(new_body.toArray(new Atom[new_body.size()]),
+                                new_head.toArray(new Atom[new_head.size()])), mgu))));
 
                 }
 
@@ -600,7 +609,7 @@ public class GSat {
 
     /**
      * Mainly from https://stackoverflow.com/a/9496234
-     * 
+     *
      * @param shead
      * @return
      */
@@ -640,7 +649,9 @@ public class GSat {
                     for (int i = 0; i < headTerms.length; i++) {
                         Term bodyTerm = bodyAtom.getTerm(i);
                         Term headTerm = headTerms[i];
-                        if ((eVariables.contains(headTerm) || eVariables.contains(bodyTerm))
+                        // check if constants and existentials match
+                        if (((headTerm.isUntypedConstant() && bodyTerm.isUntypedConstant())
+                                || eVariables.contains(headTerm) || eVariables.contains(bodyTerm))
                                 && !bodyTerm.equals(headTerm)) {
                             valid = false;
                             break;
