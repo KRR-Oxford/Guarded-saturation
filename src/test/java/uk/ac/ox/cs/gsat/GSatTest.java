@@ -23,7 +23,7 @@ import uk.ac.ox.cs.pdq.fol.Variable;
 
 /**
  * Unit tests for the GSat class
- * 
+ *
  * @author Stefano
  */
 public class GSatTest {
@@ -473,7 +473,34 @@ public class GSatTest {
 		expected = new HashSet<>();
 		checkEvolveNewTest(nonFull, full, expected, evolved);
 
-		// 12: Derive with a rule containing bottom. Remove all head atoms in the
+		// 12: Evolve no rule for x3 will be mapped to y1, hence R(c1,x3) needs to be
+		// unified with R(c3,y1), but c1 and c3 cannot be unified.
+		// R(x1,c1) → ∃ y1 U(x1,x2,y1) & R(c3,y1)
+		// U(x1,x2,x3) & R(c1,x3) → P(x1)
+		Atom Uc1x2y1 = Atom.create(Predicate.create("U", 3), c1, x2, y1);
+		nonFull = TGD.create(new Atom[] { Rx1c1 }, new Atom[] { Uc1x2y1, Rc3y1 });
+		Atom Rc1x3 = Atom.create(Predicate.create("R", 2), c1, x3);
+		full = TGD.create(new Atom[] { Ux1x2x3, Rc1x3 }, new Atom[] { Px1 });
+		evolved = gsat.evolveNew(nonFull, full);
+		expected = new HashSet<>();
+		checkEvolveNewTest(nonFull, full, expected, evolved);
+
+		// 13: Evolve no rule for x3 will be mapped to y1, hence R(x1,x3) & T(x1,x3)
+		// need to be unified with R(c3,y1) & T(c1,y1),
+		// but x1 cannot be mapped to c3 and c1.
+		// S(x1) → ∃ y1 U(x1,x2,y1) & R(c3,y1) & T(c1,y1)
+		// U(x1,x2,x3) & R(x1,x3) & T(x1,x3) → P(x1)
+		Atom Ux1x2y1 = Atom.create(Predicate.create("U", 3), x1, x2, y1);
+		Atom Tc1y1 = Atom.create(Predicate.create("T", 2), c1, y1);
+		nonFull = TGD.create(new Atom[] { Sx1 }, new Atom[] { Ux1x2y1, Rc3y1, Tc1y1 });
+		Atom Rx1x3 = Atom.create(Predicate.create("R", 2), x1, x3);
+		Atom Tx1x3 = Atom.create(Predicate.create("T", 2), x1, x3);
+		full = TGD.create(new Atom[] { Ux1x2x3, Rx1x3, Tx1x3 }, new Atom[] { Px1 });
+		evolved = gsat.evolveNew(nonFull, full);
+		expected = new HashSet<>();
+		checkEvolveNewTest(nonFull, full, expected, evolved);
+
+		// 14: Derive with a rule containing bottom. Remove all head atoms in the
 		// resulting rule.
 		// S(x1) -> \exists y. R(x1,y1)
 		// R(x1,x2) -> P(x1) & ⊥
