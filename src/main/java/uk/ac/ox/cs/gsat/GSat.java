@@ -5,6 +5,7 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Locale;
@@ -81,7 +82,7 @@ public class GSat {
             newTGDs.addAll(VNFs(HNF(tgd)));
 
         App.logger.fine("# initial TGDs: " + newTGDs.size());
-        newTGDs.forEach(tgd -> App.logger.fine(tgd.toString()));
+        // newTGDs.forEach(tgd -> App.logger.fine(tgd.toString()));
 
         Collection<TGDGSat> nonFullTGDs = new HashSet<>();
         Collection<TGDGSat> fullTGDs = new HashSet<>();
@@ -121,11 +122,12 @@ public class GSat {
             // break; // we cannot evolve anything
 
             App.logger.fine("# new TGDs: " + newTGDs.size());
-            newTGDs.forEach(tgd -> App.logger.fine(tgd.toString()));
+            // newTGDs.forEach(tgd -> App.logger.fine(tgd.toString()));
 
-            TGDGSat currentTGD = newTGDs.iterator().next();
+            Iterator<TGDGSat> iterator = newTGDs.iterator();
+            TGDGSat currentTGD = iterator.next();
+            iterator.remove();
             App.logger.fine("current TGD: " + currentTGD);
-            newTGDs.remove(currentTGD);
 
             Collection<TGDGSat> tempTGDsSet = new ArrayList<>();
 
@@ -141,6 +143,8 @@ public class GSat {
                     tempTGDsSet.addAll(evolveNew(currentTGD, ftgd));
             }
 
+            // FIXME use the return value of "add" (true if this set did not already contain
+            // the specified element) to check if the element was contained
             for (TGDGSat d : tempTGDsSet)
                 if (Logic.isFull(d) && !fullTGDs.contains(d) || !Logic.isFull(d) && !nonFullTGDs.contains(d)) {
                     // App.logger.fine("adding new TGD: " + d + "\t" + d.equals(currentTGD) + ": "
@@ -650,7 +654,7 @@ public class GSat {
                         Term bodyTerm = bodyAtom.getTerm(i);
                         Term headTerm = headTerms[i];
                         // check if constants and existentials match
-                        if (((headTerm.isUntypedConstant() && bodyTerm.isUntypedConstant())
+                        if ((headTerm.isUntypedConstant() && bodyTerm.isUntypedConstant()
                                 || eVariables.contains(headTerm) || eVariables.contains(bodyTerm))
                                 && !bodyTerm.equals(headTerm)) {
                             valid = false;
