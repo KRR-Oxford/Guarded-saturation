@@ -76,7 +76,7 @@ public class Logic {
 				// System.out.println(term.isVariable());
 				// System.out.println(substitution.containsKey(term));
 				// System.out.println(substitution.get(term));
-				// we assume UNA also between variables and constants
+				// FIXME we assume UNA also between variables and constants
 				// if (term.isVariable() && substitution.containsKey(term))
 				if (substitution.containsKey(term))
 					nterms[termIndex] = substitution.get(term);

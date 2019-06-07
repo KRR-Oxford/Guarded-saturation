@@ -66,4 +66,15 @@ public class OWLTest {
 
 	}
 
+	@Test
+	public void GardinerCorpus_http___protege_stanford_edu_plugins_owl_owl_library_travel_owl_2009_02_13() {
+
+		String path = baseChaseBench + "00120.owl";
+
+		ExecutionOutput executeChaseBenchScenario = App.fromOWL(path);
+
+		assertEquals(72, executeChaseBenchScenario.getGuardedSaturation().size());
+
+	}
+
 }

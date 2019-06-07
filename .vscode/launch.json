@@ -62,6 +62,14 @@
         },
         {
             "type": "java",
+            "name": "OWL GardinerCorpus/http___protege.stanford.edu_plugins_owl_owl-library_travel.owl/2009-02-13 - App<Guarded-saturation>",
+            "request": "launch",
+            "projectName": "guarded-saturation",
+            "mainClass": "uk.ac.ox.cs.gsat.App",
+            "args": "owl test\\OWL\\00120.owl"
+        },
+        {
+            "type": "java",
             "name": "DLGP Animals - App<Guarded-saturation>",
             "request": "launch",
             "projectName": "guarded-saturation",
@@ -99,6 +107,62 @@
             "projectName": "guarded-saturation",
             "mainClass": "uk.ac.ox.cs.gsat.App",
             "args": "dlgp test\\DLGP\\imdb.dlgp"
+        },
+        {
+            "type": "java",
+            "name": "Converter<Guarded-saturation>",
+            "request": "launch",
+            "projectName": "guarded-saturation",
+            "mainClass": "uk.ac.ox.cs.gsat.Converter",
+            "args": "cb test\\OWL\\family-small.owl test\\datalog\\family-small.datalog"
+        },
+        {
+            "type": "java",
+            "name": "Executor<Guarded-saturation>",
+            "request": "launch",
+            "projectName": "guarded-saturation",
+            "mainClass": "uk.ac.ox.cs.gsat.Executor",
+            "args": "compare test\\DLGP\\A.dlp"
+            // "args": "compare test\\DLGP\\imdb.dlgp"
+            // "args": "compare C:\\Users\\Stefano\\Downloads\\000332.dlgp"
+        },
+        {
+            "type": "java",
+            "name": "ExecutorOWL<Guarded-saturation>",
+            "request": "launch",
+            "projectName": "guarded-saturation",
+            "mainClass": "uk.ac.ox.cs.gsat.ExecutorOWL",
+            // "args": "compare test\\OWL\\family-small.owl 30"
+            // "args": "compare test\\OWL\\00198.owl 30"
+            // "args": "compare test\\OWL\\00780.owl 30"
+            "args": "compare test\\OWL\\00056.owl 30"
+        },
+        {
+            "type": "java",
+            "name": "OWLSanitiser<Guarded-saturation>",
+            "request": "launch",
+            "projectName": "guarded-saturation",
+            "mainClass": "uk.ac.ox.cs.gsat.OWLSanitiser",
+            // "args": "sanitise test\\OWL\\family-small.owl test\\OWL\\family-small_sanitised.owl"
+            // "args": "sanitise test\\OWL\\00780.owl test\\OWL\\00780_sanitised.owl"
+            // "args": "sanitise test\\OWL\\00033.owl test\\OWL\\00033_sanitised.owl"
+            "args": "sanitise test\\OWL\\00006.owl test\\OWL\\00006_sanitised.owl"
+        },
+        {
+            "type": "java",
+            "name": "OWL 00780_sanitised - App<Guarded-saturation>",
+            "request": "launch",
+            "projectName": "guarded-saturation",
+            "mainClass": "uk.ac.ox.cs.gsat.App",
+            "args": "owl test\\OWL\\00780_sanitised.owl"
+        },
+        {
+            "type": "java",
+            "name": "OWL family-small_sanitised - App<Guarded-saturation>",
+            "request": "launch",
+            "projectName": "guarded-saturation",
+            "mainClass": "uk.ac.ox.cs.gsat.App",
+            "args": "owl test\\OWL\\family-small_sanitised.owl"
         },
         {
             "type": "java",
