@@ -35,11 +35,11 @@
       <artifactId>pdq-regression</artifactId>
       <version>1.0.0-Beta</version>
     </dependency>
-    <!-- <dependency>
+    <dependency>
       <groupId>net.sourceforge.owlapi</groupId>
       <artifactId>owlapi-apibinding</artifactId>
-      <version>5.1.4</version>
-    </dependency> -->
+      <version>4.0.1</version>
+    </dependency>
     <dependency>
       <groupId>fr.lirmm.graphik</groupId>
       <artifactId>graal-io-owl</artifactId>
@@ -49,6 +49,18 @@
       <groupId>fr.lirmm.graphik</groupId>
       <artifactId>graal-io-dlgp</artifactId>
       <version>1.3.1</version>
+    </dependency>
+    <dependency>
+      <groupId>fr.lirmm.graphik</groupId>
+      <artifactId>graal-io-rdf</artifactId>
+      <version>1.3.1</version>
+    </dependency>
+    <dependency>
+      <groupId>org.semanticweb.kaon2</groupId>
+      <artifactId>kaon2</artifactId>
+      <version>2008-06-29</version>
+      <scope>system</scope>
+      <systemPath>${project.basedir}/src/main/resources/kaon2.jar</systemPath>
     </dependency>
   </dependencies>
   <build>
@@ -89,24 +101,96 @@
       <plugin>
         <artifactId>maven-assembly-plugin</artifactId>
         <version>3.1.1</version>
-        <configuration>
-          <!-- <appendAssemblyId>false</appendAssemblyId> -->
-          <archive>
-            <manifest>
-              <mainClass>uk.ac.ox.cs.gsat.App</mainClass>
-            </manifest>
-          </archive>
-          <descriptorRefs>
-            <descriptorRef>jar-with-dependencies</descriptorRef>
-          </descriptorRefs>
-        </configuration>
         <executions>
           <execution>
+            <id>jar-with-dependencies-App</id>
+            <configuration>
+              <!-- <appendAssemblyId>false</appendAssemblyId> -->
+              <archive>
+                <manifest>
+                  <mainClass>uk.ac.ox.cs.gsat.App</mainClass>
+                </manifest>
+              </archive>
+              <descriptorRefs>
+                <descriptorRef>jar-with-dependencies</descriptorRef>
+              </descriptorRefs>
+              <!-- <finalName>foobar_a.jar</finalName> -->
+            </configuration>
             <phase>package</phase>
             <goals>
               <goal>single</goal>
             </goals>
           </execution>
+          <execution>
+            <id>jar-with-dependencies-Executor</id>
+            <configuration>
+              <!-- <appendAssemblyId>false</appendAssemblyId> -->
+              <archive>
+                <manifest>
+                  <mainClass>uk.ac.ox.cs.gsat.Executor</mainClass>
+                </manifest>
+              </archive>
+              <descriptorRefs>
+                <descriptorRef>jar-with-dependencies</descriptorRef>
+              </descriptorRefs>
+              <finalName>Executor</finalName>
+              <!-- <fileSets>
+                <fileSet>
+                  <directory>${project.build.directory}</directory>
+                  <outputDirectory>/</outputDirectory>
+                  <includes>
+                    <include>*.jar</include>
+                  </includes>
+                </fileSet>
+              </fileSets> -->
+            </configuration>
+            <!-- <phase>package</phase>
+            <goals>
+              <goal>single</goal>
+            </goals> -->
+          </execution>
+          <execution>
+            <id>jar-with-dependencies-ExecutorOWL</id>
+            <configuration>
+              <archive>
+                <manifest>
+                  <mainClass>uk.ac.ox.cs.gsat.ExecutorOWL</mainClass>
+                </manifest>
+              </archive>
+              <descriptorRefs>
+                <descriptorRef>jar-with-dependencies</descriptorRef>
+              </descriptorRefs>
+              <finalName>ExecutorOWL</finalName>
+            </configuration>
+            <!-- <phase>package</phase>
+            <goals>
+              <goal>single</goal>
+            </goals> -->
+          </execution>
+          <execution>
+            <id>jar-with-dependencies-OWLSanitiser</id>
+            <configuration>
+              <archive>
+                <manifest>
+                  <mainClass>uk.ac.ox.cs.gsat.OWLSanitiser</mainClass>
+                </manifest>
+              </archive>
+              <descriptorRefs>
+                <descriptorRef>jar-with-dependencies</descriptorRef>
+              </descriptorRefs>
+              <finalName>OWLSanitiser</finalName>
+            </configuration>
+            <!-- <phase>package</phase>
+            <goals>
+              <goal>single</goal>
+            </goals> -->
+          </execution>
+          <!-- <execution>
+            <phase>package</phase>
+            <goals>
+              <goal>single</goal>
+            </goals>
+          </execution> -->
         </executions>
       </plugin>
       <plugin>
