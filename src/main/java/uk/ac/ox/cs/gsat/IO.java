@@ -149,8 +149,10 @@ public class IO {
 
         String name = newAtom.getPredicate().getName();
         if (name != null) {
-            if (name.length() > 6 && name.substring(0, 7).equals("http://")) { // URL in angle bracket
-                App.logger.info("URL as predicate name. Adding angle brackets.");
+            if (name.length() > 6
+                    && (name.substring(0, 7).equals("http://") || name.substring(0, 7).equals("file://"))) {
+                // URL in angle bracket
+                App.logger.info("URL as predicate name. Adding angle brackets." + name);
                 name = '<' + name + '>';
             } else if (name.length() > 0 && name.substring(0, 1).matches("[A-Z]")) { // First char to Lower Case
                 App.logger.info("Predicate starting with an upper-case letter. Transforming it to lower-case.");

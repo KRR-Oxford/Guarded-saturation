@@ -25,6 +25,7 @@ import uk.ac.ox.cs.pdq.fol.Variable;
 public class GSat {
 
     private static final GSat INSTANCE = new GSat();
+    // private boolean DEBUG_MODE = Configuration.isDebugMode();
 
     // New variable name for Universally Quantified Variables
     public String uVariable = "GSat_u";
@@ -77,15 +78,25 @@ public class GSat {
             zVariable += "0";
         }
 
-        Collection<TGDGSat> newTGDs = new HashSet<>();
+        Collection<TGDGSat> newFullTGDs = new HashSet<>();
+        Collection<TGDGSat> newNonFullTGDs = new HashSet<>();
         for (TGDGSat tgd : selectedTGDs)
-            newTGDs.addAll(VNFs(HNF(tgd)));
+            for (TGDGSat currentTGD : VNFs(HNF(tgd)))
+                if (Logic.isFull(currentTGD))
+                    newFullTGDs.add(currentTGD);
+                else
+                    newNonFullTGDs.add(currentTGD);
 
-        App.logger.fine("# initial TGDs: " + newTGDs.size());
+        App.logger.fine("# initial TGDs: " + newFullTGDs.size() + " , " + newNonFullTGDs.size());
         // newTGDs.forEach(tgd -> App.logger.fine(tgd.toString()));
 
         Collection<TGDGSat> nonFullTGDs = new HashSet<>();
         Collection<TGDGSat> fullTGDs = new HashSet<>();
+
+        if (newNonFullTGDs.isEmpty()) {
+            fullTGDs.addAll(newFullTGDs);
+            newFullTGDs.clear();
+        }
 
         // for (TGD d : allDependencies)
         // if (isFull(d))
@@ -113,45 +124,46 @@ public class GSat {
         // newTGDs.addAll(nonFullTGDs);
         // newTGDs.addAll(fullTGDs);
 
-        while (!newTGDs.isEmpty()) {
+        while (!newFullTGDs.isEmpty() || !newNonFullTGDs.isEmpty()) {
             // System.out.print('.');
 
-            // FIXME we should use two different sets, so we can optimise this by stopping
-            // when we cannot evolve anything anymore
-            // if (nonFullTGDs.isEmpty() || fullTGDs.isEmpty())
-            // break; // we cannot evolve anything
-
-            App.logger.fine("# new TGDs: " + newTGDs.size());
+            App.logger.fine("# new TGDs: " + newFullTGDs.size() + " , " + newNonFullTGDs.size());
             // newTGDs.forEach(tgd -> App.logger.fine(tgd.toString()));
 
-            Iterator<TGDGSat> iterator = newTGDs.iterator();
-            TGDGSat currentTGD = iterator.next();
-            iterator.remove();
-            App.logger.fine("current TGD: " + currentTGD);
+            if (!newNonFullTGDs.isEmpty()) {
 
-            Collection<TGDGSat> tempTGDsSet = new ArrayList<>();
+                Iterator<TGDGSat> iterator = newNonFullTGDs.iterator();
+                TGDGSat currentTGD = iterator.next();
+                iterator.remove();
+                App.logger.fine("current TGD: " + currentTGD);
 
-            if (Logic.isFull(currentTGD)) {
-                fullTGDs.add(currentTGD);
-                for (TGDGSat nftgd : nonFullTGDs)
-                    // tempTGDsSet.addAll(VNFs(HNF(evolve(nftgd, currentTGD))));
-                    tempTGDsSet.addAll(evolveNew(nftgd, currentTGD));
+                boolean added = nonFullTGDs.add(currentTGD);
+                if (added)
+                    for (TGDGSat ftgd : fullTGDs)
+                        for (TGDGSat newTGD : evolveNew(currentTGD, ftgd))
+                            if (Logic.isFull(newTGD))
+                                newFullTGDs.add(newTGD);
+                            else
+                                newNonFullTGDs.add(newTGD);
+
             } else {
-                nonFullTGDs.add(currentTGD);
-                for (TGDGSat ftgd : fullTGDs)
-                    // tempTGDsSet.addAll(VNFs(HNF(evolve(currentTGD, ftgd))));
-                    tempTGDsSet.addAll(evolveNew(currentTGD, ftgd));
+
+                Iterator<TGDGSat> iterator = newFullTGDs.iterator();
+                TGDGSat currentTGD = iterator.next();
+                iterator.remove();
+                App.logger.fine("current TGD: " + currentTGD);
+
+                boolean added = fullTGDs.add(currentTGD);
+                if (added)
+                    for (TGDGSat nftgd : nonFullTGDs)
+                        for (TGDGSat newTGD : evolveNew(nftgd, currentTGD))
+                            if (Logic.isFull(newTGD))
+                                newFullTGDs.add(newTGD);
+                            else
+                                newNonFullTGDs.add(newTGD);
+
             }
 
-            // FIXME use the return value of "add" (true if this set did not already contain
-            // the specified element) to check if the element was contained
-            for (TGDGSat d : tempTGDsSet)
-                if (Logic.isFull(d) && !fullTGDs.contains(d) || !Logic.isFull(d) && !nonFullTGDs.contains(d)) {
-                    // App.logger.fine("adding new TGD: " + d + "\t" + d.equals(currentTGD) + ": "
-                    // + nonFullTGDs.contains(currentTGD) + ": " + nonFullTGDs.contains(d) + ": "
-                    // + Objects.equals(d, currentTGD));
-                    newTGDs.add(d);
-                }
         }
 
         // System.out.println();
@@ -228,7 +240,7 @@ public class GSat {
      * @param tgd an input TGD
      * @return Head Normal Form of tgd
      */
-    public Collection<TGD> HNF(TGD tgd) {
+    public Collection<TGD> HNF(final TGD tgd) {
 
         Collection<TGD> result = new HashSet<>();
 
@@ -240,10 +252,11 @@ public class GSat {
         Collection<Atom> eHead = new HashSet<>();
         Collection<Atom> fHead = new HashSet<>();
 
+        Atom[] bodyAtoms = tgd.getBodyAtoms();
         for (Atom a : tgd.getHeadAtoms())
             if (a.equals(TGDGSat.Bottom)) {
                 // remove all head atoms since ⊥ & S ≡ ⊥ for any conjunction S
-                result.add(TGD.create(tgd.getBodyAtoms(), new Atom[] { TGDGSat.Bottom }));
+                result.add(TGD.create(bodyAtoms, new Atom[] { TGDGSat.Bottom }));
                 return result;
             } else if (Logic.containsAny(a, eVariables))
                 eHead.add(a);
@@ -252,15 +265,15 @@ public class GSat {
 
         // Remove atoms that already appear in the body.
         // This is only needed for fHead since we have no existentials in the body
-        fHead.removeAll(Arrays.asList(tgd.getBodyAtoms()));
+        fHead.removeAll(Arrays.asList(bodyAtoms));
 
         if (tgd.getHeadAtoms().length == eHead.size() || tgd.getHeadAtoms().length == fHead.size())
             result.add(tgd);
         else {
             if (!eHead.isEmpty())
-                result.add(TGD.create(tgd.getBodyAtoms(), eHead.toArray(new Atom[eHead.size()])));
+                result.add(TGD.create(bodyAtoms, eHead.toArray(new Atom[eHead.size()])));
             if (!fHead.isEmpty())
-                result.add(TGD.create(tgd.getBodyAtoms(), fHead.toArray(new Atom[fHead.size()])));
+                result.add(TGD.create(bodyAtoms, fHead.toArray(new Atom[fHead.size()])));
         }
 
         return result;
@@ -478,28 +491,33 @@ public class GSat {
 
             if (guardMGU != null && !guardMGU.isEmpty()) {
 
-                TGD new_nftgd = applyMGU(nftgd, guardMGU);
-                TGD new_ftgd = applyMGU(ftgd, guardMGU);
+                final TGD new_nftgd = applyMGU(nftgd, guardMGU);
+                final TGD new_ftgd = applyMGU(ftgd, guardMGU);
 
-                List<Variable> new_nftgd_existentials = Arrays.asList(new_nftgd.getExistential());
+                final List<Variable> new_nftgd_existentials = Arrays.asList(new_nftgd.getExistential());
 
-                Atom new_guard = applyMGU(Arrays.asList(guard), guardMGU)[0];
-                List<Atom> Sbody = getSbody(new_ftgd.getBodyAtoms(), new_guard, new_nftgd_existentials);
+                List<Atom> new_nftgd_head_atoms = Arrays.asList(new_nftgd.getHeadAtoms());
+                List<Atom> new_nftgd_body_atoms = Arrays.asList(new_nftgd.getBodyAtoms());
+                List<Atom> new_ftgd_head_atoms = Arrays.asList(new_ftgd.getHeadAtoms());
+                List<Atom> new_ftgd_body_atoms = Arrays.asList(new_ftgd.getBodyAtoms());
 
-                List<List<Atom>> Shead = getShead(new_nftgd.getHeadAtoms(), Sbody, new_nftgd_existentials);
+                Atom new_guard = (Atom) Logic.applySubstitution(guard, guardMGU);
+                List<Atom> Sbody = getSbody(new_ftgd_body_atoms, new_guard, new_nftgd_existentials);
+
+                List<List<Atom>> Shead = getShead(new_nftgd_head_atoms, Sbody, new_nftgd_existentials);
 
                 // if Sbody is empty, then Shead is empty, and we take this short-cut;
                 // in fact, we should never have Shead == null and Sbody.isEmpty
                 if (Shead == null || Shead.isEmpty()) {
                     if (Sbody.isEmpty()) {
                         Collection<Atom> new_body = new HashSet<>();
-                        new_body.addAll(Arrays.asList(new_nftgd.getBodyAtoms()));
-                        new_body.addAll(Arrays.asList(new_ftgd.getBodyAtoms()));
+                        new_body.addAll(new_nftgd_body_atoms);
+                        new_body.addAll(new_ftgd_body_atoms);
                         new_body.remove(new_guard);
 
                         Collection<Atom> new_head = new HashSet<>();
-                        new_head.addAll(Arrays.asList(new_nftgd.getHeadAtoms()));
-                        new_head.addAll(Arrays.asList(new_ftgd.getHeadAtoms()));
+                        new_head.addAll(new_nftgd_head_atoms);
+                        new_head.addAll(new_ftgd_head_atoms);
 
                         results.addAll(VNFs(HNF(TGD.create(new_body.toArray(new Atom[new_body.size()]),
                                 new_head.toArray(new Atom[new_head.size()])))));
@@ -521,22 +539,21 @@ public class GSat {
                         continue;
 
                     Collection<Atom> new_body = new HashSet<>();
-                    new_body.addAll(Arrays.asList(new_nftgd.getBodyAtoms()));
-                    new_body.addAll(Arrays.asList(new_ftgd.getBodyAtoms()));
+                    new_body.addAll(new_nftgd_body_atoms);
+                    new_body.addAll(new_ftgd_body_atoms);
                     new_body.removeAll(Sbody);
                     new_body.remove(new_guard);
 
                     Collection<Atom> new_head = new HashSet<>();
-                    new_head.addAll(Arrays.asList(new_nftgd.getHeadAtoms()));
-                    new_head.addAll(Arrays.asList(new_ftgd.getHeadAtoms()));
+                    new_head.addAll(new_nftgd_head_atoms);
+                    new_head.addAll(new_ftgd_head_atoms);
 
                     if (mgu.isEmpty())
                         // no need to apply the MGU
                         results.addAll(VNFs(HNF(TGD.create(new_body.toArray(new Atom[new_body.size()]),
                                 new_head.toArray(new Atom[new_head.size()])))));
                     else
-                        results.addAll(VNFs(HNF(applyMGU(TGD.create(new_body.toArray(new Atom[new_body.size()]),
-                                new_head.toArray(new Atom[new_head.size()])), mgu))));
+                        results.addAll(VNFs(HNF(applyMGU(new_body, new_head, mgu))));
 
                 }
 
@@ -638,7 +655,7 @@ public class GSat {
         return resultLists;
     }
 
-    private List<List<Atom>> getShead(Atom[] headAtoms, Collection<Atom> sbody, List<Variable> eVariables) {
+    private List<List<Atom>> getShead(List<Atom> headAtoms, Collection<Atom> sbody, List<Variable> eVariables) {
 
         List<List<Atom>> resultLists = new ArrayList<List<Atom>>();
 
@@ -678,7 +695,7 @@ public class GSat {
 
     }
 
-    private List<Atom> getSbody(Atom[] bodyAtoms, Atom guard, List<Variable> eVariables) {
+    private List<Atom> getSbody(List<Atom> bodyAtoms, Atom guard, List<Variable> eVariables) {
 
         List<Atom> results = new LinkedList<>();
 
@@ -703,8 +720,13 @@ public class GSat {
 
     private TGD applyMGU(TGD tgd, Map<Term, Term> mgu) {
 
-        return TGD.create(applyMGU(Arrays.asList(tgd.getBodyAtoms()), mgu),
-                applyMGU(Arrays.asList(tgd.getHeadAtoms()), mgu));
+        return applyMGU(Arrays.asList(tgd.getBodyAtoms()), Arrays.asList(tgd.getHeadAtoms()), mgu);
+
+    }
+
+    private TGD applyMGU(Collection<Atom> bodyAtoms, Collection<Atom> headAtoms, Map<Term, Term> mgu) {
+
+        return TGD.create(applyMGU(bodyAtoms, mgu), applyMGU(headAtoms, mgu));
 
     }
 

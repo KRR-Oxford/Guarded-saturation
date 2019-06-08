@@ -115,4 +115,15 @@ public class Configuration {
 
     }
 
+    public static boolean isDebugMode() {
+
+        Configuration.initialize();
+
+        if (Configuration.prop == null)
+            return false;
+
+        return Boolean.parseBoolean(Configuration.prop.getProperty("debug"));
+
+    }
+
 }
