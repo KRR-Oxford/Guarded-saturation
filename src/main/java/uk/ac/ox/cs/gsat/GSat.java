@@ -83,6 +83,8 @@ public class GSat {
         Collection<TGDGSat> newNonFullTGDs = new HashSet<>();
         for (TGDGSat tgd : selectedTGDs)
             for (TGDGSat currentTGD : VNFs(HNF(tgd)))
+                // how about subsumption checking at this point?
+                // is it guaranteed to have no subsumed rules in the input?
                 if (Logic.isFull(currentTGD))
                     newFullTGDs.add(currentTGD);
                 else
@@ -94,6 +96,8 @@ public class GSat {
         Collection<TGDGSat> nonFullTGDs = new HashSet<>();
         Collection<TGDGSat> fullTGDs = new HashSet<>();
 
+        // this can always be done, regardless of whether newNonFullTGDs is empty;
+        // in fact, one can just add all inital rules to fullTGDs instead of newFullTGDs
         if (newNonFullTGDs.isEmpty()) {
             fullTGDs.addAll(newFullTGDs);
             newFullTGDs.clear();
