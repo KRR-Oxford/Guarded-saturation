@@ -103,12 +103,12 @@ public class GSatTest {
 
 		Collection<TGDGSat> result = gsat.runGSat(initial.toArray(new TGD[initial.size()]));
 		// ∀ u1,u2,u3 T(u1,u2,u3) → P(u1) ∧ V(u1,u2)
-		// ∀ u1 R(u1) ∧ S(u1) → P(u1)
-		// ∀ u1,u2,u3 T(u1,u2,u3) ∧ V(u1,u2) ∧ S(u1) → M(u1)
+		// ∀ u1 R(u1) ∧ S(u1) → P(u1) // SUBSUMED BY THE ONE BELOW!
 		// ∀ u1 R(u1) → P(u1)
+		// ∀ u1,u2,u3 T(u1,u2,u3) ∧ V(u1,u2) ∧ S(u1) → M(u1)
 		// ∀ u1,u2,u3 U(u1,u2,u3) → P(u1) ∧ V(u1,u2)
 		// ∀ u1 R(u1) ∧ S(u1) → M(u1)
-		checkRunGSatTest(initial, 6, result);
+		checkRunGSatTest(initial, 5, result);
 
 		// Example 2
 		// ∀ x1,x2 R(x1,x2) → ∃ y1,y2 S(x1,x2,y1,y2) ∧ T(x1,x2,y2)

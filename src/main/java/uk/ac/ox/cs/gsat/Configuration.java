@@ -126,4 +126,15 @@ public class Configuration {
 
     }
 
+    public static boolean isOptimizationEnabled() {
+
+        Configuration.initialize();
+
+        if (Configuration.prop == null)
+            return false;
+
+        return Boolean.parseBoolean(Configuration.prop.getProperty("optimization"));
+
+    }
+
 }

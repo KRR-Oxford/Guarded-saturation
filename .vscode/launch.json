@@ -135,7 +135,11 @@
             // "args": "compare test\\OWL\\family-small.owl 30"
             // "args": "compare test\\OWL\\00198.owl 30"
             // "args": "compare test\\OWL\\00780.owl 30"
-            "args": "compare test\\OWL\\00056.owl 30"
+            // "args": "compare test\\OWL\\00056.owl 30"
+            // "args": "compare test\\OWL\\00206-sanitised.owl 30"
+            // "args": "compare test\\OWL\\00347-sanitised.owl 30"
+            // "args": "compare test\\OWL\\00388-sanitised.owl 30"
+            "args": "compare test\\OWL\\00464-sanitised.owl 30"
         },
         {
             "type": "java",
@@ -163,6 +167,23 @@
             "projectName": "guarded-saturation",
             "mainClass": "uk.ac.ox.cs.gsat.App",
             "args": "owl test\\OWL\\family-small_sanitised.owl"
+        },
+        {
+            "type": "java",
+            "name": "OWL - App<Guarded-saturation>",
+            "request": "launch",
+            "projectName": "guarded-saturation",
+            "mainClass": "uk.ac.ox.cs.gsat.App",
+            // "args": "owl test\\OWL\\00015-sanitised.owl"
+            "args": "owl test\\OWL\\00022-sanitised.owl"
+        },
+        {
+            "type": "java",
+            "name": "DLGP - App<Guarded-saturation>",
+            "request": "launch",
+            "projectName": "guarded-saturation",
+            "mainClass": "uk.ac.ox.cs.gsat.App",
+            "args": "dlgp test\\DLGP\\00015-sanitised-small.dlgp"
         },
         {
             "type": "java",

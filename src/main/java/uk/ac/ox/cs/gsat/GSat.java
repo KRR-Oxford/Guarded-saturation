@@ -10,6 +10,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Set;
 import java.util.Map.Entry;
 import java.util.stream.Collectors;
 
@@ -124,11 +125,19 @@ public class GSat {
         // newTGDs.addAll(nonFullTGDs);
         // newTGDs.addAll(fullTGDs);
 
+        int counter = 100;
         while (!newFullTGDs.isEmpty() || !newNonFullTGDs.isEmpty()) {
             // System.out.print('.');
 
             App.logger.fine("# new TGDs: " + newFullTGDs.size() + " , " + newNonFullTGDs.size());
             // newTGDs.forEach(tgd -> App.logger.fine(tgd.toString()));
+
+            if (counter % 100 == 0) {
+                counter = 1;
+                System.out.println("nonFullTGDs\t" + nonFullTGDs.size() + "\t\tfullTGDs\t" + fullTGDs.size()
+                        + "\t\t\tnewNonFullTGDs\t" + newNonFullTGDs.size() + "\t\tnewFullTGDs\t" + newFullTGDs.size());
+            } else
+                counter++;
 
             if (!newNonFullTGDs.isEmpty()) {
 
@@ -141,10 +150,7 @@ public class GSat {
                 if (added)
                     for (TGDGSat ftgd : fullTGDs)
                         for (TGDGSat newTGD : evolveNew(currentTGD, ftgd))
-                            if (Logic.isFull(newTGD))
-                                newFullTGDs.add(newTGD);
-                            else
-                                newNonFullTGDs.add(newTGD);
+                            addNewTGD(newTGD, newFullTGDs, newNonFullTGDs, fullTGDs, nonFullTGDs);
 
             } else {
 
@@ -157,10 +163,7 @@ public class GSat {
                 if (added)
                     for (TGDGSat nftgd : nonFullTGDs)
                         for (TGDGSat newTGD : evolveNew(nftgd, currentTGD))
-                            if (Logic.isFull(newTGD))
-                                newFullTGDs.add(newTGD);
-                            else
-                                newNonFullTGDs.add(newTGD);
+                            addNewTGD(newTGD, newFullTGDs, newNonFullTGDs, fullTGDs, nonFullTGDs);
 
             }
 
@@ -176,6 +179,40 @@ public class GSat {
                 + String.format(Locale.UK, "%.2f", totalTime / 1E9) + " s");
 
         return fullTGDs;
+
+    }
+
+    private void addNewTGD(TGDGSat newTGD, Collection<TGDGSat> newFullTGDs, Collection<TGDGSat> newNonFullTGDs,
+            Collection<TGDGSat> fullTGDs, Collection<TGDGSat> nonFullTGDs) {
+
+        if (Configuration.isOptimizationEnabled())
+            if (Logic.isFull(newTGD) && (subsumed(newTGD, newFullTGDs) || subsumed(newTGD, fullTGDs))
+                    || !Logic.isFull(newTGD) && (subsumed(newTGD, newNonFullTGDs) || subsumed(newTGD, nonFullTGDs)))
+                return;
+
+        if (Logic.isFull(newTGD))
+            newFullTGDs.add(newTGD);
+        else
+            newNonFullTGDs.add(newTGD);
+
+    }
+
+    private boolean subsumed(TGDGSat newTGD, Collection<TGDGSat> TGDs) {
+
+        // FIXME We could keep these as sets in TGDGSat, so we avoid this step (and many
+        // more in other functions and classes)
+        var bodyN = Set.of(newTGD.getBodyAtoms());
+        var headN = Set.of(newTGD.getHeadAtoms());
+
+        for (TGDGSat tgd : TGDs) {
+            var body = Set.of(tgd.getBodyAtoms());
+            var head = Set.of(tgd.getHeadAtoms());
+
+            if (bodyN.containsAll(body) && head.containsAll(headN))
+                return true;
+        }
+
+        return false;
 
     }
 
