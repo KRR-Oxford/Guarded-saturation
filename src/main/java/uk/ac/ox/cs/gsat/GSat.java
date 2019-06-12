@@ -26,7 +26,7 @@ import uk.ac.ox.cs.pdq.fol.Variable;
 public class GSat {
 
     private static final GSat INSTANCE = new GSat();
-    // private boolean DEBUG_MODE = Configuration.isDebugMode();
+    private boolean DEBUG_MODE = Configuration.isDebugMode();
 
     // New variable name for Universally Quantified Variables
     public String uVariable = "GSat_u";
@@ -81,23 +81,19 @@ public class GSat {
 
         Collection<TGDGSat> newFullTGDs = new HashSet<>();
         Collection<TGDGSat> newNonFullTGDs = new HashSet<>();
-        for (TGDGSat tgd : selectedTGDs)
-            for (TGDGSat currentTGD : VNFs(HNF(tgd)))
-                if (Logic.isFull(currentTGD))
-                    newFullTGDs.add(currentTGD);
-                else
-                    newNonFullTGDs.add(currentTGD);
-
-        App.logger.fine("# initial TGDs: " + newFullTGDs.size() + " , " + newNonFullTGDs.size());
-        // newTGDs.forEach(tgd -> App.logger.fine(tgd.toString()));
 
         Collection<TGDGSat> nonFullTGDs = new HashSet<>();
         Collection<TGDGSat> fullTGDs = new HashSet<>();
 
-        if (newNonFullTGDs.isEmpty()) {
-            fullTGDs.addAll(newFullTGDs);
-            newFullTGDs.clear();
-        }
+        for (TGDGSat tgd : selectedTGDs)
+            for (TGDGSat currentTGD : VNFs(HNF(tgd)))
+                if (Logic.isFull(currentTGD))
+                    fullTGDs.add(currentTGD);
+                else
+                    newNonFullTGDs.add(currentTGD);
+
+        App.logger.fine("# initial TGDs: " + fullTGDs.size() + " , " + newNonFullTGDs.size());
+        // newTGDs.forEach(tgd -> App.logger.fine(tgd.toString()));
 
         // for (TGD d : allDependencies)
         // if (isFull(d))
@@ -132,12 +128,14 @@ public class GSat {
             App.logger.fine("# new TGDs: " + newFullTGDs.size() + " , " + newNonFullTGDs.size());
             // newTGDs.forEach(tgd -> App.logger.fine(tgd.toString()));
 
-            if (counter % 100 == 0) {
-                counter = 1;
-                System.out.println("nonFullTGDs\t" + nonFullTGDs.size() + "\t\tfullTGDs\t" + fullTGDs.size()
-                        + "\t\t\tnewNonFullTGDs\t" + newNonFullTGDs.size() + "\t\tnewFullTGDs\t" + newFullTGDs.size());
-            } else
-                counter++;
+            if (DEBUG_MODE)
+                if (counter % 100 == 0) {
+                    counter = 1;
+                    System.out.println("nonFullTGDs\t" + nonFullTGDs.size() + "\t\tfullTGDs\t" + fullTGDs.size()
+                            + "\t\t\tnewNonFullTGDs\t" + newNonFullTGDs.size() + "\t\tnewFullTGDs\t"
+                            + newFullTGDs.size());
+                } else
+                    counter++;
 
             if (!newNonFullTGDs.isEmpty()) {
 
@@ -207,6 +205,9 @@ public class GSat {
         for (TGDGSat tgd : TGDs) {
             var body = Set.of(tgd.getBodyAtoms());
             var head = Set.of(tgd.getHeadAtoms());
+
+            if (bodyN.size() < body.size() || head.size() < headN.size())
+                continue;
 
             if (bodyN.containsAll(body) && head.containsAll(headN))
                 return true;
