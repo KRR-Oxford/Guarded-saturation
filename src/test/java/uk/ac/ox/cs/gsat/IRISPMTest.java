@@ -24,6 +24,7 @@ import uk.ac.ox.cs.gsat.SolverOutput;
 import uk.ac.ox.cs.gsat.TGDGSat;
 import uk.ac.ox.cs.pdq.fol.Atom;
 import uk.ac.ox.cs.pdq.fol.ConjunctiveQuery;
+import uk.ac.ox.cs.pdq.fol.Dependency;
 import uk.ac.ox.cs.pdq.fol.Predicate;
 import uk.ac.ox.cs.pdq.fol.TGD;
 import uk.ac.ox.cs.pdq.fol.UntypedConstant;
@@ -68,11 +69,11 @@ public class IRISPMTest {
 		App.logger.setUseParentHandlers(false);
 	}
 
-	private void fromIRISPM(Collection<TGD> allTGDs, Collection<Atom> allFacts, Collection<ConjunctiveQuery> allQueries,
-			int guardedSaturationSize, int[] queryLenghts) {
+	private void fromIRISPM(Collection<Dependency> allTGDs, Collection<Atom> allFacts,
+			Collection<ConjunctiveQuery> allQueries, int guardedSaturationSize, int[] queryLenghts) {
 		System.out.println("Initial rules:");
 		allTGDs.forEach(System.out::println);
-		Collection<TGDGSat> guardedSaturation = GSat.getInstance().runGSat(allTGDs.toArray(new TGD[allTGDs.size()]));
+		Collection<TGDGSat> guardedSaturation = GSat.getInstance().runGSat(allTGDs);
 
 		System.out.println("Guarded saturation:");
 		guardedSaturation.forEach(System.out::println);
@@ -125,7 +126,7 @@ public class IRISPMTest {
 
 		// ?- Q1(?x).
 
-		Collection<TGD> allTGDs = new HashSet<>();
+		Collection<Dependency> allTGDs = new HashSet<>();
 		allTGDs.add(TGD.create(new Atom[] { IMP_xy }, new Atom[] { DIP_yz }));
 		allTGDs.add(TGD.create(new Atom[] { DIP_xy }, new Atom[] { IMP_yw }));
 		allTGDs.add(TGD.create(new Atom[] { DIP_xy }, new Atom[] { Q1_x }));
@@ -153,7 +154,7 @@ public class IRISPMTest {
 		// ?- r1(?x, ?y).
 		// ?- r2(?x).
 
-		Collection<TGD> allTGDs = new HashSet<>();
+		Collection<Dependency> allTGDs = new HashSet<>();
 		allTGDs.add(TGD.create(new Atom[] { r1_xy, r2_y }, new Atom[] { r1_zx }));
 		allTGDs.add(TGD.create(new Atom[] { r1_xy }, new Atom[] { r2_x }));
 
@@ -202,7 +203,7 @@ public class IRISPMTest {
 		// Person(?x) :- hasSon(?x, ?y).
 		// Person(?y) :- hasSon(?x, ?y).
 
-		Collection<TGD> allTGDs = new HashSet<>();
+		Collection<Dependency> allTGDs = new HashSet<>();
 		allTGDs.add(TGD.create(new Atom[] { Parent_x }, new Atom[] { anon2_x }));
 		allTGDs.add(TGD.create(new Atom[] { anon2_x }, new Atom[] { Parent_x }));
 		allTGDs.add(TGD.create(new Atom[] { anon2_x }, new Atom[] { Person_x }));

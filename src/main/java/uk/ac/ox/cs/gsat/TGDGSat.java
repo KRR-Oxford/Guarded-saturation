@@ -29,16 +29,30 @@ public class TGDGSat extends TGD {
      */
     public final static Atom Bottom = Atom.create(Predicate.create(LogicalSymbols.BOTTOM.toString(), 0));
 
+    private final Set<Atom> bodySet;
+    private final Set<Atom> headSet;
+
     protected TGDGSat(Atom[] body, Atom[] head) {
 
         super(body, head);
 
+        bodySet = Set.of(body);
+        headSet = Set.of(head);
+
     }
 
-    public TGDGSat(TGD tgd) {
+    protected TGDGSat(TGD tgd) {
 
-        super(tgd.getBodyAtoms(), tgd.getHeadAtoms());
+        this(tgd.getBodyAtoms(), tgd.getHeadAtoms());
 
+    }
+
+    public Set<Atom> getBodySet() {
+        return bodySet;
+    }
+
+    public Set<Atom> getHeadSet() {
+        return headSet;
     }
 
     @Override
@@ -49,20 +63,14 @@ public class TGDGSat extends TGD {
 
         TGDGSat tgd2 = (TGDGSat) obj;
 
-        var body1 = Set.of(this.getBodyAtoms());
-        var body2 = Set.of(tgd2.getBodyAtoms());
-
-        var head1 = Set.of(this.getHeadAtoms());
-        var head2 = Set.of(tgd2.getHeadAtoms());
-
-        return body1.equals(body2) && head1.equals(head2);
+        return this.getBodySet().equals(tgd2.getBodySet()) && this.getHeadSet().equals(tgd2.getHeadSet());
 
     }
 
     @Override
     public int hashCode() {
 
-        return Objects.hash(Set.of(this.getBodyAtoms()), Set.of(this.getHeadAtoms()));
+        return Objects.hash(this.getBodySet(), this.getHeadSet());
 
     }
 
@@ -94,7 +102,7 @@ public class TGDGSat extends TGD {
             if (Arrays.asList(atom.getTerms()).containsAll(universalList))
                 return atom;
 
-        throw new IllegalArgumentException("The TGD must be guarded to find get a Guard");
+        throw new IllegalArgumentException("The TGD must be guarded to get a Guard");
 
     }
 

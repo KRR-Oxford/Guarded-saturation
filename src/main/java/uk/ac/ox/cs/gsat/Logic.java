@@ -58,6 +58,16 @@ public class Logic {
 			for (int atomIndex = 0; atomIndex < atoms.length; ++atomIndex)
 				bodyAtoms[atomIndex] = applySubstitution(atoms[atomIndex], substitution);
 			return Conjunction.create(bodyAtoms);
+		} else if (formula instanceof TGDGSat) {
+			Atom[] headAtoms = ((TGDGSat) formula).getHeadAtoms();
+			Atom[] headAtomsF = new Atom[headAtoms.length];
+			Atom[] bodyAtoms = ((TGDGSat) formula).getBodyAtoms();
+			Atom[] bodyAtomsF = new Atom[bodyAtoms.length];
+			for (int atomIndex = 0; atomIndex < headAtoms.length; ++atomIndex)
+				headAtomsF[atomIndex] = (Atom) applySubstitution(headAtoms[atomIndex], substitution);
+			for (int atomIndex = 0; atomIndex < bodyAtoms.length; ++atomIndex)
+				bodyAtomsF[atomIndex] = (Atom) applySubstitution(bodyAtoms[atomIndex], substitution);
+			return new TGDGSat(bodyAtomsF, headAtomsF);
 		} else if (formula instanceof TGD) {
 			Atom[] headAtoms = ((TGD) formula).getHeadAtoms();
 			Atom[] headAtomsF = new Atom[headAtoms.length];
