@@ -92,33 +92,7 @@ public class GSat {
                     newNonFullTGDs.add(currentTGD);
 
         App.logger.fine("# initial TGDs: " + fullTGDs.size() + " , " + newNonFullTGDs.size());
-        // newTGDs.forEach(tgd -> App.logger.fine(tgd.toString()));
-
-        // for (TGD d : allDependencies)
-        // if (isFull(d))
-        // fullTGDs.add(VNF(d));
-        // else {
-        // Collection<TGD> hnf = HNF(d);
-        // TGD[] dh = hnf.toArray(new TGD[hnf.size()]);
-        // if (hnf.size() == 1)
-        // nonFullTGDs.add(VNF(dh[0]));
-        // else {
-        // nonFullTGDs.add(VNF(dh[0]));
-        // fullTGDs.add(VNF(dh[1]));
-        // }
-        // }
-        //
-        // App.logger.fine("# nonFullTGDs: " + nonFullTGDs.size());
-        // nonFullTGDs.forEach(App.logger.fine);
-        // App.logger.fine("# fullTGDs: " + fullTGDs.size());
-        // fullTGDs.forEach(App.logger.fine);
-        // if (!nonFullTGDs.isEmpty())
-        // App.logger.fine("First non full TGD: " + nonFullTGDs.toArray()[0]);
-        // if (!fullTGDs.isEmpty())
-        // App.logger.fine("First full TGD: " + fullTGDs.toArray()[0]);
-        //
-        // newTGDs.addAll(nonFullTGDs);
-        // newTGDs.addAll(fullTGDs);
+        
 
         int counter = 100;
         while (!newFullTGDs.isEmpty() || !newNonFullTGDs.isEmpty()) {
@@ -224,22 +198,7 @@ public class GSat {
      * @return true if the TGD contains 2 atoms in the body or in the head with the
      *         same predicate name (needed only until we implement a generic MGU)
      */
-    // private boolean containsSelfJoin(TGD tgd) {
-
-    // Atom[] bodyAtoms = tgd.getBodyAtoms();
-    // for (int i = 0; i < bodyAtoms.length; i++)
-    // for (int j = i + 1; j < bodyAtoms.length; j++)
-    // if (bodyAtoms[i].getPredicate().equals(bodyAtoms[j].getPredicate()))
-    // return true;
-
-    // Atom[] headAtoms = tgd.getHeadAtoms();
-    // for (int i = 0; i < headAtoms.length; i++)
-    // for (int j = i + 1; j < headAtoms.length; j++)
-    // if (headAtoms[i].getPredicate().equals(headAtoms[j].getPredicate()))
-    // return true;
-
-    // return false;
-    // }
+    
 
     private boolean isSupportedRule(Dependency d) {
         // if (d instanceof TGD && ((TGD) d).isGuarded() && !containsSelfJoin((TGD) d))
@@ -363,25 +322,7 @@ public class GSat {
 
     }
 
-    // public TGD evolve(TGD nftgd, TGD ftgd) {
-
-    // ftgd = evolveRename(ftgd);
-
-    // App.logger.fine("Composing:\n" + nftgd + "\nand\n" + ftgd);
-
-    // Collection<Atom> joinAtoms = getJoinAtoms(nftgd.getHeadAtoms(),
-    // ftgd.getBodyAtoms());
-    // if (joinAtoms.isEmpty())
-    // return null;
-    // App.logger.fine("Join atoms:");
-    // joinAtoms.forEach(tgd -> App.logger.fine(tgd.toString()));
-
-    // // TGD evolveRule =
-    // // if (existentialVariableCheck(evolveRule, joinAtoms))
-    // // return evolveRule;
-    // return getEvolveRule(nftgd, ftgd, joinAtoms);
-
-    // }
+    
 
     private TGDGSat evolveRename(TGDGSat ftgd) {
 
@@ -399,102 +340,7 @@ public class GSat {
 
     }
 
-    // private Collection<Atom> getJoinAtoms(Atom[] headAtoms, Atom[] bodyAtoms) {
-
-    // Collection<Atom> result = new HashSet<>();
-
-    // for (Atom bodyAtom : bodyAtoms)
-    // for (Atom headAtom : headAtoms)
-    // if (bodyAtom.getPredicate().equals(headAtom.getPredicate())) {
-    // result.add(bodyAtom);
-    // continue;
-    // }
-
-    // return result;
-
-    // }
-
-    // private TGD getEvolveRule(TGD nftgd, TGD ftgd, Collection<Atom> joinAtoms) {
-
-    // Collection<Atom> nftgdBodyAtoms = new
-    // HashSet<>(Arrays.asList(nftgd.getBodyAtoms()));
-    // Collection<Atom> nftgdHeadAtoms = new
-    // HashSet<>(Arrays.asList(nftgd.getHeadAtoms()));
-    // Collection<Atom> ftgdBodyAtoms = new
-    // HashSet<>(Arrays.asList(ftgd.getBodyAtoms()));
-    // Collection<Atom> ftgdHeadAtoms = new
-    // HashSet<>(Arrays.asList(ftgd.getHeadAtoms()));
-
-    // ftgdBodyAtoms.removeAll(joinAtoms);
-    // nftgdBodyAtoms.addAll(ftgdBodyAtoms);
-    // nftgdHeadAtoms.addAll(ftgdHeadAtoms);
-
-    // Map<Term, Term> mgu = getMGU(nftgd.getHeadAtoms(), ftgd.getBodyAtoms(),
-    // joinAtoms,
-    // Arrays.asList(nftgd.getExistential()));
-
-    // App.logger.fine("MGU: " + mgu);
-
-    // if (mgu != null) {
-    // TGD newTGD = TGD.create(applyMGU(nftgdBodyAtoms, mgu),
-    // applyMGU(nftgdHeadAtoms, mgu));
-    // App.logger.fine("After applying MGU: " + newTGD);
-    // return newTGD;
-    // }
-
-    // return null;
-
-    // }
-
-    // private Map<Term, Term> getMGU(Atom[] headAtoms, Atom[] bodyAtoms,
-    // Collection<Atom> joinAtoms,
-    // Collection<Variable> existentials) {
-    // // it works only if there are no duplicate atoms in the 2 arrays
-
-    // Map<Term, Term> result = new HashMap<>();
-
-    // for (Atom bodyAtom : joinAtoms)
-    // for (Atom headAtom : headAtoms)
-    // if (bodyAtom.getPredicate().equals(headAtom.getPredicate()))
-    // for (int i = 0; i < bodyAtom.getPredicate().getArity(); i++) {
-    // Term currentTermBody = bodyAtom.getTerm(i);
-    // Term currentTermHead = headAtom.getTerm(i);
-    // if (currentTermBody.isVariable() && currentTermHead.isVariable())
-    // if (result.containsKey(currentTermBody)) {
-    // if (!result.get(currentTermBody).equals(currentTermHead))
-    // return null;
-    // } else
-    // result.put(currentTermBody, currentTermHead);
-    // else if (!currentTermBody.isVariable() && !currentTermHead.isVariable()) {
-    // if (!currentTermBody.equals(currentTermHead)) // Clash
-    // return null;
-    // } else if (!currentTermBody.isVariable())// currentTermBody is the constant
-    // if (existentials.contains(currentTermHead)) // Identity on y
-    // return null;
-    // else if (result.containsKey(currentTermHead)) {
-    // if (!result.get(currentTermBody).equals(currentTermHead))
-    // return null;
-    // } else
-    // result.put(currentTermHead, currentTermBody);
-    // else // currentTermHead is the constant
-    // if (result.containsKey(currentTermBody)) {
-    // if (!result.get(currentTermBody).equals(currentTermHead))
-    // return null;
-    // } else
-    // result.put(currentTermBody, currentTermHead);
-
-    // }
-
-    // // existential variable check (evc)
-    // for (Atom a : bodyAtoms)
-    // if (!joinAtoms.contains(a))
-    // for (Term t : a.getTerms())
-    // if (result.containsKey(t) && existentials.contains(result.get(t)))
-    // return null;
-
-    // return result;
-
-    // }
+    
 
     private Atom[] applyMGU(Collection<Atom> atoms, Map<Term, Term> mgu) {
 
@@ -602,46 +448,7 @@ public class GSat {
 
     }
 
-    // private Map<Term, Term> getMGU(List<Atom> s, List<Atom> sbody) {
-
-    // Map<Term, Term> result = new HashMap<>();
-
-    // int counter = 0;
-    // for (Atom bodyAtom : sbody)
-    // if (s.size() > counter &&
-    // bodyAtom.getPredicate().equals(s.get(counter).getPredicate())) {
-    // for (int i = 0; i < bodyAtom.getPredicate().getArity(); i++) {
-    // Term currentTermBody = bodyAtom.getTerm(i);
-    // Term currentTermHead = s.get(counter).getTerm(i);
-    // if (currentTermBody.isVariable() && currentTermHead.isVariable())
-    // if (result.containsKey(currentTermBody)) {
-    // if (!result.get(currentTermBody).equals(currentTermHead))
-    // return null;
-    // } else
-    // result.put(currentTermBody, currentTermHead);
-    // else if (!currentTermBody.isVariable() && !currentTermHead.isVariable()) {
-    // if (!currentTermBody.equals(currentTermHead)) // Clash
-    // return null;
-    // } else if (!currentTermBody.isVariable())// currentTermBody is the constant
-    // if (result.containsKey(currentTermHead)) {
-    // if (!result.get(currentTermBody).equals(currentTermHead))
-    // return null;
-    // } else
-    // result.put(currentTermHead, currentTermBody);
-    // else // currentTermHead is the constant
-    // if (result.containsKey(currentTermBody)) {
-    // if (!result.get(currentTermBody).equals(currentTermHead))
-    // return null;
-    // } else
-    // result.put(currentTermBody, currentTermHead);
-
-    // }
-    // counter++;
-    // }
-
-    // return result;
-
-    // }
+   
 
     public Map<Term, Term> getVariableSubstitution(List<Atom> head, List<Atom> body) {
 
@@ -769,22 +576,7 @@ public class GSat {
 
     private Map<Term, Term> getGuardMGU(Atom guard, Atom h) {
 
-        // if (!guard.getPredicate().equals(h.getPredicate()))
-        // return null;
-
-        // Term[] guardTerms = guard.getTerms();
-        // for (int i = 0; i < guardTerms.length; i++) {
-
-        // Term guardTerm = guardTerms[i];
-        // Term headTerm = h.getTerm(i);
-
-        // if (result.containsKey(guardTerm)) {
-        // if (!result.get(guardTerm).equals(headTerm))
-        // return null;
-        // } else
-        // result.put(guardTerm, headTerm);
-
-        // }
+       
 
         Map<Term, Term> mgu = Logic.getMGU(guard, h);
 
