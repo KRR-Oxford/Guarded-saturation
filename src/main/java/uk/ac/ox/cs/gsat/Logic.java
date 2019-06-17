@@ -8,9 +8,11 @@ import java.io.OutputStreamWriter;
 import java.io.PrintWriter;
 import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Set;
 import java.util.Map.Entry;
 
 import uk.ac.ox.cs.pdq.fol.Atom;
@@ -59,14 +61,14 @@ public class Logic {
 				bodyAtoms[atomIndex] = applySubstitution(atoms[atomIndex], substitution);
 			return Conjunction.create(bodyAtoms);
 		} else if (formula instanceof TGDGSat) {
-			Atom[] headAtoms = ((TGDGSat) formula).getHeadAtoms();
-			Atom[] headAtomsF = new Atom[headAtoms.length];
-			Atom[] bodyAtoms = ((TGDGSat) formula).getBodyAtoms();
-			Atom[] bodyAtomsF = new Atom[bodyAtoms.length];
-			for (int atomIndex = 0; atomIndex < headAtoms.length; ++atomIndex)
-				headAtomsF[atomIndex] = (Atom) applySubstitution(headAtoms[atomIndex], substitution);
-			for (int atomIndex = 0; atomIndex < bodyAtoms.length; ++atomIndex)
-				bodyAtomsF[atomIndex] = (Atom) applySubstitution(bodyAtoms[atomIndex], substitution);
+			Set<Atom> headAtoms = ((TGDGSat) formula).getHeadSet();
+			Set<Atom> headAtomsF = new HashSet<>();
+			Set<Atom> bodyAtoms = ((TGDGSat) formula).getBodySet();
+			Set<Atom> bodyAtomsF = new HashSet<>();
+			for (Atom headAtom : headAtoms)
+				headAtomsF.add((Atom) applySubstitution(headAtom, substitution));
+			for (Atom bodyAtom : bodyAtoms)
+				bodyAtomsF.add((Atom) applySubstitution(bodyAtom, substitution));
 			return new TGDGSat(bodyAtomsF, headAtomsF);
 		} else if (formula instanceof TGD) {
 			Atom[] headAtoms = ((TGD) formula).getHeadAtoms();

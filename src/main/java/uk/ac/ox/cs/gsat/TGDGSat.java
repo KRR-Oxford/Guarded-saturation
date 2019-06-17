@@ -32,7 +32,7 @@ public class TGDGSat extends TGD {
     private final Set<Atom> bodySet;
     private final Set<Atom> headSet;
 
-    protected TGDGSat(Atom[] body, Atom[] head) {
+    private TGDGSat(Atom[] body, Atom[] head) {
 
         super(body, head);
 
@@ -41,9 +41,15 @@ public class TGDGSat extends TGD {
 
     }
 
-    protected TGDGSat(TGD tgd) {
+    // protected TGDGSat(TGD tgd) {
 
-        this(tgd.getBodyAtoms(), tgd.getHeadAtoms());
+    // this(tgd.getBodyAtoms(), tgd.getHeadAtoms());
+
+    // }
+
+    public TGDGSat(Set<Atom> body, Set<Atom> head) {
+
+        this(body.toArray(new Atom[body.size()]), head.toArray(new Atom[head.size()]));
 
     }
 

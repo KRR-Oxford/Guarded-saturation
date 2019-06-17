@@ -10,6 +10,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Set;
 import java.util.Map.Entry;
 import java.util.stream.Collectors;
 
@@ -65,12 +66,16 @@ public class GSat {
         Collection<TGDGSat> selectedTGDs = new HashSet<>();
         for (Dependency d : allDependencies)
             if (isSupportedRule(d))
-                selectedTGDs.add(new TGDGSat(d.getBodyAtoms(), d.getHeadAtoms()));
+                selectedTGDs.add(new TGDGSat(Set.of(d.getBodyAtoms()), Set.of(d.getHeadAtoms())));
             else
                 discarded++;
 
         App.logger.info("GSat discarded rules : " + discarded + "/" + allDependencies.size() + " = "
                 + String.format(Locale.UK, "%.3f", (float) discarded / allDependencies.size() * 100) + "%");
+
+        if (DEBUG_MODE)
+            System.out.println("GSat discarded rules : " + discarded + "/" + allDependencies.size() + " = "
+                    + String.format(Locale.UK, "%.3f", (float) discarded / allDependencies.size() * 100) + "%");
 
         while (checkRenameVariablesInTGDs(selectedTGDs)) {
             uVariable += "0";
@@ -286,14 +291,14 @@ public class GSat {
 
         Variable[] eVariables = tgd.getExistential();
 
-        Collection<Atom> eHead = new HashSet<>();
-        Collection<Atom> fHead = new HashSet<>();
+        Set<Atom> eHead = new HashSet<>();
+        Set<Atom> fHead = new HashSet<>();
 
-        Atom[] bodyAtoms = tgd.getBodyAtoms();
+        Set<Atom> bodyAtoms = tgd.getBodySet();
         for (Atom a : tgd.getHeadAtoms())
             if (a.equals(TGDGSat.Bottom)) {
                 // remove all head atoms since ⊥ & S ≡ ⊥ for any conjunction S
-                result.add(new TGDGSat(bodyAtoms, new Atom[] { TGDGSat.Bottom }));
+                result.add(new TGDGSat(bodyAtoms, Set.of(TGDGSat.Bottom)));
                 return result;
             } else if (Logic.containsAny(a, eVariables))
                 eHead.add(a);
@@ -302,15 +307,15 @@ public class GSat {
 
         // Remove atoms that already appear in the body.
         // This is only needed for fHead since we have no existentials in the body
-        fHead.removeAll(Arrays.asList(bodyAtoms));// FIXME use getBodySet()
+        fHead.removeAll(bodyAtoms);
 
         if (tgd.getHeadAtoms().length == eHead.size() || tgd.getHeadAtoms().length == fHead.size())
             result.add(tgd);
         else {
             if (!eHead.isEmpty())
-                result.add(new TGDGSat(bodyAtoms, eHead.toArray(new Atom[eHead.size()])));
+                result.add(new TGDGSat(bodyAtoms, eHead));
             if (!fHead.isEmpty())
-                result.add(new TGDGSat(bodyAtoms, fHead.toArray(new Atom[fHead.size()])));
+                result.add(new TGDGSat(bodyAtoms, fHead));
         }
 
         return result;
@@ -496,13 +501,13 @@ public class GSat {
 
     // }
 
-    private Atom[] applyMGU(Collection<Atom> atoms, Map<Term, Term> mgu) {
+    private Set<Atom> applyMGU(Collection<Atom> atoms, Map<Term, Term> mgu) {
 
-        Collection<Atom> result = new HashSet<>();
+        Set<Atom> result = new HashSet<>();
 
-        atoms.forEach(atom -> result.add((Atom) Logic.applySubstitution(atom, mgu)));
+        atoms.forEach(atom -> result.add((Atom) Logic.applySubstitution(atom, mgu))); // FIXME one-line
 
-        return result.toArray(new Atom[result.size()]);
+        return result;
 
     }
 
@@ -519,7 +524,7 @@ public class GSat {
 
         App.logger.fine("Composing:\n" + nftgd + "\nand\n" + ftgd);
 
-        Atom guard = new TGDGSat(ftgd).getGuard();
+        Atom guard = new TGDGSat(ftgd.getBodySet(), ftgd.getHeadSet()).getGuard();
         Collection<TGDGSat> results = new HashSet<>();
 
         for (Atom H : nftgd.getHeadAtoms()) {
@@ -547,17 +552,16 @@ public class GSat {
                 // in fact, we should never have Shead == null and Sbody.isEmpty
                 if (Shead == null || Shead.isEmpty()) {
                     if (Sbody.isEmpty()) {
-                        Collection<Atom> new_body = new HashSet<>();
+                        Set<Atom> new_body = new HashSet<>();
                         new_body.addAll(new_nftgd_body_atoms);
                         new_body.addAll(new_ftgd_body_atoms);
                         new_body.remove(new_guard);
 
-                        Collection<Atom> new_head = new HashSet<>();
+                        Set<Atom> new_head = new HashSet<>();
                         new_head.addAll(new_nftgd_head_atoms);
                         new_head.addAll(new_ftgd_head_atoms);
 
-                        results.addAll(VNFs(HNF(new TGDGSat(new_body.toArray(new Atom[new_body.size()]),
-                                new_head.toArray(new Atom[new_head.size()])))));
+                        results.addAll(VNFs(HNF(new TGDGSat(new_body, new_head))));
                     }
                     // no matching head atom for some atom in Sbody -> continue
                     continue;
@@ -575,20 +579,19 @@ public class GSat {
                         // unification failed -> continue with next sequence
                         continue;
 
-                    Collection<Atom> new_body = new HashSet<>();
+                    Set<Atom> new_body = new HashSet<>();
                     new_body.addAll(new_nftgd_body_atoms);
                     new_body.addAll(new_ftgd_body_atoms);
                     new_body.removeAll(Sbody);
                     new_body.remove(new_guard);
 
-                    Collection<Atom> new_head = new HashSet<>();
+                    Set<Atom> new_head = new HashSet<>();
                     new_head.addAll(new_nftgd_head_atoms);
                     new_head.addAll(new_ftgd_head_atoms);
 
                     if (mgu.isEmpty())
                         // no need to apply the MGU
-                        results.addAll(VNFs(HNF(new TGDGSat(new_body.toArray(new Atom[new_body.size()]),
-                                new_head.toArray(new Atom[new_head.size()])))));
+                        results.addAll(VNFs(HNF(new TGDGSat(new_body, new_head))));
                     else
                         results.addAll(VNFs(HNF(applyMGU(new_body, new_head, mgu))));
 
@@ -761,7 +764,7 @@ public class GSat {
 
     }
 
-    private TGDGSat applyMGU(Collection<Atom> bodyAtoms, Collection<Atom> headAtoms, Map<Term, Term> mgu) {
+    private TGDGSat applyMGU(Set<Atom> bodyAtoms, Set<Atom> headAtoms, Map<Term, Term> mgu) {
 
         return new TGDGSat(applyMGU(bodyAtoms, mgu), applyMGU(headAtoms, mgu));
 

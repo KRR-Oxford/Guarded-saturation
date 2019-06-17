@@ -7,6 +7,7 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.Iterator;
+import java.util.Set;
 import java.util.logging.ConsoleHandler;
 import java.util.logging.Handler;
 import java.util.logging.Level;
@@ -146,14 +147,14 @@ public class GSatTest {
 
 		// 1. Split non-full and full parts
 		// ∀ x1,x2 B(x1,x2) → ∃ y1 H1(x1,y1) ∧ H2(x2)
-		Atom[] body = { B_x1x2 };
-		TGDGSat tgd = new TGDGSat(body, new Atom[] { H1_x1y1, H2_x2 });
+		Set<Atom> body = Set.of(B_x1x2);
+		TGDGSat tgd = new TGDGSat(body, Set.of(H1_x1y1, H2_x2));
 		Collection<TGDGSat> result = gsat.HNF(tgd);
 
 		// ∀ x1,x2 B(x1,x2) → ∃ y1 H1(x1,y1)
-		TGDGSat tgdExpected1 = new TGDGSat(body, new Atom[] { H1_x1y1 });
+		TGDGSat tgdExpected1 = new TGDGSat(body, Set.of(H1_x1y1));
 		// ∀ x1,x2 B(x1,x2) → H2(x2)
-		TGDGSat tgdExpected2 = new TGDGSat(body, new Atom[] { H2_x2 });
+		TGDGSat tgdExpected2 = new TGDGSat(body, Set.of(H2_x2));
 		Collection<TGDGSat> expected = new HashSet<>();
 		expected.add(tgdExpected1);
 		expected.add(tgdExpected2);
@@ -162,26 +163,26 @@ public class GSatTest {
 
 		// 2. Remove head atoms that occur in the body: create no new rule
 		// ∀ x1,x2 B(x1,x2) & H2(x2) → H2(x2) & B(x1,x2)
-		body = new Atom[] { B_x1x2, H2_x2 };
-		tgd = new TGDGSat(body, new Atom[] { H2_x2, B_x1x2 });
+		body = Set.of(B_x1x2, H2_x2);
+		tgd = new TGDGSat(body, Set.of(H2_x2, B_x1x2));
 		result = gsat.HNF(tgd);
 		expected = new HashSet<>();
 		checkHNFTest(tgd, expected, result);
 
 		// 3. Remove head atoms that occur in the body: only create non-full rule
 		// ∀ x1,x2 B(x1,x2) & H2(x2) → \exists y. H1(x1,y1) & H2(x2) & B(x1,x2)
-		tgd = new TGDGSat(body, new Atom[] { H1_x1y1, H2_x2, B_x1x2 });
+		tgd = new TGDGSat(body, Set.of(H1_x1y1, H2_x2, B_x1x2));
 		result = gsat.HNF(tgd);
 		expected = new HashSet<>();
-		expected.add(new TGDGSat(body, new Atom[] { H1_x1y1 }));
+		expected.add(new TGDGSat(body, Set.of(H1_x1y1)));
 		checkHNFTest(tgd, expected, result);
 
 		// 4. Rule containing bottom in the head. Remove all head atoms.
 		// ∀ x1,x2 B(x1,x2) → ∃ y1 H1(x1,y1) ∧ H2(x2) & ⊥
-		tgd = new TGDGSat(body, new Atom[] { H1_x1y1, H2_x2, TGDGSat.Bottom });
+		tgd = new TGDGSat(body, Set.of(H1_x1y1, H2_x2, TGDGSat.Bottom));
 		result = gsat.HNF(tgd);
 		expected = new HashSet<>();
-		expected.add(new TGDGSat(body, new Atom[] { TGDGSat.Bottom }));
+		expected.add(new TGDGSat(body, Set.of(TGDGSat.Bottom)));
 		checkHNFTest(tgd, expected, result);
 	}
 
@@ -197,14 +198,14 @@ public class GSatTest {
 	public void VNFsTest() {
 
 		// ∀ x2,x1,x3 B(x2,x1,x3) → ∃ z1,y1,y2 H1(x1,z1,y1,y2) & H2(y1,y2)
-		TGDGSat tgd = new TGDGSat(new Atom[] { B_x2x1x3 }, new Atom[] { H1_x1z1y1y2, H2_y1y2 });
+		TGDGSat tgd = new TGDGSat(Set.of(B_x2x1x3), Set.of(H1_x1z1y1y2, H2_y1y2));
 		System.out.println("Original TGD: " + tgd);
 
 		Collection<TGDGSat> tgdsVNFs = GSat.getInstance().VNFs(Arrays.asList(tgd));
 		System.out.println("TGDs in VNFs: " + tgdsVNFs);
 
 		// ∀ u1,u2,u3 B(u1,u2,u3) → ∃ e1,e2,e3 H1(u2,e1,e2,e3) & H2(e2,e3)
-		TGDGSat tgdExpected = new TGDGSat(new TGDGSat(new Atom[] { B_u1u2u3 }, new Atom[] { H1_u2e1e2e3, H2_e2e3 }));
+		TGDGSat tgdExpected = new TGDGSat(Set.of(B_u1u2u3), Set.of(H1_u2e1e2e3, H2_e2e3));
 
 		assertEquals(1, tgdsVNFs.size());
 		assertTrue(tgdsVNFs.contains(tgdExpected), "Expecting: " + tgdExpected + ", got: " + tgdsVNFs);
@@ -215,14 +216,14 @@ public class GSatTest {
 	public void VNFTest() {
 
 		// ∀ x2,x1,x3 B(x2,x1,x3) → ∃ z1,y1,y2 H1(x1,z1,y1,y2) & H2(y1,y2)
-		TGDGSat tgd = new TGDGSat(new Atom[] { B_x2x1x3 }, new Atom[] { H1_x1z1y1y2, H2_y1y2 });
+		TGDGSat tgd = new TGDGSat(Set.of(B_x2x1x3), Set.of(H1_x1z1y1y2, H2_y1y2));
 		System.out.println("Original TGD: " + tgd);
 
 		TGDGSat tgdVNF = GSat.getInstance().VNF(tgd);
 		System.out.println("TGD in VNF: " + tgdVNF);
 
 		// ∀ u1,u2,u3 B(u1,u2,u3) → ∃ e1,e2,e3 H1(u2,e1,e2,e3) & H2(e2,e3)
-		TGD tgdExpected = new TGDGSat(new TGDGSat(new Atom[] { B_u1u2u3 }, new Atom[] { H1_u2e1e2e3, H2_e2e3 }));
+		TGD tgdExpected = new TGDGSat(Set.of(B_u1u2u3), Set.of(H1_u2e1e2e3, H2_e2e3));
 
 		assertEquals(tgdExpected, tgdVNF);
 
@@ -235,7 +236,7 @@ public class GSatTest {
 	// @Test
 	// public void evolveRenameTest() {
 	// // ∀ x2,x1,x3 B(x2,x1,x3) → ∃ z1,y1,y2 H1(x1,z1,y1,y2) & H2(y1,y2)
-	// final TGD tgd = TGD.create(new Atom[] { B_x2x1x3 }, new Atom[] { H1_x1z1y1y2,
+	// final TGD tgd = TGD.create(Set.of( B_x2x1x3 ), new Atom[] { H1_x1z1y1y2,
 	// H2_y1y2 });
 	// System.out.println("Original TGD: " + tgd);
 
@@ -244,7 +245,7 @@ public class GSatTest {
 	// "Expected evolveRename to throw IllegalArgumentException, but it didn't");
 
 	// // ∀ u1,u2,u3 B(u1,u2,u3) → H1(u2,u1)
-	// TGD tgd2 = new TGDGSat(TGD.create(new Atom[] { B_u1u2u3 }, new Atom[] {
+	// TGD tgd2 = new TGDGSat(TGD.create(Set.of( B_u1u2u3 ), new Atom[] {
 	// H1_u2u1 }));
 	// System.out.println("Original TGD: " + tgd2);
 
@@ -252,7 +253,7 @@ public class GSatTest {
 	// System.out.println("TGDs in evolveRename: " + tgdsEvolveRename);
 
 	// // ∀ z1,z2,z3 B(z1,z2,z3) → ∃ z1,z2 H1(z2,z1)
-	// TGD tgdExpected = TGD.create(new Atom[] { B_z1z2z3 }, new Atom[] { H1_z2z1
+	// TGD tgdExpected = TGD.create(Set.of( B_z1z2z3 ), new Atom[] { H1_z2z1
 	// });
 
 	// assertEquals(tgdExpected, tgdsEvolveRename);
@@ -265,7 +266,7 @@ public class GSatTest {
 	// Collection<Variable> existentials = new HashSet<>();
 	// existentials.add(Variable.create(GSat.getInstance().eVariable + "1"));
 
-	// Map<Term, Term> mgu = GSat.getInstance().getMGU(new Atom[] { U_u1u2u3 }, new
+	// Map<Term, Term> mgu = GSat.getInstance().getMGU(Set.of( U_u1u2u3 ), new
 	// Atom[] { U_z1z2z3 },
 	// Arrays.asList(U_z1z2z3), existentials);
 
@@ -283,9 +284,9 @@ public class GSatTest {
 		Atom OWL2 = Atom.create(Predicate.create("http://www.w3.org/2000/01/rdf-schema#Resource", 1),
 				Variable.create(GSat.getInstance().eVariable + "1"));
 		Atom OWL3 = Atom.create(Predicate.create("true", 1), Variable.create(GSat.getInstance().eVariable + "1"));
-		TGDGSat tgd1 = new TGDGSat(TGD.create(new Atom[] { OWL1 }, new Atom[] { OWL2, OWL3 }));
+		TGDGSat tgd1 = new TGDGSat(Set.of(OWL1), Set.of(OWL2, OWL3));
 
-		TGDGSat tgd2 = new TGDGSat(TGD.create(new Atom[] { OWL1 }, new Atom[] { OWL2, OWL3 }));
+		TGDGSat tgd2 = new TGDGSat(Set.of(OWL1), Set.of(OWL2, OWL3));
 
 		assertEquals(tgd1, tgd2);
 		assertTrue(tgd1.equals(tgd2));
@@ -301,16 +302,16 @@ public class GSatTest {
 
 		Collection<TGDGSat> expected1 = new HashSet<>();
 		Atom Ty1 = Atom.create(Predicate.create("T", 1), y1);
-		expected1.add(new TGDGSat(new Atom[] { Px1, Sx1 }, new Atom[] { Rx1y1, Sy1, Ty1 }));
+		expected1.add(new TGDGSat(Set.of(Px1, Sx1), Set.of(Rx1y1, Sy1, Ty1)));
 		Collection<TGDGSat> expected2 = new HashSet<>();
-		expected2.add(new TGDGSat(new Atom[] { Px1, Sx1 }, new Atom[] { Sy1, Ty1, Rx1y1 }));
+		expected2.add(new TGDGSat(Set.of(Px1, Sx1), Set.of(Sy1, Ty1, Rx1y1)));
 
 		// System.out.println(expected1);
 		// System.out.println(expected2);
 		// assertEquals(expected1, expected2);
 
-		assertEquals(new TGDGSat(new Atom[] { Px1, Sx1 }, new Atom[] { Rx1y1, Sy1, Ty1 }),
-				new TGDGSat(new Atom[] { Px1, Sx1 }, new Atom[] { Sy1, Ty1, Rx1y1 }));
+		assertEquals(new TGDGSat(Set.of(Px1, Sx1), Set.of(Rx1y1, Sy1, Ty1)),
+				new TGDGSat(Set.of(Px1, Sx1), Set.of(Sy1, Ty1, Rx1y1)));
 
 	}
 
@@ -334,36 +335,36 @@ public class GSatTest {
 		Atom Px1 = Atom.create(Predicate.create("P", 1), x1);
 		Atom Rx1y1 = Atom.create(Predicate.create("R", 2), x1, y1);
 		Atom Sy1 = Atom.create(Predicate.create("S", 1), y1);
-		TGDGSat nonFull = new TGDGSat(new Atom[] { Px1 }, new Atom[] { Rx1y1, Sy1 });
+		TGDGSat nonFull = new TGDGSat(Set.of(Px1), Set.of(Rx1y1, Sy1));
 		Atom Rx1x2 = Atom.create(Predicate.create("R", 2), x1, x2);
 		Atom Sx1 = Atom.create(Predicate.create("S", 1), x1);
 		Atom Tx2 = Atom.create(Predicate.create("T", 1), x2);
-		TGDGSat full = new TGDGSat(new Atom[] { Rx1x2, Sx1 }, new Atom[] { Tx2 });
+		TGDGSat full = new TGDGSat(Set.of(Rx1x2, Sx1), Set.of(Tx2));
 		Collection<TGDGSat> evolved = gsat.evolveNew(nonFull, full);
 		Collection<TGDGSat> expected = new HashSet<>();
 		Atom Ty1 = Atom.create(Predicate.create("T", 1), y1);
-		expected.add(new TGDGSat(new Atom[] { Px1, Sx1 }, new Atom[] { Rx1y1, Sy1, Ty1 }));
+		expected.add(new TGDGSat(Set.of(Px1, Sx1), Set.of(Rx1y1, Sy1, Ty1)));
 		checkEvolveNewTest(nonFull, full, expected, evolved);
 
 		// 2. evolve multiple rules
 		// P(x1) -> ∃ y. R(x1,y1) & R(y1,x1)
 		// R(x1,x2) -> S(x1)
 		Atom Ry1x1 = Atom.create(Predicate.create("R", 2), y1, x1);
-		nonFull = new TGDGSat(new Atom[] { Px1 }, new Atom[] { Rx1y1, Ry1x1 });
-		full = new TGDGSat(new Atom[] { Rx1x2 }, new Atom[] { Sx1 });
+		nonFull = new TGDGSat(Set.of(Px1), Set.of(Rx1y1, Ry1x1));
+		full = new TGDGSat(Set.of(Rx1x2), Set.of(Sx1));
 		evolved = gsat.evolveNew(nonFull, full);
 		expected = new HashSet<>();
-		expected.add(new TGDGSat(nonFull));
-		expected.add(new TGDGSat(new Atom[] { Px1 }, new Atom[] { Sx1 }));
-		expected.add(new TGDGSat(new Atom[] { Px1 }, new Atom[] { Rx1y1, Ry1x1, Sy1 }));
+		expected.add(new TGDGSat(nonFull.getBodySet(), nonFull.getHeadSet()));
+		expected.add(new TGDGSat(Set.of(Px1), Set.of(Sx1)));
+		expected.add(new TGDGSat(Set.of(Px1), Set.of(Rx1y1, Ry1x1, Sy1)));
 		checkEvolveNewTest(nonFull, full, expected, evolved);
 
 		// 3. do not evolve for T(x2) will contain an existential and no matching head
 		// atom
 		// P(x1) -> ∃ y. R(x1,y1)
 		// R(x1,x2) & T(x2) -> S(x1)
-		nonFull = new TGDGSat(new Atom[] { Px1 }, new Atom[] { Rx1y1 });
-		full = new TGDGSat(new Atom[] { Rx1x2, Tx2 }, new Atom[] { Sx1 });
+		nonFull = new TGDGSat(Set.of(Px1), Set.of(Rx1y1));
+		full = new TGDGSat(Set.of(Rx1x2, Tx2), Set.of(Sx1));
 		evolved = gsat.evolveNew(nonFull, full);
 		expected = new HashSet<>();
 		checkEvolveNewTest(nonFull, full, expected, evolved);
@@ -372,40 +373,40 @@ public class GSatTest {
 		// P(x1) -> ∃ y. R(x1,y1) & R(y1,y1)
 		// R(x1,x1) -> S(x1)
 		Atom Ry1y1 = Atom.create(Predicate.create("R", 2), y1, y1);
-		nonFull = new TGDGSat(new Atom[] { Px1 }, new Atom[] { Rx1y1, Ry1y1 });
+		nonFull = new TGDGSat(Set.of(Px1), Set.of(Rx1y1, Ry1y1));
 		Atom Rx1x1 = Atom.create(Predicate.create("R", 2), x1, x1);
-		full = new TGDGSat(new Atom[] { Rx1x1 }, new Atom[] { Sx1 });
+		full = new TGDGSat(Set.of(Rx1x1), Set.of(Sx1));
 		evolved = gsat.evolveNew(nonFull, full);
 		expected = new HashSet<>();
-		expected.add(new TGDGSat(new Atom[] { Px1 }, new Atom[] { Rx1y1, Ry1y1, Sy1 }));
+		expected.add(new TGDGSat(Set.of(Px1), Set.of(Rx1y1, Ry1y1, Sy1)));
 		checkEvolveNewTest(nonFull, full, expected, evolved);
 
 		// 5. non-guard T(x2) only matches in case guard is matched with R(x1,y1)
 		// P(x1) -> ∃ y. R(x1,y1) & R(x1,y2) & T(y1)
 		// R(x1,x2) & T(x2) -> S(x1)
 		Atom Rx1y2 = Atom.create(Predicate.create("R", 2), x1, y2);
-		nonFull = new TGDGSat(new Atom[] { Px1 }, new Atom[] { Rx1y1, Rx1y2, Ty1 });
-		full = new TGDGSat(new Atom[] { Rx1x2, Tx2 }, new Atom[] { Sx1 });
+		nonFull = new TGDGSat(Set.of(Px1), Set.of(Rx1y1, Rx1y2, Ty1));
+		full = new TGDGSat(Set.of(Rx1x2, Tx2), Set.of(Sx1));
 		evolved = gsat.evolveNew(nonFull, full);
 		expected = new HashSet<>();
-		expected.add(new TGDGSat(nonFull));
+		expected.add(new TGDGSat(nonFull.getBodySet(), nonFull.getHeadSet()));
 		Atom Ty2 = Atom.create(Predicate.create("T", 1), y2);
-		TGDGSat nonFull2 = new TGDGSat(new Atom[] { Px1 }, new Atom[] { Rx1y1, Rx1y2, Ty2 }); // to avoid errors
-		expected.add(new TGDGSat(nonFull2));
-		expected.add(new TGDGSat(TGD.create(new Atom[] { Px1 }, new Atom[] { Sx1 })));
+		TGDGSat nonFull2 = new TGDGSat(Set.of(Px1), Set.of(Rx1y1, Rx1y2, Ty2)); // to avoid errors
+		expected.add(new TGDGSat(nonFull2.getBodySet(), nonFull2.getHeadSet()));
+		expected.add(new TGDGSat(Set.of(Px1), Set.of(Sx1)));
 		checkEvolveNewTest(nonFull, full, expected, evolved);
 
 		// 6. Rename universal variables in non-full rule
 		// R(x1,x2) -> ∃ y. U(x1,y1,x2)
 		// U(x1,x2,x1) -> T(x2)
 		Atom Ux1y1x2 = Atom.create(Predicate.create("U", 3), x1, y1, x2);
-		nonFull = new TGDGSat(new Atom[] { Rx1x2 }, new Atom[] { Ux1y1x2 });
+		nonFull = new TGDGSat(Set.of(Rx1x2), Set.of(Ux1y1x2));
 		Atom Ux1x2x1 = Atom.create(Predicate.create("U", 3), x1, x2, x1);
-		full = new TGDGSat(new Atom[] { Ux1x2x1 }, new Atom[] { Tx2 });
+		full = new TGDGSat(Set.of(Ux1x2x1), Set.of(Tx2));
 		evolved = gsat.evolveNew(nonFull, full);
 		expected = new HashSet<>();
 		Atom Ux1y1x1 = Atom.create(Predicate.create("U", 3), x1, y1, x1);
-		expected.add(new TGDGSat(new TGDGSat(new Atom[] { Rx1x1 }, new Atom[] { Ux1y1x1, Ty1 })));
+		expected.add(new TGDGSat(Set.of(Rx1x1), Set.of(Ux1y1x1, Ty1)));
 		checkEvolveNewTest(nonFull, full, expected, evolved);
 
 		// 7. Rename a variable when unifying the third atoms when it was already
@@ -416,25 +417,25 @@ public class GSatTest {
 		Atom Ux1y1x3 = Atom.create(Predicate.create("U", 3), x1, y1, x3);
 		Atom Rx2y1 = Atom.create(Predicate.create("R", 2), x2, y1);
 		Atom Ty1x2 = Atom.create(Predicate.create("T", 2), y1, x2);
-		nonFull = new TGDGSat(new Atom[] { Ux1x2x3 }, new Atom[] { Ux1y1x3, Rx2y1, Ty1x2 });
+		nonFull = new TGDGSat(Set.of(Ux1x2x3), Set.of(Ux1y1x3, Rx2y1, Ty1x2));
 		Atom Tx2x3 = Atom.create(Predicate.create("T", 2), x2, x3);
-		full = new TGDGSat(new Atom[] { Ux1x2x3, Rx1x2, Tx2x3 }, new Atom[] { Sx1 });
+		full = new TGDGSat(Set.of(Ux1x2x3, Rx1x2, Tx2x3), Set.of(Sx1));
 		evolved = gsat.evolveNew(nonFull, full);
 		expected = new HashSet<>();
 		Atom Ux1x1x1 = Atom.create(Predicate.create("U", 3), x1, x1, x1);
 		Atom Ty1x1 = Atom.create(Predicate.create("T", 2), y1, x1);
-		expected.add(new TGDGSat(new TGDGSat(new Atom[] { Ux1x1x1 }, new Atom[] { Ux1y1x1, Rx1y1, Ty1x1 })));
-		expected.add(new TGDGSat(new TGDGSat(new Atom[] { Ux1x1x1 }, new Atom[] { Sx1 })));
+		expected.add(new TGDGSat(Set.of(Ux1x1x1), Set.of(Ux1y1x1, Rx1y1, Ty1x1)));
+		expected.add(new TGDGSat(Set.of(Ux1x1x1), Set.of(Sx1)));
 		checkEvolveNewTest(nonFull, full, expected, evolved);
 
 		// 8. Remove atoms from the head if they are occuring in the body
 		// S(x1) -> \exists y. R(x1,y1)
 		// R(x1,x2) -> S(x1)
-		nonFull = new TGDGSat(new Atom[] { Sx1 }, new Atom[] { Rx1y1, });
-		full = new TGDGSat(new Atom[] { Rx1x2 }, new Atom[] { Sx1 });
+		nonFull = new TGDGSat(Set.of(Sx1), Set.of(Rx1y1));
+		full = new TGDGSat(Set.of(Rx1x2), Set.of(Sx1));
 		evolved = gsat.evolveNew(nonFull, full);
 		expected = new HashSet<>();
-		expected.add(new TGDGSat(nonFull));
+		expected.add(new TGDGSat(nonFull.getBodySet(), nonFull.getHeadSet()));
 		checkEvolveNewTest(nonFull, full, expected, evolved);
 
 		// 9: Evolve with constants
@@ -442,24 +443,24 @@ public class GSatTest {
 		// U(x1,c3,x2) → P(x1)
 		Atom Rx1c1 = Atom.create(Predicate.create("R", 2), x1, c1);
 		Atom Uc2x1y1 = Atom.create(Predicate.create("U", 3), c2, x1, y1);
-		nonFull = new TGDGSat(new Atom[] { Rx1c1 }, new Atom[] { Uc2x1y1, Rx1y1 });
+		nonFull = new TGDGSat(Set.of(Rx1c1), Set.of(Uc2x1y1, Rx1y1));
 		Atom Ux1c3x2 = Atom.create(Predicate.create("U", 3), x1, c3, x2);
-		full = new TGDGSat(new Atom[] { Ux1c3x2 }, new Atom[] { Px1 });
+		full = new TGDGSat(Set.of(Ux1c3x2), Set.of(Px1));
 		evolved = gsat.evolveNew(nonFull, full);
 		expected = new HashSet<>();
 		Atom Rc3c1 = Atom.create(Predicate.create("R", 2), c3, c1);
 		Atom Rc3y1 = Atom.create(Predicate.create("R", 2), c3, y1);
 		Atom Uc2c3y1 = Atom.create(Predicate.create("U", 3), c2, c3, y1);
-		expected.add(new TGDGSat(new Atom[] { Rc3c1 }, new Atom[] { Uc2c3y1, Rc3y1 }));
+		expected.add(new TGDGSat(Set.of(Rc3c1), Set.of(Uc2c3y1, Rc3y1)));
 		Atom Pc2 = Atom.create(Predicate.create("P", 1), c2);
-		expected.add(new TGDGSat(new Atom[] { Rc3c1 }, new Atom[] { Pc2 }));
+		expected.add(new TGDGSat(Set.of(Rc3c1), Set.of(Pc2)));
 		checkEvolveNewTest(nonFull, full, expected, evolved);
 
 		// 10: Evolve no rule for c1 cannot be unified with y1
 		// R(x1,c1) → ∃ y1,y2 R(c3,y1)
 		// R(x1,c1) → P(x1)
-		nonFull = new TGDGSat(new Atom[] { Rx1c1 }, new Atom[] { Rc3y1 });
-		full = new TGDGSat(new Atom[] { Rx1c1 }, new Atom[] { Px1 });
+		nonFull = new TGDGSat(Set.of(Rx1c1), Set.of(Rc3y1));
+		full = new TGDGSat(Set.of(Rx1c1), Set.of(Px1));
 		evolved = gsat.evolveNew(nonFull, full);
 		expected = new HashSet<>();
 		checkEvolveNewTest(nonFull, full, expected, evolved);
@@ -467,9 +468,9 @@ public class GSatTest {
 		// 11: Evolve no rule for c1 cannot be unified with c3
 		// R(x1,c1) → ∃ y1,y2 R(c3,y1)
 		// R(c1,x1) → P(x1)
-		nonFull = new TGDGSat(new Atom[] { Rx1c1 }, new Atom[] { Rc3y1 });
+		nonFull = new TGDGSat(Set.of(Rx1c1), Set.of(Rc3y1));
 		Atom Rc1x1 = Atom.create(Predicate.create("R", 2), c1, x1);
-		full = new TGDGSat(new Atom[] { Rc1x1 }, new Atom[] { Px1 });
+		full = new TGDGSat(Set.of(Rc1x1), Set.of(Px1));
 		evolved = gsat.evolveNew(nonFull, full);
 		expected = new HashSet<>();
 		checkEvolveNewTest(nonFull, full, expected, evolved);
@@ -479,9 +480,9 @@ public class GSatTest {
 		// R(x1,c1) → ∃ y1 U(x1,x2,y1) & R(c3,y1)
 		// U(x1,x2,x3) & R(c1,x3) → P(x1)
 		Atom Uc1x2y1 = Atom.create(Predicate.create("U", 3), c1, x2, y1);
-		nonFull = new TGDGSat(new Atom[] { Rx1c1 }, new Atom[] { Uc1x2y1, Rc3y1 });
+		nonFull = new TGDGSat(Set.of(Rx1c1), Set.of(Uc1x2y1, Rc3y1));
 		Atom Rc1x3 = Atom.create(Predicate.create("R", 2), c1, x3);
-		full = new TGDGSat(new Atom[] { Ux1x2x3, Rc1x3 }, new Atom[] { Px1 });
+		full = new TGDGSat(Set.of(Ux1x2x3, Rc1x3), Set.of(Px1));
 		evolved = gsat.evolveNew(nonFull, full);
 		expected = new HashSet<>();
 		checkEvolveNewTest(nonFull, full, expected, evolved);
@@ -493,10 +494,10 @@ public class GSatTest {
 		// U(x1,x2,x3) & R(x1,x3) & T(x1,x3) → P(x1)
 		Atom Ux1x2y1 = Atom.create(Predicate.create("U", 3), x1, x2, y1);
 		Atom Tc1y1 = Atom.create(Predicate.create("T", 2), c1, y1);
-		nonFull = new TGDGSat(new Atom[] { Sx1 }, new Atom[] { Ux1x2y1, Rc3y1, Tc1y1 });
+		nonFull = new TGDGSat(Set.of(Sx1), Set.of(Ux1x2y1, Rc3y1, Tc1y1));
 		Atom Rx1x3 = Atom.create(Predicate.create("R", 2), x1, x3);
 		Atom Tx1x3 = Atom.create(Predicate.create("T", 2), x1, x3);
-		full = new TGDGSat(new Atom[] { Ux1x2x3, Rx1x3, Tx1x3 }, new Atom[] { Px1 });
+		full = new TGDGSat(Set.of(Ux1x2x3, Rx1x3, Tx1x3), Set.of(Px1));
 		evolved = gsat.evolveNew(nonFull, full);
 		expected = new HashSet<>();
 		checkEvolveNewTest(nonFull, full, expected, evolved);
@@ -505,11 +506,11 @@ public class GSatTest {
 		// resulting rule.
 		// S(x1) -> \exists y. R(x1,y1)
 		// R(x1,x2) -> P(x1) & ⊥
-		nonFull = new TGDGSat(new Atom[] { Sx1 }, new Atom[] { Rx1y1, });
-		full = new TGDGSat(new Atom[] { Rx1x2 }, new Atom[] { Px1, TGDGSat.Bottom });
+		nonFull = new TGDGSat(Set.of(Sx1), Set.of(Rx1y1));
+		full = new TGDGSat(Set.of(Rx1x2), Set.of(Px1, TGDGSat.Bottom));
 		evolved = gsat.evolveNew(nonFull, full);
 		expected = new HashSet<>();
-		expected.add(new TGDGSat(new TGDGSat(new Atom[] { Sx1 }, new Atom[] { TGDGSat.Bottom })));
+		expected.add(new TGDGSat(Set.of(Sx1), Set.of(TGDGSat.Bottom)));
 		checkEvolveNewTest(nonFull, full, expected, evolved);
 	}
 

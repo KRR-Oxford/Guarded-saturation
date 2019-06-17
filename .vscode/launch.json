@@ -175,7 +175,8 @@
             "projectName": "guarded-saturation",
             "mainClass": "uk.ac.ox.cs.gsat.App",
             // "args": "owl test\\OWL\\00015-sanitised.owl"
-            "args": "owl test\\OWL\\00022-sanitised.owl"
+            // "args": "owl test\\OWL\\00022-sanitised.owl"
+            "args": "owl test\\OWL\\00001-sanitised.owl"
         },
         {
             "type": "java",

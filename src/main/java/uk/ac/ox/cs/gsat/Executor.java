@@ -7,6 +7,7 @@ import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Locale;
+import java.util.Set;
 import java.util.logging.ConsoleHandler;
 import java.util.logging.Handler;
 import java.util.logging.Level;
@@ -326,7 +327,7 @@ public class Executor {
 		Collection<TGDGSat> selectedTGDs = new HashSet<>();
 		for (Dependency d : allDependencies)
 			if (d instanceof TGD && ((TGD) d).isGuarded())
-				selectedTGDs.add(new TGDGSat((TGD) d));
+				selectedTGDs.add(new TGDGSat(Set.of(d.getBodyAtoms()), Set.of(d.getHeadAtoms())));
 			else
 				discarded++;
 
