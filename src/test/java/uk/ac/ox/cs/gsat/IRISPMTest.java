@@ -196,7 +196,7 @@ public class IRISPMTest {
 		// anon2(?x) :- anon1(?x), Person(?x).
 
 		// hasSon(?x, ?y) :- anon1(?x).
-		// Person(?y) :- hasSon(?x, ?y), anon1(?x).
+		// Person(?y) :- hasSon(?x, ?y), anon1(?x). // SUBSUMED by the last rule
 		// anon1(?x) :- hasSon(?x, ?y), Person(?y).
 
 		// // Domain and Range //
@@ -231,7 +231,7 @@ public class IRISPMTest {
 		allQueries.add(ConjunctiveQuery.create(new Variable[] { Variable.create("x") }, new Atom[] { Parent_x }));
 		allQueries.add(ConjunctiveQuery.create(new Variable[] { Variable.create("x") }, new Atom[] { Person_x }));
 
-		fromIRISPM(allTGDs, allFacts, allQueries, 10, new int[] { -1, 2, 3, 5 });
+		fromIRISPM(allTGDs, allFacts, allQueries, 9, new int[] { -1, 2, 3, 5 });
 
 	}
 
