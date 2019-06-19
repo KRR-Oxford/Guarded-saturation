@@ -1,5 +1,8 @@
 package uk.ac.ox.cs.gsat;
 
+import java.io.OutputStreamWriter;
+import java.io.PrintWriter;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Paths;
 import java.util.Collection;
 import java.util.HashMap;
@@ -20,6 +23,7 @@ import java.util.logging.Logger;
 import org.semanticweb.kaon2.api.DefaultOntologyResolver;
 import org.semanticweb.kaon2.api.KAON2Exception;
 import org.semanticweb.kaon2.api.KAON2Manager;
+import org.semanticweb.kaon2.api.Namespaces;
 import org.semanticweb.kaon2.api.Ontology;
 import org.semanticweb.kaon2.api.OntologyManager;
 import org.semanticweb.kaon2.api.logic.Rule;
@@ -176,6 +180,8 @@ public class ExecutorOWL {
 				new HashMap<String, Object>());
 		System.out.println("Initial axioms in the ontology: " + ontology.createAxiomRequest().sizeAll());
 		Reasoner reasoner = ontology.createReasoner();
+		reasoner.setTrace("theoremProver", true,
+				new PrintWriter(new OutputStreamWriter(System.out, StandardCharsets.UTF_8)), new Namespaces());
 		// reasoner.getOntology().saveOntology(OntologyFileFormat.OWL_RDF, System.out,
 		// "UTF-8");
 		Collection<Rule> reductionToDLP = new LinkedList<>();
