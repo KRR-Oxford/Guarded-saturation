@@ -32,12 +32,16 @@ public class TGDGSat extends TGD {
     private final Set<Atom> bodySet;
     private final Set<Atom> headSet;
 
+    private final Atom guard;
+
     private TGDGSat(Atom[] body, Atom[] head) {
 
         super(body, head);
 
         bodySet = Set.of(body);
         headSet = Set.of(head);
+
+        guard = computeGuard();
 
     }
 
@@ -100,16 +104,28 @@ public class TGDGSat extends TGD {
 
     }
 
-    public Atom getGuard() {
+    public Atom computeGuard() {
 
         List<Variable> universalList = Arrays.asList(getUniversal());
 
-        for (Atom atom : getBodyAtoms())
+        Atom currentGuard = null;
+        for (Atom atom : getBodySet())
             if (Arrays.asList(atom.getTerms()).containsAll(universalList))
-                return atom;
+                if (currentGuard == null || atom.getPredicate().getArity() < currentGuard.getPredicate().getArity())
+                    currentGuard = atom;
+                else if (atom.getPredicate().getArity() == currentGuard.getPredicate().getArity())
+                    if (atom.getPredicate().getName().compareTo(currentGuard.getPredicate().getName()) < 0)
+                        currentGuard = atom;
 
-        throw new IllegalArgumentException("The TGD must be guarded to get a Guard");
+        if (currentGuard == null)
+            throw new IllegalArgumentException("TGDGSat must be guarded!");
 
+        return currentGuard;
+
+    }
+
+    public Atom getGuard() {
+        return guard;
     }
 
 }
