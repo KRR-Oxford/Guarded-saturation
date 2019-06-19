@@ -166,7 +166,8 @@ public class GSat {
 
                     for (TGDGSat ftgd : toEvolve)
                         for (TGDGSat newTGD : evolveNew(currentTGD, ftgd))
-                            addNewTGD(newTGD, newFullTGDs, newNonFullTGDs, fullTGDsSet, nonFullTGDsSet);
+                            addNewTGD(newTGD, newFullTGDs, newNonFullTGDs, fullTGDsSet, nonFullTGDsSet, fullTGDsMap,
+                                    nonFullTGDsMap);
                 }
 
             } else {
@@ -181,7 +182,8 @@ public class GSat {
                 if (added && set != null)
                     for (TGDGSat nftgd : set)
                         for (TGDGSat newTGD : evolveNew(nftgd, currentTGD))
-                            addNewTGD(newTGD, newFullTGDs, newNonFullTGDs, fullTGDsSet, nonFullTGDsSet);
+                            addNewTGD(newTGD, newFullTGDs, newNonFullTGDs, fullTGDsSet, nonFullTGDsSet, fullTGDsMap,
+                                    nonFullTGDsMap);
 
             }
 
@@ -219,20 +221,75 @@ public class GSat {
     }
 
     private void addNewTGD(TGDGSat newTGD, Collection<TGDGSat> newFullTGDs, Collection<TGDGSat> newNonFullTGDs,
-            Set<TGDGSat> fullTGDsSet, Set<TGDGSat> nonFullTGDsSet) {
+            Set<TGDGSat> fullTGDsSet, Set<TGDGSat> nonFullTGDsSet, Map<Predicate, Set<TGDGSat>> fullTGDsMap,
+            Map<Predicate, Set<TGDGSat>> nonFullTGDsMap) {
 
-        if (Configuration.isOptimizationEnabled())
-            if (Logic.isFull(newTGD) && (subsumed(newTGD, newFullTGDs) || subsumed(newTGD, fullTGDsSet))
-                    || !Logic.isFull(newTGD)
-                            && (subsumed(newTGD, newNonFullTGDs) || subsumed(newTGD, nonFullTGDsSet))) {
-                // System.out.println("Subsumed!");
+        final Collection<TGDGSat> newTGDs;
+        final Set<TGDGSat> TGDsSet;
+        final Map<Predicate, Set<TGDGSat>> TGDsMap;
+        if (Logic.isFull(newTGD)) {
+            newTGDs = newFullTGDs;
+            TGDsSet = fullTGDsSet;
+            TGDsMap = fullTGDsMap;
+        } else {
+            newTGDs = newNonFullTGDs;
+            TGDsSet = nonFullTGDsSet;
+            TGDsMap = nonFullTGDsMap;
+        }
+
+        if (Configuration.isOptimizationEnabled()) {
+
+            if (subsumed(newTGD, newTGDs) || subsumed(newTGD, TGDsSet))
                 return;
-            }
 
-        if (Logic.isFull(newTGD))
-            newFullTGDs.add(newTGD);
-        else
-            newNonFullTGDs.add(newTGD);
+            Collection<TGDGSat> subsumed = subsumesAny(newTGD, newTGDs);
+            newTGDs.removeAll(subsumed);
+
+            // System.out.println("newTGD\t" + newTGD);
+            // System.out.println("TGDsSet\t" + TGDsSet);
+            // System.out.println("TGDsMap\t" + TGDsMap);
+
+            subsumed = subsumesAny(newTGD, TGDsSet);
+            TGDsSet.removeAll(subsumed);
+
+            if (Logic.isFull(newTGD)) {
+                // for (TGDGSat tgd : subsumed)
+                // if (TGDsMap.get(tgd.getGuard().getPredicate()) == null)
+                // System.out.println("NULL: " + tgd);
+
+                subsumed.forEach(tgd -> TGDsMap.get(tgd.getGuard().getPredicate()).remove(tgd));
+            } else
+                for (TGDGSat tgd : subsumed)
+                    for (Atom atom : tgd.getHeadSet())
+                        TGDsMap.get(atom.getPredicate()).remove(tgd);
+
+            TGDsMap.values().removeIf(v -> v.isEmpty());
+
+        }
+
+        newTGDs.add(newTGD);
+
+    }
+
+    private Collection<TGDGSat> subsumesAny(TGDGSat newTGD, Collection<TGDGSat> TGDs) {
+
+        Collection<TGDGSat> subsumed = new HashSet<>();
+
+        var bodyN = newTGD.getBodySet();
+        var headN = newTGD.getHeadSet();
+
+        for (TGDGSat tgd : TGDs) {
+            var body = tgd.getBodySet();
+            var head = tgd.getHeadSet();
+
+            if (body.size() < bodyN.size() || headN.size() < head.size())
+                continue;
+
+            if (body.containsAll(bodyN) && headN.containsAll(head))
+                subsumed.add(tgd);
+        }
+
+        return subsumed;
 
     }
 
