@@ -1,8 +1,5 @@
 package uk.ac.ox.cs.gsat;
 
-import java.io.OutputStreamWriter;
-import java.io.PrintWriter;
-import java.nio.charset.StandardCharsets;
 import java.nio.file.Paths;
 import java.util.Collection;
 import java.util.HashMap;
@@ -23,7 +20,6 @@ import java.util.logging.Logger;
 import org.semanticweb.kaon2.api.DefaultOntologyResolver;
 import org.semanticweb.kaon2.api.KAON2Exception;
 import org.semanticweb.kaon2.api.KAON2Manager;
-import org.semanticweb.kaon2.api.Namespaces;
 import org.semanticweb.kaon2.api.Ontology;
 import org.semanticweb.kaon2.api.OntologyManager;
 import org.semanticweb.kaon2.api.logic.Rule;
@@ -59,9 +55,12 @@ public class ExecutorOWL {
 
 			if (args.length > 0)
 				if (args[0].equals("compare"))
-					if (args.length == 3) {
-						compare(args[1], Integer.parseInt(args[2])); // FIXME check if it is an integer
-					} else
+					if (args.length == 3)
+						if (args[2].matches("\\d+"))
+							compare(args[1], Integer.parseInt(args[2]));
+						else
+							printHelp("The TIMEOUT must be a positive number!");
+					else
 						printHelp("Wrong number of parameters for compare");
 				else
 					printHelp("Wrong command (i.e. first argument)");
@@ -180,10 +179,11 @@ public class ExecutorOWL {
 				new HashMap<String, Object>());
 		System.out.println("Initial axioms in the ontology: " + ontology.createAxiomRequest().sizeAll());
 		Reasoner reasoner = ontology.createReasoner();
-		reasoner.setTrace("theoremProver", true,
-				new PrintWriter(new OutputStreamWriter(System.out, StandardCharsets.UTF_8)), new Namespaces());
 		// reasoner.getOntology().saveOntology(OntologyFileFormat.OWL_RDF, System.out,
 		// "UTF-8");
+		// reasoner.setTrace("theoremProver", true,
+		// new PrintWriter(new OutputStreamWriter(System.out, StandardCharsets.UTF_8)),
+		// new Namespaces());
 		Collection<Rule> reductionToDLP = new LinkedList<>();
 		try {
 			reductionToDLP = reasoner.getReductionToDisjunctiveDatalog(false, false, false, true);
