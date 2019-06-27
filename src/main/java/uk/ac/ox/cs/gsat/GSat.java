@@ -3,6 +3,7 @@ package uk.ac.ox.cs.gsat;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -11,6 +12,7 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
+import java.util.TreeSet;
 import java.util.Map.Entry;
 import java.util.stream.Collectors;
 
@@ -87,6 +89,35 @@ public class GSat {
         Collection<TGDGSat> newFullTGDs = new HashSet<>();
         Collection<TGDGSat> newNonFullTGDs = new HashSet<>();
 
+        if (Configuration.isOptimizationEnabled()) {
+
+            Comparator<? super TGDGSat> comparator = (tgd1, tgd2) -> {
+
+                int numberOfHeadAtoms1 = tgd1.getNumberOfHeadAtoms();
+                int numberOfHeadAtoms2 = tgd2.getNumberOfHeadAtoms();
+                if (numberOfHeadAtoms1 != numberOfHeadAtoms2)
+                    return numberOfHeadAtoms2 - numberOfHeadAtoms1;
+
+                int numberOfBodyAtoms1 = tgd1.getNumberOfBodyAtoms();
+                int numberOfBodyAtoms2 = tgd2.getNumberOfBodyAtoms();
+                if (numberOfBodyAtoms1 != numberOfBodyAtoms2)
+                    return numberOfBodyAtoms1 - numberOfBodyAtoms2;
+
+                if (tgd1.equals(tgd2))
+                    return 0;
+
+                int compareTo = tgd1.toString().compareTo(tgd2.toString());
+                if (compareTo != 0)
+                    return compareTo;
+                throw new RuntimeException();
+
+            };
+
+            newFullTGDs = new TreeSet<>(comparator);
+            newNonFullTGDs = new TreeSet<>(comparator);
+
+        }
+
         Map<Predicate, Set<TGDGSat>> nonFullTGDsMap = new HashMap<>();
         Map<Predicate, Set<TGDGSat>> fullTGDsMap = new HashMap<>();
         Set<TGDGSat> fullTGDsSet = new HashSet<>();
@@ -142,8 +173,11 @@ public class GSat {
                             + "\t\t\tnewNonFullTGDs\t" + newNonFullTGDs.size() + "\t\tnewFullTGDs\t"
                             + newFullTGDs.size());
                     // System.out.println(fullTGDs.keySet());
+                    // System.out.println(newNonFullTGDs.iterator().next());
                 } else
                     counter++;
+
+            Collection<TGDGSat> toAdd = new ArrayList<>();
 
             if (!newNonFullTGDs.isEmpty()) {
 
@@ -153,22 +187,10 @@ public class GSat {
                 App.logger.fine("current TGD: " + currentTGD);
 
                 boolean added = addNonFullTGD(currentTGD, nonFullTGDsMap, nonFullTGDsSet);
-                if (added) {
-                    Set<TGDGSat> toEvolve = new HashSet<>();// FIXME try one-line
-                    for (Atom atom : currentTGD.getHeadSet()) {
-                        Set<TGDGSat> set = fullTGDsMap.get(atom.getPredicate());
-                        if (set != null)
-                            toEvolve.addAll(set);
-                    }
-                    // if (DEBUG_MODE)
-                    // System.out.println("toEvolve \t" + toEvolve.size() + "\t\tfullTGDs \t" +
-                    // fullTGDsSet.size());
-
-                    for (TGDGSat ftgd : toEvolve)
+                if (added)
+                    for (TGDGSat ftgd : getFullTGDsToEvolve(fullTGDsMap, currentTGD))
                         for (TGDGSat newTGD : evolveNew(currentTGD, ftgd))
-                            addNewTGD(newTGD, newFullTGDs, newNonFullTGDs, fullTGDsSet, nonFullTGDsSet, fullTGDsMap,
-                                    nonFullTGDsMap);
-                }
+                            toAdd.add(newTGD);
 
             } else {
 
@@ -182,10 +204,13 @@ public class GSat {
                 if (added && set != null)
                     for (TGDGSat nftgd : set)
                         for (TGDGSat newTGD : evolveNew(nftgd, currentTGD))
-                            addNewTGD(newTGD, newFullTGDs, newNonFullTGDs, fullTGDsSet, nonFullTGDsSet, fullTGDsMap,
-                                    nonFullTGDsMap);
+                            toAdd.add(newTGD);
 
             }
+
+            for (TGDGSat newTGD : toAdd)
+                addNewTGD(newTGD, newFullTGDs, newNonFullTGDs, fullTGDsSet, nonFullTGDsSet, fullTGDsMap,
+                        nonFullTGDsMap);
 
         }
 
@@ -199,6 +224,24 @@ public class GSat {
                 + String.format(Locale.UK, "%.2f", totalTime / 1E9) + " s");
 
         return fullTGDsSet;
+
+    }
+
+    private Set<TGDGSat> getFullTGDsToEvolve(Map<Predicate, Set<TGDGSat>> fullTGDsMap, TGDGSat currentTGD) {
+
+        Set<TGDGSat> result = new HashSet<>();
+
+        for (Atom atom : currentTGD.getHeadSet()) {
+            Set<TGDGSat> set = fullTGDsMap.get(atom.getPredicate());
+            if (set != null)
+                result.addAll(set);
+        }
+
+        // if (DEBUG_MODE)
+        // System.out.println("toEvolve \t" + toEvolve.size() + "\t\tfullTGDs \t" +
+        // fullTGDsSet.size());
+
+        return result;
 
     }
 

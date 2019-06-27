@@ -139,8 +139,9 @@
             // "args": "compare test\\OWL\\00206-sanitised.owl 30"
             // "args": "compare test\\OWL\\00347-sanitised.owl 30"
             // "args": "compare test\\OWL\\00388-sanitised.owl 30"
-            "args": "compare test\\OWL\\00464-sanitised.owl 30"
+            // "args": "compare test\\OWL\\00464-sanitised.owl 30"
             // "args": "compare test\\OWL\\00120.owl 30"
+            "args": "compare test\\OWL\\00001-sanitised.owl 60"
         },
         {
             "type": "java",
@@ -175,9 +176,11 @@
             "request": "launch",
             "projectName": "guarded-saturation",
             "mainClass": "uk.ac.ox.cs.gsat.App",
-            "args": "owl test\\OWL\\00015-sanitised.owl"
+            // "args": "owl test\\OWL\\00015-sanitised.owl"
             // "args": "owl test\\OWL\\00022-sanitised.owl"
             // "args": "owl test\\OWL\\00001-sanitised.owl"
+            // "args": "owl test\\OWL\\00013-sanitised.owl"
+            "args": "owl test\\OWL\\00118-sanitised.owl"
         },
         {
             "type": "java",
