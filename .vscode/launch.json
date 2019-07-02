@@ -179,8 +179,9 @@
             // "args": "owl test\\OWL\\00015-sanitised.owl"
             // "args": "owl test\\OWL\\00022-sanitised.owl"
             // "args": "owl test\\OWL\\00001-sanitised.owl"
-            // "args": "owl test\\OWL\\00013-sanitised.owl"
-            "args": "owl test\\OWL\\00118-sanitised.owl"
+            "args": "owl test\\OWL\\00013-sanitised.owl"
+            // "args": "owl test\\OWL\\00118-sanitised.owl"
+            // "args": "owl test\\OWL\\00016-sanitised.owl"
         },
         {
             "type": "java",

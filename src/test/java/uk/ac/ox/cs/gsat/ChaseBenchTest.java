@@ -37,9 +37,11 @@ public class ChaseBenchTest {
                 ExecutionOutput executeChaseBenchScenario = App.executeChaseBenchScenario(baseTest, basePath,
                                 fact_querySize);
 
-                assertEquals(output_val, executeChaseBenchScenario.getSolverOutput().getOutput().length());
-                assertEquals(errors_val, executeChaseBenchScenario.getSolverOutput().getErrors().length());
-                assertEquals(lines_val, executeChaseBenchScenario.getSolverOutput().getNumberOfLinesOutput());
+                if (!Configuration.isGSatOnly()) {
+                        assertEquals(output_val, executeChaseBenchScenario.getSolverOutput().getOutput().length());
+                        assertEquals(errors_val, executeChaseBenchScenario.getSolverOutput().getErrors().length());
+                        assertEquals(lines_val, executeChaseBenchScenario.getSolverOutput().getNumberOfLinesOutput());
+                }
 
         }
 

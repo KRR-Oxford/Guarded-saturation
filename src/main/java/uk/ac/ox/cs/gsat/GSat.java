@@ -419,10 +419,8 @@ public class GSat {
      */
     public Collection<TGDGSat> HNF(final TGDGSat tgd) {
 
-        Collection<TGDGSat> result = new HashSet<>();
-
         if (tgd == null)
-            return result;
+            return new HashSet<>();
 
         Variable[] eVariables = tgd.getExistential();
 
@@ -431,28 +429,24 @@ public class GSat {
 
         Set<Atom> bodyAtoms = tgd.getBodySet();
         for (Atom a : tgd.getHeadAtoms())
-            if (a.equals(TGDGSat.Bottom)) {
+            if (a.equals(TGDGSat.Bottom))
                 // remove all head atoms since ⊥ & S ≡ ⊥ for any conjunction S
-                result.add(new TGDGSat(bodyAtoms, Set.of(TGDGSat.Bottom)));
-                return result;
-            } else if (Logic.containsAny(a, eVariables))
+                return Set.of(new TGDGSat(bodyAtoms, Set.of(TGDGSat.Bottom)));
+            else if (Logic.containsAny(a, eVariables))
                 eHead.add(a);
-            else
+            else if (!bodyAtoms.contains(a))
+                // Do not add atoms that already appear in the body.
+                // This is only needed for fHead since we have no existentials in the body
                 fHead.add(a);
 
-        // Remove atoms that already appear in the body.
-        // This is only needed for fHead since we have no existentials in the body
-        fHead.removeAll(bodyAtoms);
-
         if (tgd.getHeadAtoms().length == eHead.size() || tgd.getHeadAtoms().length == fHead.size())
-            result.add(tgd);
-        else {
-            if (!eHead.isEmpty())
-                result.add(new TGDGSat(bodyAtoms, eHead));
-            if (!fHead.isEmpty())
-                result.add(new TGDGSat(bodyAtoms, fHead));
-        }
+            return Set.of(tgd);
 
+        Collection<TGDGSat> result = new HashSet<>();
+        if (!eHead.isEmpty())
+            result.add(new TGDGSat(bodyAtoms, eHead));
+        if (!fHead.isEmpty())
+            result.add(new TGDGSat(bodyAtoms, fHead));
         return result;
 
     }
@@ -674,24 +668,21 @@ public class GSat {
                 var new_ftgd_head_atoms = new_ftgd.getHeadSet();
                 var new_ftgd_body_atoms = new_ftgd.getBodySet();
 
+                Set<Atom> new_body = new HashSet<>(new_ftgd_body_atoms);
                 Atom new_guard = (Atom) Logic.applySubstitution(guard, guardMGU);
-                List<Atom> Sbody = getSbody(new_ftgd_body_atoms, new_guard, new_nftgd_existentials);
+                new_body.remove(new_guard);
+                List<Atom> Sbody = getSbody(new_body, new_nftgd_existentials);
+                new_body.addAll(new_nftgd_body_atoms);
+                Set<Atom> new_head = new HashSet<>(new_nftgd_head_atoms);
+                new_head.addAll(new_ftgd_head_atoms);
 
                 List<List<Atom>> Shead = getShead(new_nftgd_head_atoms, Sbody, new_nftgd_existentials);
 
                 // if Sbody is empty, then Shead is empty, and we take this short-cut;
                 // in fact, we should never have Shead == null and Sbody.isEmpty
                 if (Shead == null || Shead.isEmpty()) {
-                    if (Sbody.isEmpty()) {
-                        Set<Atom> new_body = new HashSet<>(new_nftgd_body_atoms);
-                        new_body.addAll(new_ftgd_body_atoms);
-                        new_body.remove(new_guard);
-
-                        Set<Atom> new_head = new HashSet<>(new_nftgd_head_atoms);
-                        new_head.addAll(new_ftgd_head_atoms);
-
+                    if (Sbody.isEmpty())
                         results.addAll(VNFs(HNF(new TGDGSat(new_body, new_head))));
-                    }
                     // no matching head atom for some atom in Sbody -> continue
                     continue;
                 }
@@ -708,13 +699,7 @@ public class GSat {
                         // unification failed -> continue with next sequence
                         continue;
 
-                    Set<Atom> new_body = new HashSet<>(new_nftgd_body_atoms);
-                    new_body.addAll(new_ftgd_body_atoms);
                     new_body.removeAll(Sbody);
-                    new_body.remove(new_guard);
-
-                    Set<Atom> new_head = new HashSet<>(new_nftgd_head_atoms);
-                    new_head.addAll(new_ftgd_head_atoms);
 
                     if (mgu.isEmpty())
                         // no need to apply the MGU
@@ -812,7 +797,7 @@ public class GSat {
             List<List<Atom>> remainingLists = getProduct(shead.subList(1, shead.size()));
             for (Atom condition : firstList) {
                 for (List<Atom> remainingList : remainingLists) {
-                    ArrayList<Atom> resultList = new ArrayList<Atom>();
+                    ArrayList<Atom> resultList = new ArrayList<Atom>(1 + remainingList.size());
                     resultList.add(condition);
                     resultList.addAll(remainingList);
                     resultLists.add(resultList);
@@ -838,9 +823,8 @@ public class GSat {
                         Term bodyTerm = bodyAtom.getTerm(i);
                         Term headTerm = headTerms[i];
                         // check if constants and existentials match
-                        if ((headTerm.isUntypedConstant() && bodyTerm.isUntypedConstant()
-                                || eVariables.contains(headTerm) || eVariables.contains(bodyTerm))
-                                && !bodyTerm.equals(headTerm)) {
+                        if (!bodyTerm.equals(headTerm) && (headTerm.isUntypedConstant() && bodyTerm.isUntypedConstant()
+                                || eVariables.contains(headTerm) || eVariables.contains(bodyTerm))) {
                             valid = false;
                             break;
                         }
@@ -862,13 +846,27 @@ public class GSat {
 
     }
 
-    private List<Atom> getSbody(Collection<Atom> bodyAtoms, Atom guard, Collection<Variable> eVariables) {
+    // private List<Atom> getSbody(Collection<Atom> bodyAtoms, Atom guard,
+    // Collection<Variable> eVariables) {
+
+    // List<Atom> results = new LinkedList<>();
+
+    // // results.add(guard);
+    // for (Atom atom : bodyAtoms)
+    // if (!atom.equals(guard) && containsY(atom, eVariables))
+    // results.add(atom);
+
+    // return results;
+
+    // }
+
+    private List<Atom> getSbody(Collection<Atom> new_bodyAtoms, Collection<Variable> eVariables) {
 
         List<Atom> results = new LinkedList<>();
 
         // results.add(guard);
-        for (Atom atom : bodyAtoms)
-            if (!atom.equals(guard) && containsY(atom, eVariables))
+        for (Atom atom : new_bodyAtoms)
+            if (containsY(atom, eVariables))// FIXME try one-line
                 results.add(atom);
 
         return results;
@@ -923,14 +921,22 @@ public class GSat {
 
         for (Entry<Term, Term> entry : mgu.entrySet()) {
 
-            // identity on y
-            if (entry.getKey().isVariable() && ((Variable) entry.getKey()).getSymbol().startsWith(eVariable))
-                return null;
+            Term key = entry.getKey();
+            boolean isVariable = key.isVariable();
+            if (isVariable) {
+                String symbol = ((Variable) key).getSymbol();
 
-            // evc xθ ∩ y = ∅
-            if (entry.getKey().isVariable() && ((Variable) entry.getKey()).getSymbol().startsWith(uVariable)
-                    && entry.getValue().isVariable() && ((Variable) entry.getValue()).getSymbol().startsWith(eVariable))
-                return null;
+                // identity on y
+                if (symbol.startsWith(eVariable))
+                    return null;
+
+                // evc xθ ∩ y = ∅
+                Term value = entry.getValue();
+                if (value.isVariable() && symbol.startsWith(uVariable)
+                        && ((Variable) value).getSymbol().startsWith(eVariable))
+                    return null;
+
+            }
 
         }
 
