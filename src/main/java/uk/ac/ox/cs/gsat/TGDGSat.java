@@ -124,6 +124,10 @@ public class TGDGSat extends TGD {
 
     }
 
+    public Variable[] getUniversal() {
+        return getTopLevelQuantifiedVariables();
+    }
+
     public Atom getGuard() {
         return guard;
     }
