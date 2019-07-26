@@ -126,14 +126,14 @@ public class Configuration {
 
     }
 
-    public static boolean isOptimizationEnabled() {
+    public static int getOptimizationValue() {
 
         Configuration.initialize();
 
         if (Configuration.prop == null)
-            return false;
+            return 0;
 
-        return Boolean.parseBoolean(Configuration.prop.getProperty("optimization"));
+        return Integer.parseInt(Configuration.prop.getProperty("optimization"));
 
     }
 

@@ -12,6 +12,7 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
+import java.util.Stack;
 import java.util.TreeSet;
 import java.util.Map.Entry;
 import java.util.stream.Collectors;
@@ -37,6 +38,28 @@ public class GSat {
     public String eVariable = "GSat_e";
     // New variable name for evolveRename
     public String zVariable = "GSat_z";
+
+    private static Comparator<? super TGDGSat> comparator = (tgd1, tgd2) -> {
+
+        int numberOfHeadAtoms1 = tgd1.getNumberOfHeadAtoms();
+        int numberOfHeadAtoms2 = tgd2.getNumberOfHeadAtoms();
+        if (numberOfHeadAtoms1 != numberOfHeadAtoms2)
+            return numberOfHeadAtoms2 - numberOfHeadAtoms1;
+
+        int numberOfBodyAtoms1 = tgd1.getNumberOfBodyAtoms();
+        int numberOfBodyAtoms2 = tgd2.getNumberOfBodyAtoms();
+        if (numberOfBodyAtoms1 != numberOfBodyAtoms2)
+            return numberOfBodyAtoms1 - numberOfBodyAtoms2;
+
+        if (tgd1.equals(tgd2))
+            return 0;
+
+        int compareTo = tgd1.toString().compareTo(tgd2.toString());
+        if (compareTo != 0)
+            return compareTo;
+        throw new RuntimeException();
+
+    };
 
     /**
      * Private construtor, we want this class to be a Singleton
@@ -89,29 +112,12 @@ public class GSat {
         Collection<TGDGSat> newFullTGDs = new HashSet<>();
         Collection<TGDGSat> newNonFullTGDs = new HashSet<>();
 
-        if (Configuration.isOptimizationEnabled()) {
+        if (Configuration.getOptimizationValue() >= 5) {
 
-            Comparator<? super TGDGSat> comparator = (tgd1, tgd2) -> {
+            newFullTGDs = new Stack<>();
+            newNonFullTGDs = new Stack<>();
 
-                int numberOfHeadAtoms1 = tgd1.getNumberOfHeadAtoms();
-                int numberOfHeadAtoms2 = tgd2.getNumberOfHeadAtoms();
-                if (numberOfHeadAtoms1 != numberOfHeadAtoms2)
-                    return numberOfHeadAtoms2 - numberOfHeadAtoms1;
-
-                int numberOfBodyAtoms1 = tgd1.getNumberOfBodyAtoms();
-                int numberOfBodyAtoms2 = tgd2.getNumberOfBodyAtoms();
-                if (numberOfBodyAtoms1 != numberOfBodyAtoms2)
-                    return numberOfBodyAtoms1 - numberOfBodyAtoms2;
-
-                if (tgd1.equals(tgd2))
-                    return 0;
-
-                int compareTo = tgd1.toString().compareTo(tgd2.toString());
-                if (compareTo != 0)
-                    return compareTo;
-                throw new RuntimeException();
-
-            };
+        } else if (Configuration.getOptimizationValue() >= 2) {
 
             newFullTGDs = new TreeSet<>(comparator);
             newNonFullTGDs = new TreeSet<>(comparator);
@@ -189,8 +195,21 @@ public class GSat {
                 boolean added = addNonFullTGD(currentTGD, nonFullTGDsMap, nonFullTGDsSet);
                 if (added)
                     for (TGDGSat ftgd : getFullTGDsToEvolve(fullTGDsMap, currentTGD))
-                        for (TGDGSat newTGD : evolveNew(currentTGD, ftgd))
-                            toAdd.add(newTGD);
+                        if (Configuration.getOptimizationValue() >= 3) {
+                            boolean subsumed = false;
+                            for (TGDGSat newTGD : evolveNew(currentTGD, ftgd)) {
+                                if (!currentTGD.equals(newTGD)) {
+                                    toAdd.add(newTGD);
+                                    subsumed = subsumed || subsumed(currentTGD, newTGD);
+                                }
+                                // subsumed = subsumed || subsumed(currentTGD, newTGD) && !subsumed(newTGD,
+                                // currentTGD);
+                            }
+                            if (subsumed)
+                                break;
+                        } else
+                            for (TGDGSat newTGD : evolveNew(currentTGD, ftgd))
+                                toAdd.add(newTGD);
 
             } else {
 
@@ -203,8 +222,21 @@ public class GSat {
                 Set<TGDGSat> set = nonFullTGDsMap.get(currentTGD.getGuard().getPredicate());
                 if (added && set != null)
                     for (TGDGSat nftgd : set)
-                        for (TGDGSat newTGD : evolveNew(nftgd, currentTGD))
-                            toAdd.add(newTGD);
+                        if (Configuration.getOptimizationValue() >= 3) {
+                            boolean subsumed = false;
+                            for (TGDGSat newTGD : evolveNew(nftgd, currentTGD)) {
+                                if (!currentTGD.equals(newTGD)) {
+                                    toAdd.add(newTGD);
+                                    subsumed = subsumed || subsumed(currentTGD, newTGD);
+                                }
+                                // subsumed = subsumed || subsumed(currentTGD, newTGD) && !subsumed(newTGD,
+                                // currentTGD);
+                            }
+                            if (subsumed)
+                                break;
+                        } else
+                            for (TGDGSat newTGD : evolveNew(nftgd, currentTGD))
+                                toAdd.add(newTGD);
 
             }
 
@@ -231,6 +263,9 @@ public class GSat {
 
         Set<TGDGSat> result = new HashSet<>();
 
+        if (Configuration.getOptimizationValue() >= 4)
+            result = new TreeSet<>(comparator);
+
         for (Atom atom : currentTGD.getHeadSet()) {
             Set<TGDGSat> set = fullTGDsMap.get(atom.getPredicate());
             if (set != null)
@@ -256,8 +291,13 @@ public class GSat {
     private boolean addNonFullTGD(TGDGSat currentTGD, Map<Predicate, Set<TGDGSat>> nonFullTGDsMap,
             Set<TGDGSat> nonFullTGDsSet) {
 
-        for (Atom atom : currentTGD.getHeadSet())
-            nonFullTGDsMap.computeIfAbsent(atom.getPredicate(), k -> new HashSet<TGDGSat>()).add(currentTGD);
+        if (Configuration.getOptimizationValue() >= 4)
+            for (Atom atom : currentTGD.getHeadSet())
+                nonFullTGDsMap.computeIfAbsent(atom.getPredicate(), k -> new TreeSet<TGDGSat>(comparator))
+                        .add(currentTGD);
+        else
+            for (Atom atom : currentTGD.getHeadSet())
+                nonFullTGDsMap.computeIfAbsent(atom.getPredicate(), k -> new HashSet<TGDGSat>()).add(currentTGD);
 
         return nonFullTGDsSet.add(currentTGD);
 
@@ -280,7 +320,7 @@ public class GSat {
             TGDsMap = nonFullTGDsMap;
         }
 
-        if (Configuration.isOptimizationEnabled()) {
+        if (Configuration.getOptimizationValue() >= 1) {
 
             if (subsumed(newTGD, newTGDs) || subsumed(newTGD, TGDsSet))
                 return;
@@ -309,6 +349,9 @@ public class GSat {
             TGDsMap.values().removeIf(v -> v.isEmpty());
 
         }
+
+        if (Configuration.getOptimizationValue() >= 5 && newTGDs.contains(newTGD))
+            return;
 
         newTGDs.add(newTGD);
 
@@ -351,6 +394,24 @@ public class GSat {
             if (bodyN.containsAll(body) && head.containsAll(headN))
                 return true;
         }
+
+        return false;
+
+    }
+
+    private boolean subsumed(TGDGSat tgd1, TGDGSat tgd2) {
+
+        var body1 = tgd1.getBodySet();
+        var headN = tgd1.getHeadSet();
+
+        var body = tgd2.getBodySet();
+        var head = tgd2.getHeadSet();
+
+        if (body1.size() < body.size() || head.size() < headN.size())
+            return false;
+
+        if (body1.containsAll(body) && head.containsAll(headN))
+            return true;
 
         return false;
 

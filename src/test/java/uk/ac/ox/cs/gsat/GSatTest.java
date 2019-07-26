@@ -73,6 +73,11 @@ public class GSatTest {
 			Variable.create(GSat.getInstance().eVariable + "2"), Variable.create(GSat.getInstance().eVariable + "3"));
 	private static final Atom H2_e2e3 = Atom.create(Predicate.create("H2", 2),
 			Variable.create(GSat.getInstance().eVariable + "2"), Variable.create(GSat.getInstance().eVariable + "3"));
+	private static final Atom H2_e1e2 = Atom.create(Predicate.create("H2", 2),
+			Variable.create(GSat.getInstance().eVariable + "1"), Variable.create(GSat.getInstance().eVariable + "2"));
+	private static final Atom H1_u2e3e1e2 = Atom.create(Predicate.create("H1", 4),
+			Variable.create(GSat.getInstance().uVariable + "2"), Variable.create(GSat.getInstance().eVariable + "3"),
+			Variable.create(GSat.getInstance().eVariable + "1"), Variable.create(GSat.getInstance().eVariable + "2"));
 
 	@BeforeAll
 	static void initAll() {
@@ -206,9 +211,12 @@ public class GSatTest {
 
 		// ∀ u1,u2,u3 B(u1,u2,u3) → ∃ e1,e2,e3 H1(u2,e1,e2,e3) & H2(e2,e3)
 		TGDGSat tgdExpected = new TGDGSat(Set.of(B_u1u2u3), Set.of(H1_u2e1e2e3, H2_e2e3));
+		// ∀ u1,u2,u3 B(u1,u2,u3) → ∃ e1,e2,e3 H2(e1,e2) & H1(u2,e3,e1,e2)
+		TGD tgdExpected2 = new TGDGSat(Set.of(B_u1u2u3), Set.of(H2_e1e2, H1_u2e3e1e2));
 
 		assertEquals(1, tgdsVNFs.size());
-		assertTrue(tgdsVNFs.contains(tgdExpected), "Expecting: " + tgdExpected + ", got: " + tgdsVNFs);
+		assertTrue(tgdsVNFs.contains(tgdExpected) || tgdsVNFs.contains(tgdExpected2),
+				"Expecting: " + tgdExpected + " or " + tgdExpected2 + ", got: " + tgdsVNFs);
 
 	}
 
@@ -224,8 +232,11 @@ public class GSatTest {
 
 		// ∀ u1,u2,u3 B(u1,u2,u3) → ∃ e1,e2,e3 H1(u2,e1,e2,e3) & H2(e2,e3)
 		TGD tgdExpected = new TGDGSat(Set.of(B_u1u2u3), Set.of(H1_u2e1e2e3, H2_e2e3));
+		// ∀ u1,u2,u3 B(u1,u2,u3) → ∃ e1,e2,e3 H2(e1,e2) & H1(u2,e3,e1,e2)
+		TGD tgdExpected2 = new TGDGSat(Set.of(B_u1u2u3), Set.of(H2_e1e2, H1_u2e3e1e2));
 
-		assertEquals(tgdExpected, tgdVNF);
+		assertTrue(tgdVNF.equals(tgdExpected) || tgdVNF.equals(tgdExpected2),
+				"Expecting: " + tgdExpected + " or " + tgdExpected2 + ", got: " + tgdVNF);
 
 	}
 
