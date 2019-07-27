@@ -7,14 +7,13 @@ import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
-import java.util.LinkedList;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Set;
 import java.util.Stack;
 import java.util.TreeSet;
-import java.util.Map.Entry;
 import java.util.stream.Collectors;
 
 import uk.ac.ox.cs.pdq.fol.Atom;
@@ -923,14 +922,7 @@ public class GSat {
 
     private List<Atom> getSbody(Collection<Atom> new_bodyAtoms, Collection<Variable> eVariables) {
 
-        List<Atom> results = new LinkedList<>();
-
-        // results.add(guard);
-        for (Atom atom : new_bodyAtoms)
-            if (containsY(atom, eVariables))// FIXME try one-line
-                results.add(atom);
-
-        return results;
+        return new_bodyAtoms.stream().filter(atom -> containsY(atom, eVariables)).collect(Collectors.toList());
 
     }
 

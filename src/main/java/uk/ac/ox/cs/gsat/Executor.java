@@ -187,7 +187,7 @@ public class Executor {
 							FACTORY.owlClass(OWLClass.OWL_THING));
 					axioms.add(FACTORY.subClassOf(owlClassBody, objectSomeHead));
 				} else if (bodyAtom.getTerm(0).equals(headAtom.getTerm(1))) {
-					// TODO
+					// to complete
 				} else {
 					System.err.println("ERROR IN MR IMR: " + tgdgSatRule);
 					System.exit(1);
@@ -202,7 +202,7 @@ public class Executor {
 					ObjectProperty objectPropertyBody = FACTORY.objectProperty(predicateBody.getName());
 					axioms.add(FACTORY.objectPropertyDomain(objectPropertyBody, FACTORY.owlClass(OWLClass.OWL_THING)));
 				} else if (bodyAtom.getTerm(1).equals(headAtom.getTerm(0))) {
-					// TODO
+					// to complete
 				} else {
 					System.err.println("ERROR IN Dom Rng: " + tgdgSatRule);
 					System.exit(1);
