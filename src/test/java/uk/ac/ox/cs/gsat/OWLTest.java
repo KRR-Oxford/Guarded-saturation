@@ -38,7 +38,7 @@ public class OWLTest {
 
 		String path = baseChaseBench + "00033.owl";
 
-		ExecutionOutput executeChaseBenchScenario = App.fromOWL(path);
+		ExecutionOutput executeChaseBenchScenario = App.fromOWL(path, "");
 
 		assertEquals(12, executeChaseBenchScenario.getGuardedSaturation().size());
 
@@ -49,7 +49,7 @@ public class OWLTest {
 
 		String path = baseChaseBench + "00780.owl";
 
-		ExecutionOutput executeChaseBenchScenario = App.fromOWL(path);
+		ExecutionOutput executeChaseBenchScenario = App.fromOWL(path, "");
 
 		assertEquals(223, executeChaseBenchScenario.getGuardedSaturation().size());
 
@@ -60,7 +60,7 @@ public class OWLTest {
 
 		String path = baseChaseBench + "00198.owl";
 
-		ExecutionOutput executeChaseBenchScenario = App.fromOWL(path);
+		ExecutionOutput executeChaseBenchScenario = App.fromOWL(path, "");
 
 		assertEquals(86, executeChaseBenchScenario.getGuardedSaturation().size());
 
@@ -71,7 +71,7 @@ public class OWLTest {
 
 		String path = baseChaseBench + "00120.owl";
 
-		ExecutionOutput executeChaseBenchScenario = App.fromOWL(path);
+		ExecutionOutput executeChaseBenchScenario = App.fromOWL(path, "");
 
 		assertEquals(72, executeChaseBenchScenario.getGuardedSaturation().size());
 

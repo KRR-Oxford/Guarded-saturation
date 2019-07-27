@@ -55,8 +55,9 @@ public class App {
 					} else
 						printHelp("Wrong number of parameters for dlgp");
 				else if (args[0].equals("owl"))
-					if (args.length == 2) {
-						fromOWL(args[1]);
+					if (args.length == 2 || args.length == 3) {
+						String query = args.length == 2 ? "" : args[2]; // Optional argument
+						fromOWL(args[1], query);
 					} else
 						printHelp("Wrong number of parameters for owl");
 				else
@@ -94,7 +95,7 @@ public class App {
 		System.err.println("<PATH OF THE DLGP FILE>");
 		System.err.println();
 		System.err.println("if owl is specified the following arguments must be provided, in this strict order:");
-		System.err.println("<PATH OF THE OWL FILE>");
+		System.err.println("<PATH OF THE OWL FILE> [<PATH OF THE SPARQL FILE>]");
 		System.err.println();
 
 	}
@@ -137,11 +138,11 @@ public class App {
 	 * @param path the path of the OWL file we want to process
 	 * @return the results of `executeAllSteps`
 	 */
-	public static ExecutionOutput fromOWL(String path) {
+	public static ExecutionOutput fromOWL(String path, String query) {
 
 		System.out.println("Executing from OWL files");
 
-		return executeAllSteps(new OWLIO(path, Configuration.isGSatOnly()));
+		return executeAllSteps(new OWLIO(path, query, Configuration.isGSatOnly()));
 
 	}
 
