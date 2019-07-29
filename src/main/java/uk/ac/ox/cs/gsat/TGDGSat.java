@@ -113,9 +113,9 @@ public class TGDGSat extends TGD {
             if (Arrays.asList(atom.getTerms()).containsAll(universalList))
                 if (currentGuard == null || atom.getPredicate().getArity() < currentGuard.getPredicate().getArity())
                     currentGuard = atom;
-                else if (atom.getPredicate().getArity() == currentGuard.getPredicate().getArity())
-                    if (atom.getPredicate().getName().compareTo(currentGuard.getPredicate().getName()) < 0)
-                        currentGuard = atom;
+                else if (atom.getPredicate().getArity() == currentGuard.getPredicate().getArity()
+                        && atom.getPredicate().getName().compareTo(currentGuard.getPredicate().getName()) < 0)
+                    currentGuard = atom;
 
         if (currentGuard == null)
             throw new IllegalArgumentException("TGDGSat must be guarded!");

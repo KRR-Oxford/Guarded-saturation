@@ -135,6 +135,19 @@ public class Configuration {
 
         return Integer.parseInt(Configuration.prop.getProperty("optimization"));
 
+        // 0: no optimizations
+        // 1: subsumption check
+        // 2: ordered sets to store the new TGDs to evaluate
+        // (stored in `newFullTGDs` and `newNonFullTGDs`)
+        // 3: stop to evolve a TGD if we found a new one that subsumes it
+        // 4: ordered sets to store the "possible evolving" TGDs
+        // (stored in `fullTGDsMap` and `nonFullTGDsMap`)
+        // 5: stacks to store the new TGDs to evaluate
+        //
+        // the order of 2 and 4 is conceived to evaluate earlier rules with bigger heads
+        // and smaller bodies (i.e. rules that can easily subsume other rule),
+        // see `comparator` in `GSat`
+
     }
 
 }

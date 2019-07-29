@@ -31,7 +31,7 @@ public class OWLIO extends DLGPIO {
 
         parseInput(new OWL2Parser(new File(path)));
 
-        if (query != "")
+        if (query != null && !query.equals(""))
             queries.add(new SparqlConjunctiveQueryParser(Files.readString(Path.of(query))).getConjunctiveQuery());
 
         return getPDQTGDsFromGraalRules(rules);
