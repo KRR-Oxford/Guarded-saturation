@@ -20,7 +20,7 @@ import uk.ac.ox.cs.pdq.db.Schema;
 import uk.ac.ox.cs.pdq.fol.Atom;
 import uk.ac.ox.cs.pdq.fol.Dependency;
 import uk.ac.ox.cs.pdq.fol.TGD;
-import uk.ac.ox.cs.pdq.regression.utils.CommonToPDQTranslator;
+import uk.ac.ox.cs.pdq.io.CommonToPDQTranslator;
 
 public class ChaseBenchIO implements ExecutionSteps {
 

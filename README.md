@@ -7,7 +7,19 @@ Resolution-based rewriting algorithm from Guarded Tuple Generating Dependencies 
 
 ### Prerequisites
 
-It requires only [Java](https://www.oracle.com/java) and [Apache Maven](http://maven.apache.org).
+It requires:
+- [Java](https://www.oracle.com/java)
+- [Apache Maven](http://maven.apache.org)
+- [PDQ](https://github.com/ProofDrivenQuerying/pdq)
+
+#### Installing PDQ in Maven
+
+(This will no longer be required when PDQ is added to Maven repositories)
+
+1. Download from [PDQ releases](https://github.com/ProofDrivenQuerying/pdq/releases)
+   - pdq-common-1.0.0.jar
+2. Install as in [the official documentation](https://maven.apache.org/guides/mini/guide-3rd-party-jars-local.html)
+   - `mvn org.apache.maven.plugins:maven-install-plugin:2.5.2:install-file -Dfile="pdq-common-1.0.0.jar"`
 
 ### Installing
 

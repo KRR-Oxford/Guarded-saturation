@@ -8,13 +8,13 @@ import java.io.OutputStream;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.Locale;
+import java.util.Set;
 import java.util.logging.ConsoleHandler;
 import java.util.logging.Handler;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
 
-import org.mockito.internal.util.collections.Sets;
 import org.semanticweb.owlapi.apibinding.OWLManager;
 import org.semanticweb.owlapi.formats.OWLXMLDocumentFormat;
 import org.semanticweb.owlapi.formats.RDFXMLDocumentFormat;
@@ -189,7 +189,7 @@ public class OWLSanitiser {
         try {
 
             OWLOntologyManager manager = OWLManager.createOWLOntologyManager();
-            OWLOntology ontology = manager.createOntology(Sets.newSet(a));
+            OWLOntology ontology = manager.createOntology(Set.of(a));
 
             OutputStream output = new OutputStream() {
                 private StringBuilder string = new StringBuilder();
@@ -273,7 +273,7 @@ public class OWLSanitiser {
     // try {
 
     // OWLOntologyManager manager = OWLManager.createOWLOntologyManager();
-    // OWLOntology ontology = manager.createOntology(Sets.newSet(a));
+    // OWLOntology ontology = manager.createOntology(Set.of(a));
 
     // OutputStream output = new OutputStream() {
     // private StringBuilder string = new StringBuilder();
