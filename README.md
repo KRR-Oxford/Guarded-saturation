@@ -11,6 +11,7 @@ It requires:
 - [Java](https://www.oracle.com/java)
 - [Apache Maven](http://maven.apache.org)
 - [PDQ](https://github.com/ProofDrivenQuerying/pdq)
+- [KAON 2](http://kaon2.semanticweb.org)
 
 #### Installing PDQ in Maven
 
