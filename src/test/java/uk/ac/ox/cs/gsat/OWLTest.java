@@ -11,8 +11,6 @@ import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 
-import uk.ac.ox.cs.gsat.App;
-
 /**
  * Unit tests for the GSat class from the ISG Ontology Repository
  * http://www.cs.ox.ac.uk/isg/ontologies
