@@ -22,6 +22,11 @@ It requires:
 2. Install as in [the official documentation](https://maven.apache.org/guides/mini/guide-3rd-party-jars-local.html)
    - `mvn org.apache.maven.plugins:maven-install-plugin:2.5.2:install-file -Dfile="pdq-common-1.0.0.jar"`
 
+#### Installing KAON 2
+
+1. Download the JAR file from [the KAON 2 website](http://kaon2.semanticweb.org)
+2. Save it in the `src\main\resources` folder
+
 ### Installing
 
 Build the project:
