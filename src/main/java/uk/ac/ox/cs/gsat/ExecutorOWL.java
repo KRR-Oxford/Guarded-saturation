@@ -108,7 +108,7 @@ public class ExecutorOWL {
 			System.out.println("Finished!");
 		} catch (TimeoutException | InterruptedException | ExecutionException e) {
 			futureKAON2.cancel(true);
-			System.out.println("Terminated!");
+			System.err.println("Terminated!");
 		}
 
 		executorKAON2.shutdownNow();
@@ -146,7 +146,7 @@ public class ExecutorOWL {
 			System.out.println("Finished!");
 		} catch (TimeoutException | InterruptedException | ExecutionException e) {
 			futureGSat.cancel(true);
-			System.out.println("Terminated!");
+			System.err.println("Terminated!");
 		}
 
 		executorGSat.shutdownNow();

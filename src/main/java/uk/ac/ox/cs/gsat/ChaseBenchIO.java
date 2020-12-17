@@ -123,7 +123,7 @@ public class ChaseBenchIO implements ExecutionSteps {
                     if (f.getName().endsWith(".csv")) {
                         String name = f.getName().substring(0, f.getName().indexOf("."));
                         if (schema.getRelation(name) == null)
-                            System.out.println("Can't process file: " + f.getAbsolutePath());
+                            System.err.println("Can't process file: " + f.getAbsolutePath());
                         else
                             facts.addAll(CommonToPDQTranslator.importFacts(schema, name, f.getAbsolutePath()));
                     }
@@ -159,7 +159,7 @@ public class ChaseBenchIO implements ExecutionSteps {
             if (d instanceof TGD && ((TGD) d).isGuarded()) {// Adding only Guarded TGDs
                 result.add((TGD) d);
                 if (!Logic.isFull((TGD) d))
-                    System.out.println(d + "is not full!!");
+                    System.err.println(d + "is not full!!");
             } else
                 App.logger.warning("We accept only Guarded TGDs. Error with query " + d);
         }
@@ -183,7 +183,7 @@ public class ChaseBenchIO implements ExecutionSteps {
                     if (f.getName().endsWith(".csv")) {
                         String name = f.getName().substring(0, f.getName().indexOf("."));
                         if (schema.getRelation(name) == null)
-                            System.out.println("Can't process file: " + f.getAbsolutePath());
+                            System.err.println("Can't process file: " + f.getAbsolutePath());
                         else {
                             Collection<String> datalogFacts = new LinkedList<>();
 
