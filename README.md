@@ -29,6 +29,13 @@ It requires:
 
 ### Installing
 
+If you are a developer and you want to run the tests, you need to:
+
+1. Download the "test-all.zip" file from [GSat test datasets](https://github.com/stefanogermano/Guarded-saturation/releases/tag/test-data)
+2. Extract it in the root of the project
+
+Otherwise, you can simply run the `download-test-datasets.sh` script.
+
 Build the project:
 
 ```
