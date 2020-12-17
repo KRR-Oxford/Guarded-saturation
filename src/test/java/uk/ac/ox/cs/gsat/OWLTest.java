@@ -19,7 +19,7 @@ import org.junit.jupiter.api.Test;
  */
 public class OWLTest {
 
-	private static final String baseChaseBench = "test" + File.separator + "OWL" + File.separator;
+	private static final String baseOWL = "test" + File.separator + "OWL" + File.separator;
 
 	@BeforeAll
 	static void initAll() {
@@ -34,7 +34,7 @@ public class OWLTest {
 	@Test
 	public void galenModule1NoFunctionality() {
 
-		String path = baseChaseBench + "00033.owl";
+		String path = baseOWL + "00033.owl";
 
 		ExecutionOutput executeChaseBenchScenario = App.fromOWL(path, "");
 
@@ -45,7 +45,7 @@ public class OWLTest {
 	@Test
 	public void vicodiTimeDeleted() {
 
-		String path = baseChaseBench + "00780.owl";
+		String path = baseOWL + "00780.owl";
 
 		ExecutionOutput executeChaseBenchScenario = App.fromOWL(path, "");
 
@@ -56,7 +56,7 @@ public class OWLTest {
 	@Test
 	public void GardinerCorpusHttp___www_daml_ecs_soton_ac_uk_ont_currency_daml() {
 
-		String path = baseChaseBench + "00198.owl";
+		String path = baseOWL + "00198.owl";
 
 		ExecutionOutput executeChaseBenchScenario = App.fromOWL(path, "");
 
@@ -67,7 +67,7 @@ public class OWLTest {
 	@Test
 	public void GardinerCorpus_http___protege_stanford_edu_plugins_owl_owl_library_travel_owl_2009_02_13() {
 
-		String path = baseChaseBench + "00120.owl";
+		String path = baseOWL + "00120.owl";
 
 		ExecutionOutput executeChaseBenchScenario = App.fromOWL(path, "");
 

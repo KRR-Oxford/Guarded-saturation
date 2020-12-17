@@ -90,8 +90,9 @@ public class IRISPMTest {
 			for (ConjunctiveQuery q : allQueries) {
 
 				IO.writeDatalogQueries(Arrays.asList(q), baseOutputPath + "query.rul");
-				SolverOutput output = Logic.invokeSolver(Configuration.getSolverPath(), "--query", Arrays.asList(
-						baseOutputPath + "rules.rul", baseOutputPath + "facts.data", baseOutputPath + "query.rul"));
+				SolverOutput output = Logic.invokeSolver(Configuration.getSolverPath(),
+						Configuration.getSolverOptionsQuery(), Arrays.asList(baseOutputPath + "rules.rul",
+								baseOutputPath + "facts.data", baseOutputPath + "query.rul"));
 				System.out.println(output);
 
 				int expectedLines = queryLenghts[count++];
