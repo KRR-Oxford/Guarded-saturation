@@ -187,7 +187,7 @@ public class Executor {
 							FACTORY.owlClass(OWLClass.OWL_THING));
 					axioms.add(FACTORY.subClassOf(owlClassBody, objectSomeHead));
 				} else if (bodyAtom.getTerm(0).equals(headAtom.getTerm(1))) {
-					// to complete
+					// TODO
 				} else {
 					System.err.println("ERROR IN MR IMR: " + tgdgSatRule);
 					System.exit(1);
@@ -202,7 +202,7 @@ public class Executor {
 					ObjectProperty objectPropertyBody = FACTORY.objectProperty(predicateBody.getName());
 					axioms.add(FACTORY.objectPropertyDomain(objectPropertyBody, FACTORY.owlClass(OWLClass.OWL_THING)));
 				} else if (bodyAtom.getTerm(1).equals(headAtom.getTerm(0))) {
-					// to complete
+					// TODO
 				} else {
 					System.err.println("ERROR IN Dom Rng: " + tgdgSatRule);
 					System.exit(1);
@@ -232,33 +232,42 @@ public class Executor {
 				// ERC: Existential quantification in rule heads - p(x,y), B(y) :- A(x)
 				// IERC: ERC with Inverse role - p(y,x), B(y) :- A(x)
 
+				// TODO
 			} else if (numberOfBodyAtoms == 2 && numberOfHeadAtoms == 1 && headAtom.equals(TGDGSat.Bottom)) {
 				// DC: Disjoint Concept - ! :- A(x), B(x)
 				// DR: Disjoint Role - ! :- p(x,y), r(x,y)
 
+				// TODO
 			} else if (numberOfBodyAtoms == 1 && numberOfHeadAtoms == 1 && headAtom.equals(TGDGSat.Bottom)) {
 				// ! :- OWL#Nothing(X)
 
+				// TODO
 			} else if (numberOfBodyAtoms == 2 && numberOfHeadAtoms == 1) {
 				// B(X0) :- ActsOn(X0,X3), A(X3).
 
+				// TODO
 			} else if (numberOfBodyAtoms == 3 && numberOfHeadAtoms == 1) {
 				// C(X0) :- HasA(X0,X3), B(X0), A(X3).
 
+				// TODO
 			} else if (numberOfBodyAtoms == 1 && numberOfHeadAtoms == 4) {
 				// HasA(X0, X3), A(X3), IsA(X3, X4), B(X4) :- C(X0).
 
+				// TODO
 			} else if (numberOfBodyAtoms == 1 && numberOfHeadAtoms == 6) {
 				// HasA(X0, X3), A(X3), IsAB(X3, X4), B(X4), IsAC(X3, X5), C(X5) :- D(X0).
 
+				// TODO
 			} else if (numberOfBodyAtoms == 1 && numberOfHeadAtoms == 8) {
 				// HasA(X0, X3), A(X3), IsAB(X3, X4), B(X4), IsAC(X3, X5), C(X5), IsCD(X5, X6),
 				// D(X6) :- E(X0).
 
+				// TODO
 			} else if (numberOfBodyAtoms == 1 && numberOfHeadAtoms == 10) {
 				// HasA(X0, X3), A(X3), IsAB(X3, X4), B(X4), IsAC(X3, X5), C(X5), IsCD(X5, X6),
 				// D(X6), IsCE(X5, X7), E(X7) :- F(X0).
 
+				// TODO
 			} else {
 				System.err.println("RULE NOT IMPLEMENTED!! " + tgdgSatRule);
 				// System.exit(1);
