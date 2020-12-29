@@ -7,6 +7,7 @@ import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
 import java.io.PrintWriter;
 import java.nio.charset.StandardCharsets;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -41,6 +42,7 @@ public class Logic {
 	/**
 	 * From PDQ code, slightly modified
 	 */
+	// TODO: inconsistent of vs create
 	static Formula applySubstitution(Formula formula, Map<Term, Term> substitution) {
 		if (formula instanceof Conjunction) {
 			Formula child1 = applySubstitution(((Conjunction) formula).getChildren()[0], substitution);
@@ -101,10 +103,10 @@ public class Logic {
 	}
 
 	static boolean containsAny(Atom atom, Variable[] eVariables) {
+		HashSet<Term> eVars = new HashSet<>(Arrays.asList(atom.getVariables()));
 		for (Variable v : eVariables)
-			for (Variable va : atom.getVariables())
-				if (v.equals(va))
-					return true;
+			if (eVars.contains(v))
+				return true;
 		return false;
 	}
 
@@ -126,7 +128,7 @@ public class Logic {
 				files_paths += program_file;
 				files_paths += " ";
 			} else
-				App.logger.warning("The file " + f.getAbsolutePath() + " does not exists.");
+				App.logger.warning("The file " + f.getAbsolutePath() + " does not exist.");
 
 		}
 
@@ -225,6 +227,21 @@ public class Logic {
 
 	}
 
+	// If we found substitutions a->b->c->...->y->z with z not substituted
+	// by anything, then this function will update the map with substitutions a->z,
+	// b->z, ..., y->z, and return z
+	// It might make sense to use this in applySubstitution, instead of getMGU
+	private static Term getSubstitute(Term a, Map<Term, Term> substitution) {
+		if (substitution.containsKey(a)) {
+			Term value = getSubstitute(substitution.get(a), substitution);
+			substitution.put(a, value);
+			return value;
+		}
+		return a;
+	}
+
+	// returns null if there is no MGU
+	// otherwise a map containing the substitution
 	public static Map<Term, Term> getMGU(Atom s, Atom t, Map<Term, Term> renaming) {
 
 		if (!s.getPredicate().equals(t.getPredicate()))
@@ -234,63 +251,43 @@ public class Logic {
 
 		Map<Term, Term> sigma;
 
-		if (renaming != null) {
+		if (renaming != null)
 			sigma = new HashMap<>(renaming);
-			s = (Atom) applySubstitution(s, sigma);
-			t = (Atom) applySubstitution(t, sigma);
-		} else
+		else
 			sigma = new HashMap<>();
 
-		while (!s.equals(t)) {
+		for (int i = 0; i < s.getTerms().length; i++) {
+			Term s_term = getSubstitute(s.getTerm(i), sigma);
+			Term t_term = getSubstitute(t.getTerm(i), sigma);
+			if (!s_term.equals(t_term)) {
+				if (s_term.isVariable() || t_term.isVariable()) {
 
-			int different_position = -1;
-			for (int i = 0; i < s.getTerms().length; i++)
-				if (!s.getTerm(i).equals(t.getTerm(i))) {
-					different_position = i;
-					break;
-				}
+					if (s_term.isVariable())
+						if (sigma.containsKey(s_term) || sigma.containsKey(t_term)) // note that they are different
+							return null;
+						else {
+							sigma.put(s_term, t_term);
+							// s = (Atom) applySubstitution(s, Map.of(s_term, t_term));
+							// t = (Atom) applySubstitution(t, Map.of(s_term, t_term));
+						}
 
-			if (different_position == -1)
-				throw new RuntimeException("Unexpected error while computing the MGU of " + s + " and " + t);
-
-			Term s_term = s.getTerm(different_position);
-			Term t_term = t.getTerm(different_position);
-			if (s_term.isVariable() || t_term.isVariable()) {
-
-				if (s_term.isVariable())
-					if (sigma.containsKey(s_term) || sigma.containsKey(t_term))
+					else if (sigma.containsKey(t_term) || sigma.containsKey(s_term))
 						return null;
 					else {
-						sigma.put(s_term, t_term);
-						// s = (Atom) applySubstitution(s, Map.of(s_term, t_term));
-						// t = (Atom) applySubstitution(t, Map.of(s_term, t_term));
+						sigma.put(t_term, s_term);
+						// s = (Atom) applySubstitution(s, Map.of(t_term, s_term));
+						// t = (Atom) applySubstitution(t, Map.of(t_term, s_term));
 					}
 
-				else if (sigma.containsKey(t_term) || sigma.containsKey(s_term))
+				} else // both of them are constants and not equal
 					return null;
-				else {
-					sigma.put(t_term, s_term);
-					// s = (Atom) applySubstitution(s, Map.of(t_term, s_term));
-					// t = (Atom) applySubstitution(t, Map.of(t_term, s_term));
-				}
-
-				s = (Atom) applySubstitution(s, sigma);
-				t = (Atom) applySubstitution(t, sigma);
-
-			} else
-				return null;
-
+			}
 		}
 
-		boolean changed = true;
-		while (changed) {
-			changed = false;
-			for (Entry<Term, Term> entry : sigma.entrySet())
-				if (sigma.containsKey(entry.getValue())) {
-					sigma.put(entry.getKey(), sigma.get(entry.getValue()));
-					changed = true;
-				}
-		}
+		for (Entry<Term, Term> entry : sigma.entrySet())
+			// we don't care about the actual value, we just want for everything to point to
+			// the last value in the chain
+			getSubstitute(entry.getKey(), sigma);
 
 		return sigma;
 
