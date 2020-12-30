@@ -75,6 +75,22 @@ public class TGDGSat extends TGD {
 
     private final Atom guard;
 
+    public boolean bodySubsumes(Collection<Atom> atoms) {
+        for (Atom atom : atoms) {
+            if (!bodySubsumes(atom))
+                return false;
+        }
+        return true;
+    }
+
+    public boolean headSubsumes(Collection<Atom> atoms) {
+        for (Atom atom : atoms) {
+            if (!headSubsumes(atom))
+                return false;
+        }
+        return true;
+    }
+
     public boolean bodySubsumes(Atom atom) {
         return subsumes(bodyTrie, atom);
     }

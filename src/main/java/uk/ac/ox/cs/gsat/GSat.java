@@ -30,29 +30,35 @@ public class GSat {
 
     private static final GSat INSTANCE = new GSat();
     private boolean DEBUG_MODE = Configuration.isDebugMode();
-
-    // New variable name for Universally Quantified Variables
+    // New variable prefix for Universally Quantified Variables
     public String uVariable = "GSat_u";
-    // New variable name for Existentially Quantified Variables
+    // New variable prefix for Existentially Quantified Variables
     public String eVariable = "GSat_e";
-    // New variable name for evolveRename
+    // New variable prefix for evolveRename
     public String zVariable = "GSat_z";
+    // Order elements by (largest_head_size, smallest_body_size,
+    // string_representation)
 
     private static Comparator<? super TGDGSat> comparator = (tgd1, tgd2) -> {
-
+        // first compare by number of head atoms: more head atoms first
         int numberOfHeadAtoms1 = tgd1.getNumberOfHeadAtoms();
         int numberOfHeadAtoms2 = tgd2.getNumberOfHeadAtoms();
         if (numberOfHeadAtoms1 != numberOfHeadAtoms2)
             return numberOfHeadAtoms2 - numberOfHeadAtoms1;
 
+        // then compare number of body atoms: less body atoms first
         int numberOfBodyAtoms1 = tgd1.getNumberOfBodyAtoms();
         int numberOfBodyAtoms2 = tgd2.getNumberOfBodyAtoms();
         if (numberOfBodyAtoms1 != numberOfBodyAtoms2)
             return numberOfBodyAtoms1 - numberOfBodyAtoms2;
 
+        // check if the tgds are made up of the exact same symbols (I assume)
+        // this might take a lot of time
         if (tgd1.equals(tgd2))
             return 0;
 
+        // this might take a lot of time
+        // alphabetical ordering
         int compareTo = tgd1.toString().compareTo(tgd2.toString());
         if (compareTo != 0)
             return compareTo;
@@ -70,6 +76,7 @@ public class GSat {
      *
      * @return Singleton instace of GSat
      */
+
     public static GSat getInstance() {
         return INSTANCE;
     }
@@ -86,8 +93,9 @@ public class GSat {
         System.out.println("Running GSat...");
         final long startTime = System.nanoTime();
 
-        int discarded = 0;
+        int discarded = 0; // the number of not supported rules
 
+        // filter out non-supported rules
         Collection<TGDGSat> selectedTGDs = new HashSet<>();
         for (Dependency d : allDependencies)
             if (isSupportedRule(d))
@@ -102,15 +110,18 @@ public class GSat {
             System.out.println("GSat discarded rules : " + discarded + "/" + allDependencies.size() + " = "
                     + String.format(Locale.UK, "%.3f", (float) discarded / allDependencies.size() * 100) + "%");
 
+        // this renames prefixes for new variables if any of them are prefixes
         while (checkRenameVariablesInTGDs(selectedTGDs)) {
             uVariable += "0";
             eVariable += "0";
             zVariable += "0";
         }
 
+        // new TGDs that the algorithm computes
         Collection<TGDGSat> newFullTGDs = new HashSet<>();
         Collection<TGDGSat> newNonFullTGDs = new HashSet<>();
 
+        // why exactly stacks?
         if (Configuration.getOptimizationValue() >= 5) {
 
             newFullTGDs = new Stack<>();
@@ -258,6 +269,7 @@ public class GSat {
 
     }
 
+    // get all tgds that share a predicate
     private Set<TGDGSat> getFullTGDsToEvolve(Map<Predicate, Set<TGDGSat>> fullTGDsMap, TGDGSat currentTGD) {
 
         Set<TGDGSat> result = new HashSet<>();
@@ -302,6 +314,8 @@ public class GSat {
 
     }
 
+    // adds a new TGD to the correct collection in place
+    // also checks for subsumed TGDs and removes those
     private void addNewTGD(TGDGSat newTGD, Collection<TGDGSat> newFullTGDs, Collection<TGDGSat> newNonFullTGDs,
             Set<TGDGSat> fullTGDsSet, Set<TGDGSat> nonFullTGDsSet, Map<Predicate, Set<TGDGSat>> fullTGDsMap,
             Map<Predicate, Set<TGDGSat>> nonFullTGDsMap) {
@@ -338,13 +352,13 @@ public class GSat {
                 // for (TGDGSat tgd : subsumed)
                 // if (TGDsMap.get(tgd.getGuard().getPredicate()) == null)
                 // System.out.println("NULL: " + tgd);
-
+                // TODO: what does this do
                 subsumed.forEach(tgd -> TGDsMap.get(tgd.getGuard().getPredicate()).remove(tgd));
             } else
                 for (TGDGSat tgd : subsumed)
                     for (Atom atom : tgd.getHeadSet())
                         TGDsMap.get(atom.getPredicate()).remove(tgd);
-
+            // TODO: does this actually function as intended?
             TGDsMap.values().removeIf(v -> v.isEmpty());
 
         }
@@ -355,6 +369,8 @@ public class GSat {
         newTGDs.add(newTGD);
 
     }
+
+    // returns a collection of TGDs that are subsumed by the newTGD
 
     private Collection<TGDGSat> subsumesAny(TGDGSat newTGD, Collection<TGDGSat> TGDs) {
 
@@ -369,8 +385,7 @@ public class GSat {
 
             if (body.size() < bodyN.size() || headN.size() < head.size())
                 continue;
-
-            if (body.containsAll(bodyN) && headN.containsAll(head))
+            if (tgd.bodySubsumes(bodyN) && newTGD.headSubsumes(head))
                 subsumed.add(tgd);
         }
 
@@ -378,6 +393,7 @@ public class GSat {
 
     }
 
+    // returns true iff the new tgd is subsumed by at least one existing TGD
     private boolean subsumed(TGDGSat newTGD, Collection<TGDGSat> TGDs) {
 
         var bodyN = newTGD.getBodySet();
@@ -390,13 +406,19 @@ public class GSat {
             if (bodyN.size() < body.size() || head.size() < headN.size())
                 continue;
 
-            if (bodyN.containsAll(body) && head.containsAll(headN))
+            // if (bodyN.containsAll(body) && head.containsAll(headN))
+            // return true;
+            if (newTGD.bodySubsumes(body) && tgd.headSubsumes(headN))
                 return true;
         }
 
         return false;
 
     }
+
+    // this should be possible to improve quite a bit (in terms of accuracy)
+    // (approximately) check if tgd1 is subsumed by tgd2 (so we can replace tgd1 by
+    // tgd2)
 
     private boolean subsumed(TGDGSat tgd1, TGDGSat tgd2) {
 
@@ -441,6 +463,8 @@ public class GSat {
     // return false;
     // }
 
+    // Checks if TGD and guard is present
+
     private boolean isSupportedRule(Dependency d) {
         // if (d instanceof TGD && ((TGD) d).isGuarded() && !containsSelfJoin((TGD) d))
         // // Adding only Guarded TGDs
@@ -451,12 +475,13 @@ public class GSat {
     /**
      *
      * Check if the variables we use in the rename are already used in the input
-     * TGDs
+     * TGDs. Called a small (almost always 0) number of times at the start
      *
      * @param TGDs
      * @return true if it founds a variable with the same name of one of our rename
      *         variables
      */
+
     private boolean checkRenameVariablesInTGDs(Collection<TGDGSat> TGDs) {
 
         for (TGDGSat tgd : TGDs)
@@ -477,6 +502,7 @@ public class GSat {
      * @param tgd an input TGD
      * @return Head Normal Form of tgd
      */
+
     public Collection<TGDGSat> HNF(final TGDGSat tgd) {
 
         if (tgd == null)
@@ -484,7 +510,9 @@ public class GSat {
 
         Variable[] eVariables = tgd.getExistential();
 
+        // existential head variables
         Set<Atom> eHead = new HashSet<>();
+        // full head variables
         Set<Atom> fHead = new HashSet<>();
 
         Set<Atom> bodyAtoms = tgd.getBodySet();
@@ -518,6 +546,7 @@ public class GSat {
      * @param tgds a collection of TGDs
      * @return Variable Normal Form of tgds
      */
+
     public Collection<TGDGSat> VNFs(Collection<TGDGSat> tgds) {
 
         return tgds.stream().map((tgd) -> VNF(tgd)).collect(Collectors.toList());
@@ -531,6 +560,7 @@ public class GSat {
      * @param tgd an input TGD
      * @return Variable Normal Form of tgd
      */
+
     public TGDGSat VNF(TGDGSat tgd) {
 
         if (tgd == null)
@@ -576,6 +606,7 @@ public class GSat {
     // return getEvolveRule(nftgd, ftgd, joinAtoms);
 
     // }
+    // replaces uVariables with new zVariables
 
     private TGDGSat evolveRename(TGDGSat ftgd) {
 
@@ -703,13 +734,20 @@ public class GSat {
      * @return the derived rules of nftgd and ftgd according to the EVOLVE inference
      *         rule
      */
+    // TODO
     public Collection<TGDGSat> evolveNew(TGDGSat nftgd, TGDGSat ftgd) {
 
         ftgd = evolveRename(ftgd);
 
         App.logger.fine("Composing:\n" + nftgd + "\nand\n" + ftgd);
 
+        // this seems to always stay the same, so why construct a new one?
         Atom guard = new TGDGSat(ftgd.getBodySet(), ftgd.getHeadSet()).getGuard();
+        // if (ftgd.getGuard() != guard) {
+        // System.out.println(ftgd.getGuard());
+        // System.out.println(guard);
+        // }
+        // Atom guard = ftgd.getGuard();
         Collection<TGDGSat> results = new HashSet<>();
 
         for (Atom H : nftgd.getHeadAtoms()) {
@@ -817,7 +855,8 @@ public class GSat {
     // return result;
 
     // }
-
+    // takes a head atom and a body atom of another, and tries to produce a
+    // substitution
     public Map<Term, Term> getVariableSubstitution(List<Atom> head, List<Atom> body) {
 
         Map<Term, Term> sigma = new HashMap<>();
@@ -841,6 +880,7 @@ public class GSat {
     }
 
     /**
+     * Computes Cartesian product shead[0] x shead[1] x ... x shead[shead.size()-1]
      * Mainly from https://stackoverflow.com/a/9496234
      *
      * @param shead
@@ -867,10 +907,13 @@ public class GSat {
         return resultLists;
     }
 
+    // TODO
+    // Add head atoms that are valid (whatever that means)
     private List<List<Atom>> getShead(Collection<Atom> headAtoms, Collection<Atom> sbody, List<Variable> eVariables) {
 
         List<List<Atom>> resultLists = new ArrayList<List<Atom>>();
-
+        // it might be possible to improve this with a smarter order selection of the
+        // atoms
         for (Atom bodyAtom : sbody) {
 
             List<Atom> temp = new ArrayList<>();
@@ -883,6 +926,8 @@ public class GSat {
                         Term bodyTerm = bodyAtom.getTerm(i);
                         Term headTerm = headTerms[i];
                         // check if constants and existentials match
+                        // is this actually correct? Shouldn't the second or be an and?
+                        // not sure what exactly this does
                         if (!bodyTerm.equals(headTerm) && (headTerm.isUntypedConstant() && bodyTerm.isUntypedConstant()
                                 || eVariables.contains(headTerm) || eVariables.contains(bodyTerm))) {
                             valid = false;
@@ -920,11 +965,15 @@ public class GSat {
 
     // }
 
+    // Filter only those Atoms that contain a variable from eVariables
+
     private List<Atom> getSbody(Collection<Atom> new_bodyAtoms, Collection<Variable> eVariables) {
 
         return new_bodyAtoms.stream().filter(atom -> containsY(atom, eVariables)).collect(Collectors.toList());
 
     }
+
+    // Checks if any variable of atom is contained in eVariables
 
     private boolean containsY(Atom atom, Collection<Variable> eVariables) {
 
@@ -947,6 +996,10 @@ public class GSat {
         return new TGDGSat(applyMGU(bodyAtoms, mgu), applyMGU(headAtoms, mgu));
 
     }
+
+    // Part of the EVOLVE algorithm (start of foreach loopp)
+    // In addition to getting the MGU checks the additional 2 constraints from the
+    // pseudocode
 
     private Map<Term, Term> getGuardMGU(Atom guard, Atom h) {
 
