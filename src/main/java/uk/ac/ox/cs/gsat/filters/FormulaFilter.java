@@ -5,9 +5,6 @@ import java.util.Collection;
 import uk.ac.ox.cs.gsat.TGDGSat;
 
 public interface FormulaFilter {
-    // public FormulaFilter() {
-
-    // }
     default void addAll(Collection<TGDGSat> formulas) {
         for (TGDGSat formula : formulas) {
             add(formula);
@@ -16,7 +13,7 @@ public interface FormulaFilter {
 
     default void removeAll(Collection<TGDGSat> formulas) {
         for (TGDGSat formula : formulas) {
-            add(formula);
+            remove(formula);
         }
     }
 
@@ -27,7 +24,8 @@ public interface FormulaFilter {
     void remove(TGDGSat formula);
 
     // returns a collection of elements that may be subsumed by formula
-    Collection<TGDGSat> getSubsumedCandidates(TGDGSat formula);
+    Iterable<TGDGSat> getSubsumedCandidates(TGDGSat formula);
 
-    Collection<TGDGSat> getSubsumingCandidates(TGDGSat formula);
+    // returns a collection of elements that may subsume a formula
+    Iterable<TGDGSat> getSubsumingCandidates(TGDGSat formula);
 }

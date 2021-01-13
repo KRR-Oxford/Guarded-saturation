@@ -28,11 +28,11 @@ public class IdentityFormulaFilter implements FormulaFilter {
         formulas.remove(newFormula);
     }
 
-    public Collection<TGDGSat> getSubsumedCandidates(TGDGSat formula) {
+    public Iterable<TGDGSat> getSubsumedCandidates(TGDGSat formula) {
         return formulas;
     }
 
-    public Collection<TGDGSat> getSubsumingCandidates(TGDGSat formula) {
+    public Iterable<TGDGSat> getSubsumingCandidates(TGDGSat formula) {
         return formulas;
     }
 }
