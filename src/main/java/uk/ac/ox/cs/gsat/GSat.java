@@ -20,10 +20,10 @@ import uk.ac.ox.cs.gsat.filters.FormulaFilter;
 import uk.ac.ox.cs.gsat.filters.IdentityFormulaFilter;
 import uk.ac.ox.cs.gsat.filters.MinPredicateFilter;
 import uk.ac.ox.cs.gsat.filters.AnyPredicateFilter;
-import uk.ac.ox.cs.gsat.filters.PerfectClauseFilter;
-import uk.ac.ox.cs.gsat.filters.PerfectClauseFilterV1;
-import uk.ac.ox.cs.gsat.subsumers.ExactClauseSubsumer;
-import uk.ac.ox.cs.gsat.subsumers.ExactClauseSubsumerV1;
+import uk.ac.ox.cs.gsat.filters.ExactAtomFilter;
+import uk.ac.ox.cs.gsat.filters.ExactAtomFilterV1;
+import uk.ac.ox.cs.gsat.subsumers.ExactAtomSubsumer;
+import uk.ac.ox.cs.gsat.subsumers.ExactAtomSubsumerV1;
 import uk.ac.ox.cs.gsat.subsumers.SimpleSubsumer;
 import uk.ac.ox.cs.gsat.subsumers.Subsumer;
 import uk.ac.ox.cs.pdq.fol.Atom;
@@ -138,11 +138,11 @@ public class GSat {
         Set<TGDGSat> fullTGDsSet = new HashSet<>();
         Set<TGDGSat> nonFullTGDsSet = new HashSet<>();
 
-        // FormulaFilter fullTGDsFilter = new PerfectClauseFilter();
-        // FormulaFilter nonFullTGDsFilter = new PerfectClauseFilter();
+        // FormulaFilter fullTGDsFilter = new ExactAtomFilter();
+        // FormulaFilter nonFullTGDsFilter = new ExactAtomFilter();
 
-        // FormulaFilter fullTGDsFilter = new PerfectClauseFilterV1();
-        // FormulaFilter nonFullTGDsFilter = new PerfectClauseFilterV1();
+        // FormulaFilter fullTGDsFilter = new ExactAtomFilterV1();
+        // FormulaFilter nonFullTGDsFilter = new ExactAtomFilterV1();
 
         // FormulaFilter fullTGDsFilter = new IdentityFormulaFilter();
         // FormulaFilter nonFullTGDsFilter = new IdentityFormulaFilter();
@@ -150,37 +150,37 @@ public class GSat {
         // FormulaFilter fullTGDsFilter = new AnyPredicateFilter();
         // FormulaFilter nonFullTGDsFilter = new AnyPredicateFilter();
 
-        FormulaFilter fullTGDsFilter = new MinPredicateFilter();
-        FormulaFilter nonFullTGDsFilter = new MinPredicateFilter();
+        // FormulaFilter fullTGDsFilter = new MinPredicateFilter();
+        // FormulaFilter nonFullTGDsFilter = new MinPredicateFilter();
 
-        Subsumer fullTGDsSubsumer = new SimpleSubsumer(fullTGDsFilter);
-        Subsumer nonFullTGDsSubsumer = new SimpleSubsumer(nonFullTGDsFilter);
+        // Subsumer fullTGDsSubsumer = new SimpleSubsumer(fullTGDsFilter);
+        // Subsumer nonFullTGDsSubsumer = new SimpleSubsumer(nonFullTGDsFilter);
 
-        Subsumer fullTGDsSubsumer2 = new ExactClauseSubsumer();
-        Subsumer nonFullTGDsSubsumer2 = new ExactClauseSubsumer();
+        Subsumer fullTGDsSubsumer = new ExactAtomSubsumer();
+        Subsumer nonFullTGDsSubsumer = new ExactAtomSubsumer();
 
-        // Subsumer fullTGDsSubsumer = new ExactClauseSubsumerV1();
-        // Subsumer nonFullTGDsSubsumer = new ExactClauseSubsumerV1();
+        // Subsumer fullTGDsSubsumer = new ExactAtomSubsumerV1();
+        // Subsumer nonFullTGDsSubsumer = new ExactAtomSubsumerV1();
 
         for (TGDGSat tgd : selectedTGDs)
             for (TGDGSat currentTGD : VNFs(HNF(tgd)))
                 if (Logic.isFull(currentTGD)) {
                     addFullTGD(currentTGD, fullTGDsMap, fullTGDsSet);
                     fullTGDsSubsumer.add(currentTGD);
-                    fullTGDsSubsumer2.add(currentTGD);
+                    // fullTGDsSubsumer2.add(currentTGD);
                     // System.out.println(fullTGDsSubsumer.getAll());
                     // System.out.println(fullTGDsSubsumer2.getAll());
                     // System.out.println(fullTGDsSubsumer.getAll().equals(fullTGDsSubsumer2.getAll()));
 
-                    assert fullTGDsSubsumer.getAll().equals(fullTGDsSubsumer2.getAll());
+                    // assert fullTGDsSubsumer.getAll().equals(fullTGDsSubsumer2.getAll());
                 } else {
                     nonFullTGDsSubsumer.add(currentTGD);
                     newNonFullTGDs.add(currentTGD);
-                    nonFullTGDsSubsumer2.add(currentTGD);
+                    // nonFullTGDsSubsumer2.add(currentTGD);
                     // System.out.println(nonFullTGDsSubsumer.getAll());
                     // System.out.println(nonFullTGDsSubsumer2.getAll());
                     // System.out.println(nonFullTGDsSubsumer.getAll().equals(nonFullTGDsSubsumer2.getAll()));
-                    assert nonFullTGDsSubsumer.getAll().equals(nonFullTGDsSubsumer2.getAll());
+                    // assert nonFullTGDsSubsumer.getAll().equals(nonFullTGDsSubsumer2.getAll());
                 }
 
         App.logger.fine("# initial TGDs: " + fullTGDsSet.size() + " , " + newNonFullTGDs.size());
@@ -293,11 +293,11 @@ public class GSat {
             // System.out.println("formulas: " + toAdd);
             for (TGDGSat newTGD : toAdd) {
                 // System.out.println(" adding formula " + newTGD);
-                addNewTGD(newTGD, newFullTGDs, newNonFullTGDs, fullTGDsSubsumer, nonFullTGDsSubsumer, fullTGDsSubsumer2,
-                        nonFullTGDsSubsumer2, fullTGDsMap, nonFullTGDsMap);
                 // addNewTGD(newTGD, newFullTGDs, newNonFullTGDs, fullTGDsSubsumer,
-                // nonFullTGDsSubsumer, fullTGDsMap,
-                // nonFullTGDsMap);
+                // nonFullTGDsSubsumer, fullTGDsSubsumer2,
+                // nonFullTGDsSubsumer2, fullTGDsMap, nonFullTGDsMap);
+                addNewTGD(newTGD, newFullTGDs, newNonFullTGDs, fullTGDsSubsumer, nonFullTGDsSubsumer, fullTGDsMap,
+                        nonFullTGDsMap);
 
             }
             // System.out.println("end big iteration");

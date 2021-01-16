@@ -12,7 +12,7 @@ import java.util.TreeSet;
 import uk.ac.ox.cs.gsat.TGDGSat;
 import uk.ac.ox.cs.pdq.fol.Atom;
 
-public class PerfectClauseFilter implements FormulaFilter {
+public class ExactAtomFilter implements FormulaFilter {
 
     private class Node {
         boolean isBody = true;

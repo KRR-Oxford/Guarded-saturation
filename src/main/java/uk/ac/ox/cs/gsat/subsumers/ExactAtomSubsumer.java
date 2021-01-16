@@ -11,7 +11,7 @@ import java.util.TreeSet;
 import uk.ac.ox.cs.gsat.TGDGSat;
 import uk.ac.ox.cs.pdq.fol.Atom;
 
-public class ExactClauseSubsumer implements Subsumer {
+public class ExactAtomSubsumer implements Subsumer {
     private class Node {
         boolean isBody = true;
         // maps hash of next clause to the next node in the trie
