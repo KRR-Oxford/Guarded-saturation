@@ -11,7 +11,7 @@ import java.util.TreeSet;
 import uk.ac.ox.cs.gsat.TGDGSat;
 import uk.ac.ox.cs.pdq.fol.Atom;
 
-public class ExactClauseSubsumer implements Subsumer {
+public class ExactClauseSubsumerV1 implements Subsumer {
     private class Node {
         boolean isBody = true;
         // maps hash of next clause to the next node in the trie
@@ -61,8 +61,6 @@ public class ExactClauseSubsumer implements Subsumer {
     public Collection<TGDGSat> subsumesAny(TGDGSat formula) {
         HashSet<TGDGSat> answer = new HashSet<>();
         Stack<IntNodePair> traversing = new Stack<>();
-        // TODO: implement this in a less hacky manner
-        Stack<IntNodePair> reversedTraversal = new Stack<>();
         int[] bodyHashes = formula.bodyHashes;
         int[] headHashes = formula.headHashes;
         if (bodyHashes.length != 0)
@@ -79,26 +77,21 @@ public class ExactClauseSubsumer implements Subsumer {
                     // all elements still in the body should be pushed
                     for (Map.Entry<Integer, Node> nodeInt : topNode.nextBody.entrySet()) {
                         traversing.push(new IntNodePair(topIndex, nodeInt.getValue()));
-                        reversedTraversal.push(new IntNodePair(nodeInt.getKey() * 2, topNode));
                     }
                     // all elements in the nextHead that are in hashes should be pushed
                     for (int i = 0; i < headHashes.length; i++) {
                         if (topNode.nextHead.containsKey(headHashes[i])) {
                             traversing.push(new IntNodePair(i + 1, topNode.nextHead.get(headHashes[i])));
-                            reversedTraversal.push(new IntNodePair(headHashes[i] * 2 + 1, topNode));
                         }
                     }
-                } else {
+                } else {// not correct I think
                     for (Map.Entry<Integer, Node> nodeInt : topNode.nextBody.entrySet()) {
                         if (nodeInt.getKey() > bodyHashes[topIndex])
                             break;
-                        if (nodeInt.getKey() == bodyHashes[topIndex]) {
+                        if (nodeInt.getKey() == bodyHashes[topIndex])
                             traversing.push(new IntNodePair(topIndex + 1, nodeInt.getValue()));
-                            reversedTraversal.push(new IntNodePair(nodeInt.getKey() * 2, topNode));
-                        } else {
+                        else
                             traversing.push(new IntNodePair(topIndex, nodeInt.getValue()));
-                            reversedTraversal.push(new IntNodePair(nodeInt.getKey() * 2, topNode));
-                        }
                     }
                 }
             }
@@ -108,29 +101,10 @@ public class ExactClauseSubsumer implements Subsumer {
                 if (topNode.currentFormula != null)
                     answer.add(topNode.currentFormula);
                 for (int i = topIndex; i < headHashes.length; i++) {
-                    if (topNode.nextHead.containsKey(headHashes[i])) {
+                    if (topNode.nextHead.containsKey(headHashes[i]))
                         traversing.push(new IntNodePair(i + 1, topNode.nextHead.get(headHashes[i])));
-                        reversedTraversal.push(new IntNodePair(headHashes[i] * 2 + 1, topNode));
-                    }
                 }
                 topNode.currentFormula = null;
-            }
-        }
-        // discard deleted nodes
-        while (!reversedTraversal.empty()) {
-            IntNodePair top = reversedTraversal.pop();
-            Node topNode = top.node;
-            int index = top.index / 2;
-            if (top.index % 2 == 0) {
-                Node node = topNode.nextBody.get(index);
-                if (node.nextBody.isEmpty() && node.nextHead.isEmpty() && node.currentFormula == null) {
-                    topNode.nextBody.remove(index);
-                }
-            } else {
-                Node node = topNode.nextHead.get(index);
-                if (node.nextBody.isEmpty() && node.nextHead.isEmpty() && node.currentFormula == null) {
-                    topNode.nextHead.remove(index);
-                }
             }
         }
         return answer;
