@@ -382,26 +382,9 @@ public class GSat {
                 return;
 
             Collection<TGDGSat> sub = TGDsSubsumer.subsumesAny(newTGD);
-            for (TGDGSat tgd : sub) {
-                assert (subsumed(tgd, newTGD));
-            }
+
             newTGDs.removeAll(sub);
-            // System.out.println("removing from filter " + subsumed.size() + " elements");
-            // System.out.println("original " + newTGD);
-            // System.out.println("subsumed " + subsumed);
-            // subsumed.forEach(tgd ->
-            // System.out.println(TGDsMap.get(tgd.getGuard().getPredicate())));
-            // System.out.println("subsumed\t" + subsumed);
-            // System.out.println("newTGD\t" + newTGD);
-            // System.out.println("TGDsFilter\t" + TGDsFilter.getAll());
             if (Logic.isFull(newTGD)) {
-                // for (TGDGSat tgd : subsumed)
-                // if (TGDsMap.get(tgd.getGuard().getPredicate()) == null)
-                // System.out.println("NULL: " + tgd);
-                // System.out.println("going to do for each");
-                // subsumed.forEach(tgd ->
-                // System.out.println(TGDsMap.get(tgd.getGuard().getPredicate())));
-                // System.out.println("full");
                 sub.forEach(tgd -> {
                     Set<TGDGSat> set = TGDsMap.get(tgd.getGuard().getPredicate());
                     if (set != null)
