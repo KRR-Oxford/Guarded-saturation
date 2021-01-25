@@ -9,6 +9,7 @@ import uk.ac.ox.cs.gsat.filters.FormulaFilter;
 public class SimpleSubsumer implements Subsumer {
 
     FormulaFilter filter;
+    private int num_filter_discarded = 0, num_subsumed = 0;
 
     public SimpleSubsumer(FormulaFilter filter) {
         this.filter = filter;
@@ -25,11 +26,18 @@ public class SimpleSubsumer implements Subsumer {
             var body = tgd.getBodySet();
             var head = tgd.getHeadSet();
 
-            if (body.size() < bodyN.size() || headN.size() < head.size())
+            if (body.size() < bodyN.size() || headN.size() < head.size()) {
+                num_filter_discarded += 1;
                 continue;
+            }
 
-            if (body.containsAll(bodyN) && headN.containsAll(head))
+            if (body.containsAll(bodyN) && headN.containsAll(head)) {
+                num_subsumed += 1;
                 subsumed.add(tgd);
+            } else {
+                num_filter_discarded += 1;
+            }
+
         }
         filter.removeAll(subsumed);
         return subsumed;
@@ -44,11 +52,17 @@ public class SimpleSubsumer implements Subsumer {
             var body = tgd.getBodySet();
             var head = tgd.getHeadSet();
 
-            if (bodyN.size() < body.size() || head.size() < headN.size())
+            if (bodyN.size() < body.size() || head.size() < headN.size()) {
+                num_filter_discarded += 1;
                 continue;
+            }
 
-            if (bodyN.containsAll(body) && head.containsAll(headN))
+            if (bodyN.containsAll(body) && head.containsAll(headN)) {
+                num_subsumed += 1;
                 return true;
+            } else {
+                num_filter_discarded += 1;
+            }
         }
 
         return false;
@@ -60,6 +74,14 @@ public class SimpleSubsumer implements Subsumer {
 
     public Collection<TGDGSat> getAll() {
         return filter.getAll();
+    }
+
+    public int getNumberSubsumed() {
+        return num_subsumed;
+    }
+
+    public int getFilterDiscarded() {
+        return num_filter_discarded;
     }
 
 }

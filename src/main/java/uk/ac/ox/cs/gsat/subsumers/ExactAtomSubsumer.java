@@ -170,13 +170,7 @@ public class ExactAtomSubsumer implements Subsumer {
             // if element appears in hashes, it should appear in nextHead
             else {
                 if (topIndex == headHashes.length) {
-                    // possibly just return true might work here, depending on how we delete TODO
-                    if (topNode.currentFormula != null)
-                        return true;
-                    // add all elements in this subtree
-                    for (Map.Entry<Integer, Node> nodeInt : topNode.nextHead.entrySet()) {
-                        traversing.push(new IntNodePair(topIndex, nodeInt.getValue()));
-                    }
+                    return true;
                 } else {
                     // add elements that are <= topIndex
                     for (Map.Entry<Integer, Node> nodeInt : topNode.nextHead.entrySet()) {

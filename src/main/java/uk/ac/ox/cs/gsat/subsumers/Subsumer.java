@@ -19,4 +19,12 @@ public interface Subsumer {
     public void add(TGDGSat formula);
 
     public Collection<TGDGSat> getAll();
+
+    default public int getNumberSubsumed() {
+        return 0;
+    }
+
+    default public int getFilterDiscarded() {
+        return 0;
+    }
 }

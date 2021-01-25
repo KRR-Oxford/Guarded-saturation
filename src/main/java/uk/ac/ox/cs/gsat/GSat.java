@@ -18,7 +18,9 @@ import java.util.stream.Collectors;
 
 import uk.ac.ox.cs.gsat.filters.FormulaFilter;
 import uk.ac.ox.cs.gsat.filters.IdentityFormulaFilter;
+import uk.ac.ox.cs.gsat.filters.MinAtomFilter;
 import uk.ac.ox.cs.gsat.filters.MinPredicateFilter;
+import uk.ac.ox.cs.gsat.filters.TreePredicateFilter;
 import uk.ac.ox.cs.gsat.filters.AnyPredicateFilter;
 import uk.ac.ox.cs.gsat.filters.ExactAtomFilter;
 import uk.ac.ox.cs.gsat.filters.ExactAtomFilterV1;
@@ -137,6 +139,8 @@ public class GSat {
         Map<Predicate, Set<TGDGSat>> fullTGDsMap = new HashMap<>();
         Set<TGDGSat> fullTGDsSet = new HashSet<>();
         Set<TGDGSat> nonFullTGDsSet = new HashSet<>();
+        String subsumptionMethod = Configuration.getSubsumptionMethod();
+        App.logger.info("Subsumption method : " + subsumptionMethod);
 
         // FormulaFilter fullTGDsFilter = new ExactAtomFilter();
         // FormulaFilter nonFullTGDsFilter = new ExactAtomFilter();
@@ -156,12 +160,36 @@ public class GSat {
         // Subsumer fullTGDsSubsumer = new SimpleSubsumer(fullTGDsFilter);
         // Subsumer nonFullTGDsSubsumer = new SimpleSubsumer(nonFullTGDsFilter);
 
-        Subsumer fullTGDsSubsumer = new ExactAtomSubsumer();
-        Subsumer nonFullTGDsSubsumer = new ExactAtomSubsumer();
+        // Subsumer fullTGDsSubsumer = new ExactAtomSubsumer();
+        // Subsumer nonFullTGDsSubsumer = new ExactAtomSubsumer();
 
         // Subsumer fullTGDsSubsumer = new ExactAtomSubsumerV1();
         // Subsumer nonFullTGDsSubsumer = new ExactAtomSubsumerV1();
+        Subsumer fullTGDsSubsumer;
+        Subsumer nonFullTGDsSubsumer;
 
+        if (subsumptionMethod.equals("tree_atom")) {
+            fullTGDsSubsumer = new ExactAtomSubsumer();
+            nonFullTGDsSubsumer = new ExactAtomSubsumer();
+        } else {
+            FormulaFilter fullTGDsFilter;
+            FormulaFilter nonFullTGDsFilter;
+            if (subsumptionMethod.equals("min_predicate")) {
+                fullTGDsFilter = new MinPredicateFilter();
+                nonFullTGDsFilter = new MinPredicateFilter();
+            } else if (subsumptionMethod.equals("min_atom")) {
+                fullTGDsFilter = new MinAtomFilter();
+                nonFullTGDsFilter = new MinAtomFilter();
+            } else if (subsumptionMethod.equals("tree_predicate")) {
+                fullTGDsFilter = new TreePredicateFilter();
+                nonFullTGDsFilter = new TreePredicateFilter();
+            } else {
+                fullTGDsFilter = new IdentityFormulaFilter();
+                nonFullTGDsFilter = new IdentityFormulaFilter();
+            }
+            fullTGDsSubsumer = new SimpleSubsumer(fullTGDsFilter);
+            nonFullTGDsSubsumer = new SimpleSubsumer(nonFullTGDsFilter);
+        }
         for (TGDGSat tgd : selectedTGDs)
             for (TGDGSat currentTGD : VNFs(HNF(tgd)))
                 if (Logic.isFull(currentTGD)) {
@@ -297,7 +325,7 @@ public class GSat {
                 // nonFullTGDsSubsumer, fullTGDsSubsumer2,
                 // nonFullTGDsSubsumer2, fullTGDsMap, nonFullTGDsMap);
                 addNewTGD(newTGD, newFullTGDs, newNonFullTGDs, fullTGDsSubsumer, nonFullTGDsSubsumer, fullTGDsMap,
-                        nonFullTGDsMap);
+                        nonFullTGDsMap, fullTGDsSet, nonFullTGDsSet);
 
             }
             // System.out.println("end big iteration");
@@ -312,6 +340,10 @@ public class GSat {
 
         App.logger.info("GSat total time : " + String.format(Locale.UK, "%.0f", totalTime / 1E6) + " ms = "
                 + String.format(Locale.UK, "%.2f", totalTime / 1E9) + " s");
+        App.logger.info("Subsumed elements : "
+                + (fullTGDsSubsumer.getNumberSubsumed() + nonFullTGDsSubsumer.getNumberSubsumed()));
+        App.logger.info("Filter discarded elements : "
+                + (fullTGDsSubsumer.getFilterDiscarded() + nonFullTGDsSubsumer.getFilterDiscarded()));
         return fullTGDsSubsumer.getAll();
 
     }
@@ -362,18 +394,21 @@ public class GSat {
 
     private void addNewTGD(TGDGSat newTGD, Collection<TGDGSat> newFullTGDs, Collection<TGDGSat> newNonFullTGDs,
             Subsumer fullTGDsSubsumer, Subsumer nonFullTGDsSubsumer, Map<Predicate, Set<TGDGSat>> fullTGDsMap,
-            Map<Predicate, Set<TGDGSat>> nonFullTGDsMap) {
+            Map<Predicate, Set<TGDGSat>> nonFullTGDsMap, Set<TGDGSat> fullTGDsSet, Set<TGDGSat> nonFullTGDsSet) {
         final Collection<TGDGSat> newTGDs;
         final Map<Predicate, Set<TGDGSat>> TGDsMap;
         final Subsumer TGDsSubsumer;
+        final Set<TGDGSat> TGDsSet;
         if (Logic.isFull(newTGD)) {
             newTGDs = newFullTGDs;
             TGDsMap = fullTGDsMap;
             TGDsSubsumer = fullTGDsSubsumer;
+            TGDsSet = fullTGDsSet;
         } else {
             newTGDs = newNonFullTGDs;
             TGDsMap = nonFullTGDsMap;
             TGDsSubsumer = nonFullTGDsSubsumer;
+            TGDsSet = nonFullTGDsSet;
         }
 
         if (Configuration.getOptimizationValue() >= 1) {
@@ -382,7 +417,7 @@ public class GSat {
                 return;
 
             Collection<TGDGSat> sub = TGDsSubsumer.subsumesAny(newTGD);
-
+            TGDsSet.removeAll(sub);
             newTGDs.removeAll(sub);
             if (Logic.isFull(newTGD)) {
                 sub.forEach(tgd -> {

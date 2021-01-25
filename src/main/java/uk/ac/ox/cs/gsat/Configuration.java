@@ -79,6 +79,17 @@ public class Configuration {
 
     }
 
+    public static String getSubsumptionMethod() {
+
+        Configuration.initialize();
+
+        if (Configuration.prop == null)
+            return "simple";
+
+        return Configuration.prop.getProperty("subsumption_method");
+
+    }
+
     private static synchronized void initialize() {
 
         FileInputStream inStream = null;
