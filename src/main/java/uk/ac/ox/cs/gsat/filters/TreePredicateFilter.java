@@ -13,6 +13,7 @@ import uk.ac.ox.cs.gsat.TGDGSat;
 import uk.ac.ox.cs.pdq.fol.Atom;
 import uk.ac.ox.cs.pdq.fol.Predicate;
 
+// TODO: implement deletion of empty nodes
 public class TreePredicateFilter implements FormulaFilter {
 
     private class Node {

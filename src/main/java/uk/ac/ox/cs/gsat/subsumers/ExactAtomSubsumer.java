@@ -23,6 +23,7 @@ public class ExactAtomSubsumer implements Subsumer {
 
     Node root = new Node();
 
+    private long numSubsumed = 0;
     private int atomCounter = 0;
     private HashMap<Atom, Integer> bodyAtomIndeces = new HashMap<>(), headAtomIndeces = new HashMap<>();
 
@@ -133,6 +134,7 @@ public class ExactAtomSubsumer implements Subsumer {
                 }
             }
         }
+        numSubsumed += answer.size();
         return answer;
     }
 
@@ -170,6 +172,7 @@ public class ExactAtomSubsumer implements Subsumer {
             // if element appears in hashes, it should appear in nextHead
             else {
                 if (topIndex == headHashes.length) {
+                    numSubsumed += 1;
                     return true;
                 } else {
                     // add elements that are <= topIndex
@@ -228,6 +231,10 @@ public class ExactAtomSubsumer implements Subsumer {
             }
         }
         return answer;
+    }
+
+    public long getNumberSubsumed() {
+        return numSubsumed;
     }
 
 }

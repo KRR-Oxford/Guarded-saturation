@@ -20,11 +20,11 @@ public interface Subsumer {
 
     public Collection<TGDGSat> getAll();
 
-    default public int getNumberSubsumed() {
+    default public long getNumberSubsumed() {
         return 0;
     }
 
-    default public int getFilterDiscarded() {
+    default public long getFilterDiscarded() {
         return 0;
     }
 }

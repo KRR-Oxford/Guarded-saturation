@@ -9,7 +9,7 @@ import uk.ac.ox.cs.gsat.filters.FormulaFilter;
 public class SimpleSubsumer implements Subsumer {
 
     FormulaFilter filter;
-    private int num_filter_discarded = 0, num_subsumed = 0;
+    private long num_filter_discarded = 0, num_subsumed = 0;
 
     public SimpleSubsumer(FormulaFilter filter) {
         this.filter = filter;
@@ -76,11 +76,11 @@ public class SimpleSubsumer implements Subsumer {
         return filter.getAll();
     }
 
-    public int getNumberSubsumed() {
+    public long getNumberSubsumed() {
         return num_subsumed;
     }
 
-    public int getFilterDiscarded() {
+    public long getFilterDiscarded() {
         return num_filter_discarded;
     }
 
