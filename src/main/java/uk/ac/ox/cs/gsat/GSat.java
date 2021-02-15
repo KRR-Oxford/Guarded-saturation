@@ -195,68 +195,24 @@ public class GSat {
                 if (Logic.isFull(currentTGD)) {
                     addFullTGD(currentTGD, fullTGDsMap, fullTGDsSet);
                     fullTGDsSubsumer.add(currentTGD);
-                    // fullTGDsSubsumer2.add(currentTGD);
-                    // System.out.println(fullTGDsSubsumer.getAll());
-                    // System.out.println(fullTGDsSubsumer2.getAll());
-                    // System.out.println(fullTGDsSubsumer.getAll().equals(fullTGDsSubsumer2.getAll()));
-
-                    // assert fullTGDsSubsumer.getAll().equals(fullTGDsSubsumer2.getAll());
                 } else {
                     nonFullTGDsSubsumer.add(currentTGD);
                     newNonFullTGDs.add(currentTGD);
-                    // nonFullTGDsSubsumer2.add(currentTGD);
-                    // System.out.println(nonFullTGDsSubsumer.getAll());
-                    // System.out.println(nonFullTGDsSubsumer2.getAll());
-                    // System.out.println(nonFullTGDsSubsumer.getAll().equals(nonFullTGDsSubsumer2.getAll()));
-                    // assert nonFullTGDsSubsumer.getAll().equals(nonFullTGDsSubsumer2.getAll());
                 }
 
         App.logger.fine("# initial TGDs: " + fullTGDsSet.size() + " , " + newNonFullTGDs.size());
-        // newTGDs.forEach(tgd -> App.logger.fine(tgd.toString()));
-
-        // for (TGD d : allDependencies)
-        // if (isFull(d))
-        // fullTGDs.add(VNF(d));
-        // else {
-        // Collection<TGD> hnf = HNF(d);
-        // TGD[] dh = hnf.toArray(new TGD[hnf.size()]);
-        // if (hnf.size() == 1)
-        // nonFullTGDs.add(VNF(dh[0]));
-        // else {
-        // nonFullTGDs.add(VNF(dh[0]));
-        // fullTGDs.add(VNF(dh[1]));
-        // }
-        // }
-        //
-        // App.logger.fine("# nonFullTGDs: " + nonFullTGDs.size());
-        // nonFullTGDs.forEach(App.logger.fine);
-        // App.logger.fine("# fullTGDs: " + fullTGDs.size());
-        // fullTGDs.forEach(App.logger.fine);
-        // if (!nonFullTGDs.isEmpty())
-        // App.logger.fine("First non full TGD: " + nonFullTGDs.toArray()[0]);
-        // if (!fullTGDs.isEmpty())
-        // App.logger.fine("First full TGD: " + fullTGDs.toArray()[0]);
-        //
-        // newTGDs.addAll(nonFullTGDs);
-        // newTGDs.addAll(fullTGDs);
 
         int counter = 100;
         while (!newFullTGDs.isEmpty() || !newNonFullTGDs.isEmpty()) {
-            // System.out.println("big iteration");
-            // System.out.print('.');
 
             App.logger.fine("# new TGDs: " + newFullTGDs.size() + " , " + newNonFullTGDs.size());
-            // newTGDs.forEach(tgd -> App.logger.fine(tgd.toString()));
 
             if (DEBUG_MODE)
                 if (counter == 100) {
                     counter = 1;
-                    // TODO: nonFullTGDs is no longer accurate
                     System.out.println("nonFullTGDs\t" + nonFullTGDsSet.size() + "\t\tfullTGDs\t" + fullTGDsSet.size()
                             + "\t\t\tnewNonFullTGDs\t" + newNonFullTGDs.size() + "\t\tnewFullTGDs\t"
                             + newFullTGDs.size());
-                    // System.out.println(fullTGDs.keySet());
-                    // System.out.println(newNonFullTGDs.iterator().next());
                 } else
                     counter++;
 
@@ -280,8 +236,6 @@ public class GSat {
                                     toAdd.add(newTGD);
                                     subsumed = subsumed || subsumed(currentTGD, newTGD);
                                 }
-                                // subsumed = subsumed || subsumed(currentTGD, newTGD) && !subsumed(newTGD,
-                                // currentTGD);
                             }
                             if (subsumed)
                                 break;
@@ -307,8 +261,6 @@ public class GSat {
                                     toAdd.add(newTGD);
                                     subsumed = subsumed || subsumed(currentTGD, newTGD);
                                 }
-                                // subsumed = subsumed || subsumed(currentTGD, newTGD) && !subsumed(newTGD,
-                                // currentTGD);
                             }
                             if (subsumed)
                                 break;
@@ -317,22 +269,13 @@ public class GSat {
                                 toAdd.add(newTGD);
 
             }
-            // System.out.println(" adding" + toAdd.size());
-            // System.out.println("formulas: " + toAdd);
             for (TGDGSat newTGD : toAdd) {
-                // System.out.println(" adding formula " + newTGD);
-                // addNewTGD(newTGD, newFullTGDs, newNonFullTGDs, fullTGDsSubsumer,
-                // nonFullTGDsSubsumer, fullTGDsSubsumer2,
-                // nonFullTGDsSubsumer2, fullTGDsMap, nonFullTGDsMap);
                 addNewTGD(newTGD, newFullTGDs, newNonFullTGDs, fullTGDsSubsumer, nonFullTGDsSubsumer, fullTGDsMap,
                         nonFullTGDsMap, fullTGDsSet, nonFullTGDsSet);
 
             }
-            // System.out.println("end big iteration");
 
         }
-
-        // System.out.println();
 
         final long stopTime = System.nanoTime();
 
@@ -425,17 +368,12 @@ public class GSat {
                     if (set != null)
                         set.remove(tgd);
                 });
-                // System.out.println("done with for each");
-                // System.out.println("full end");
             } else
                 for (TGDGSat tgd : sub) {
-                    // System.out.println(tgd);
                     for (Atom atom : tgd.getHeadSet()) {
-                        // System.out.println("not full" + atom);
                         Set<TGDGSat> set = TGDsMap.get(atom.getPredicate());
                         if (set != null)
                             set.remove(tgd);
-                        // System.out.println("not full end");
                     }
                 }
 
@@ -446,7 +384,6 @@ public class GSat {
             return;
         newTGDs.add(newTGD);
         TGDsSubsumer.add(newTGD);
-        // System.out.println("all after adding to filter " + TGDsFilter.getAll());
     }
 
     // use this for correctness testing
@@ -539,54 +476,7 @@ public class GSat {
         TGDsSubsumer.add(newTGD);
         TGDsSubsumer2.add(newTGD);
         assert TGDsSubsumer.getAll().equals(TGDsSubsumer2.getAll());
-        // System.out.println("all after adding to filter " + TGDsFilter.getAll());
     }
-
-    // private Collection<TGDGSat> subsumesAny(TGDGSat newTGD, FormulaFilter TGDs) {
-
-    // Collection<TGDGSat> subsumed = new HashSet<>();
-
-    // var bodyN = newTGD.getBodySet();
-    // var headN = newTGD.getHeadSet();
-
-    // for (TGDGSat tgd : TGDs.getSubsumedCandidates(newTGD)) {
-    // var body = tgd.getBodySet();
-    // var head = tgd.getHeadSet();
-
-    // if (body.size() < bodyN.size() || headN.size() < head.size())
-    // continue;
-
-    // if (body.containsAll(bodyN) && headN.containsAll(head))
-    // subsumed.add(tgd);
-    // }
-
-    // return subsumed;
-
-    // }
-
-    // private boolean subsumed(TGDGSat newTGD, FormulaFilter TGDs) {
-
-    // var bodyN = newTGD.getBodySet();
-    // var headN = newTGD.getHeadSet();
-    // // System.out.println("getSubsumingCandidates start");
-    // // for (TGDGSat tgd : TGDs.getSubsumingCandidates(newTGD)) {
-    // // System.out.println(tgd);
-    // // }
-    // // System.out.println("getSubsumingCandidates end");
-    // for (TGDGSat tgd : TGDs.getSubsumingCandidates(newTGD)) {
-    // var body = tgd.getBodySet();
-    // var head = tgd.getHeadSet();
-
-    // if (bodyN.size() < body.size() || head.size() < headN.size())
-    // continue;
-
-    // if (bodyN.containsAll(body) && head.containsAll(headN))
-    // return true;
-    // }
-
-    // return false;
-
-    // }
 
     private boolean subsumed(TGDGSat tgd1, TGDGSat tgd2) {
 
