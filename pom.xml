@@ -19,11 +19,11 @@
       <version>5.7.0</version>
       <scope>test</scope>
     </dependency>
-    <!-- <dependency>
+    <dependency>
         <groupId>junit</groupId>
         <artifactId>junit</artifactId>
         <version>4.11</version>
-    </dependency> -->
+    </dependency>
     <dependency>
       <groupId>uk.ac.ox.cs.pdq</groupId>
       <artifactId>pdq-common</artifactId>
