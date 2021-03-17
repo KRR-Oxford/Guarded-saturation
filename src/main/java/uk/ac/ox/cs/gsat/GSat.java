@@ -164,7 +164,7 @@ public class GSat {
             nonFullTGDsSubsumer = new SimpleSubsumer(nonFullTGDsFilter);
         }
         for (TGDGSat tgd : selectedTGDs)
-            for (TGDGSat currentTGD : VNFs(HNF(tgd)))
+            for (TGDGSat currentTGD : Logic.VNFs(Logic.HNF(tgd), eVariable, uVariable))
                 if (Logic.isFull(currentTGD)) {
                     addFullTGD(currentTGD, fullTGDsMap, fullTGDsSet);
                     fullTGDsSubsumer.add(currentTGD);
@@ -523,93 +523,6 @@ public class GSat {
 
     }
 
-    /**
-     *
-     * Returns the Head Normal Form (HNF) of the input TGD
-     *
-     * @param tgd an input TGD
-     * @return Head Normal Form of tgd
-     */
-    public Collection<TGDGSat> HNF(final TGDGSat tgd) {
-
-        if (tgd == null)
-            return new HashSet<>();
-
-        Variable[] eVariables = tgd.getExistential();
-
-        Set<Atom> eHead = new HashSet<>();
-        Set<Atom> fHead = new HashSet<>();
-
-        Set<Atom> bodyAtoms = tgd.getBodySet();
-        for (Atom a : tgd.getHeadAtoms())
-            if (a.equals(TGDGSat.Bottom))
-                // remove all head atoms since ⊥ & S ≡ ⊥ for any conjunction S
-                return Set.of(new TGDGSat(bodyAtoms, Set.of(TGDGSat.Bottom)));
-            else if (Logic.containsAny(a, eVariables))
-                eHead.add(a);
-            else if (!bodyAtoms.contains(a))
-                // Do not add atoms that already appear in the body.
-                // This is only needed for fHead since we have no existentials in the body
-                fHead.add(a);
-
-        if (tgd.getHeadAtoms().length == eHead.size() || tgd.getHeadAtoms().length == fHead.size())
-            return Set.of(tgd);
-
-        Collection<TGDGSat> result = new HashSet<>();
-        if (!eHead.isEmpty())
-            result.add(new TGDGSat(bodyAtoms, eHead));
-        if (!fHead.isEmpty())
-            result.add(new TGDGSat(bodyAtoms, fHead));
-        return result;
-
-    }
-
-    /**
-     *
-     * Returns the Variable Normal Form (VNF) of all the input TGDs
-     *
-     * @param tgds a collection of TGDs
-     * @return Variable Normal Form of tgds
-     */
-    public Collection<TGDGSat> VNFs(Collection<TGDGSat> tgds) {
-
-        return tgds.stream().map((tgd) -> VNF(tgd)).collect(Collectors.toList());
-
-    }
-
-    /**
-     *
-     * Returns the Variable Normal Form (VNF) of the input TGD
-     *
-     * @param tgd an input TGD
-     * @return Variable Normal Form of tgd
-     */
-    public TGDGSat VNF(TGDGSat tgd) {
-
-        if (tgd == null)
-            throw new IllegalArgumentException("Null TGD in VNF");
-
-        Variable[] uVariables = tgd.getUniversal();
-        Variable[] eVariables = tgd.getExistential();
-        // App.logger.finest(uVariables.toString());
-        // App.logger.finest(eVariables.toString());
-
-        Map<Term, Term> substitution = new HashMap<>();
-        int counter = 1;
-        for (Variable v : uVariables)
-            substitution.put(v, Variable.create(uVariable + counter++));
-        counter = 1;
-        for (Variable v : eVariables)
-            substitution.put(v, Variable.create(eVariable + counter++));
-
-        App.logger.fine("VNF substitution:\n" + substitution);
-
-        TGDGSat applySubstitution = (TGDGSat) Logic.applySubstitution(tgd, substitution);
-        App.logger.fine("VNF: " + tgd + "===>>>" + applySubstitution);
-        return applySubstitution;
-
-    }
-
     // public TGD evolve(TGD nftgd, TGD ftgd) {
 
     // ftgd = evolveRename(ftgd);
@@ -795,7 +708,7 @@ public class GSat {
                 // in fact, we should never have Shead == null and Sbody.isEmpty
                 if (Shead == null || Shead.isEmpty()) {
                     if (Sbody.isEmpty())
-                        results.addAll(VNFs(HNF(new TGDGSat(new_body, new_head))));
+                        results.addAll(Logic.VNFs(Logic.HNF(new TGDGSat(new_body, new_head)), eVariable, uVariable));
                     // no matching head atom for some atom in Sbody -> continue
                     continue;
                 }
@@ -816,9 +729,9 @@ public class GSat {
 
                     if (mgu.isEmpty())
                         // no need to apply the MGU
-                        results.addAll(VNFs(HNF(new TGDGSat(new_body, new_head))));
+                        results.addAll(Logic.VNFs(Logic.HNF(new TGDGSat(new_body, new_head)), eVariable, uVariable));
                     else
-                        results.addAll(VNFs(HNF(applyMGU(new_body, new_head, mgu))));
+                        results.addAll(Logic.VNFs(Logic.HNF(applyMGU(new_body, new_head, mgu)), eVariable, uVariable));
 
                 }
 
