@@ -148,13 +148,12 @@ public class GSatTest {
 	@Test
 	public void HNFTest() {
 		System.out.println("HNF tests");
-		GSat gsat = GSat.getInstance();
 
 		// 1. Split non-full and full parts
 		// ∀ x1,x2 B(x1,x2) → ∃ y1 H1(x1,y1) ∧ H2(x2)
 		Set<Atom> body = Set.of(B_x1x2);
 		TGDGSat tgd = new TGDGSat(body, Set.of(H1_x1y1, H2_x2));
-		Collection<TGDGSat> result = gsat.HNF(tgd);
+		Collection<TGDGSat> result = Logic.HNF(tgd);
 
 		// ∀ x1,x2 B(x1,x2) → ∃ y1 H1(x1,y1)
 		TGDGSat tgdExpected1 = new TGDGSat(body, Set.of(H1_x1y1));
@@ -170,14 +169,14 @@ public class GSatTest {
 		// ∀ x1,x2 B(x1,x2) & H2(x2) → H2(x2) & B(x1,x2)
 		body = Set.of(B_x1x2, H2_x2);
 		tgd = new TGDGSat(body, Set.of(H2_x2, B_x1x2));
-		result = gsat.HNF(tgd);
+		result = Logic.HNF(tgd);
 		expected = new HashSet<>();
 		checkHNFTest(tgd, expected, result);
 
 		// 3. Remove head atoms that occur in the body: only create non-full rule
 		// ∀ x1,x2 B(x1,x2) & H2(x2) → \exists y. H1(x1,y1) & H2(x2) & B(x1,x2)
 		tgd = new TGDGSat(body, Set.of(H1_x1y1, H2_x2, B_x1x2));
-		result = gsat.HNF(tgd);
+		result = Logic.HNF(tgd);
 		expected = new HashSet<>();
 		expected.add(new TGDGSat(body, Set.of(H1_x1y1)));
 		checkHNFTest(tgd, expected, result);
@@ -185,7 +184,7 @@ public class GSatTest {
 		// 4. Rule containing bottom in the head. Remove all head atoms.
 		// ∀ x1,x2 B(x1,x2) → ∃ y1 H1(x1,y1) ∧ H2(x2) & ⊥
 		tgd = new TGDGSat(body, Set.of(H1_x1y1, H2_x2, TGDGSat.Bottom));
-		result = gsat.HNF(tgd);
+		result = Logic.HNF(tgd);
 		expected = new HashSet<>();
 		expected.add(new TGDGSat(body, Set.of(TGDGSat.Bottom)));
 		checkHNFTest(tgd, expected, result);
@@ -201,12 +200,13 @@ public class GSatTest {
 
 	@Test
 	public void VNFsTest() {
+		GSat gsat = GSat.getInstance();
 
 		// ∀ x2,x1,x3 B(x2,x1,x3) → ∃ z1,y1,y2 H1(x1,z1,y1,y2) & H2(y1,y2)
 		TGDGSat tgd = new TGDGSat(Set.of(B_x2x1x3), Set.of(H1_x1z1y1y2, H2_y1y2));
 		System.out.println("Original TGD: " + tgd);
 
-		Collection<TGDGSat> tgdsVNFs = GSat.getInstance().VNFs(Arrays.asList(tgd));
+		Collection<TGDGSat> tgdsVNFs = Logic.VNFs(Arrays.asList(tgd), gsat.eVariable, gsat.uVariable);
 		System.out.println("TGDs in VNFs: " + tgdsVNFs);
 
 		// ∀ u1,u2,u3 B(u1,u2,u3) → ∃ e1,e2,e3 H1(u2,e1,e2,e3) & H2(e2,e3)
@@ -222,12 +222,13 @@ public class GSatTest {
 
 	@Test
 	public void VNFTest() {
+        GSat gsat = GSat.getInstance();
 
 		// ∀ x2,x1,x3 B(x2,x1,x3) → ∃ z1,y1,y2 H1(x1,z1,y1,y2) & H2(y1,y2)
 		TGDGSat tgd = new TGDGSat(Set.of(B_x2x1x3), Set.of(H1_x1z1y1y2, H2_y1y2));
 		System.out.println("Original TGD: " + tgd);
 
-		TGDGSat tgdVNF = GSat.getInstance().VNF(tgd);
+		TGDGSat tgdVNF = Logic.VNF(tgd, gsat.eVariable, gsat.uVariable);
 		System.out.println("TGD in VNF: " + tgdVNF);
 
 		// ∀ u1,u2,u3 B(u1,u2,u3) → ∃ e1,e2,e3 H1(u2,e1,e2,e3) & H2(e2,e3)
