@@ -7,13 +7,16 @@ import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
 import java.io.PrintWriter;
 import java.nio.charset.StandardCharsets;
+import java.util.Arrays;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
-import java.util.Set;
 import java.util.Map.Entry;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 import uk.ac.ox.cs.pdq.fol.Atom;
 import uk.ac.ox.cs.pdq.fol.Conjunction;
@@ -288,8 +291,95 @@ public class Logic {
 			getSubstitute(entry.getKey(), sigma);
 
 		return sigma;
-
 	}
+
+
+    /**
+     *
+     * Returns the Variable Normal Form (VNF) of all the input TGDs
+     *
+     * @param tgds a collection of TGDs
+     * @return Variable Normal Form of tgds
+     */
+    public static Collection<TGDGSat> VNFs(Collection<TGDGSat> tgds, String eVariable, String uVariable) {
+
+        return tgds.stream().map((tgd) -> VNF(tgd, eVariable, uVariable)).collect(Collectors.toList());
+
+    }
+
+    /**
+     *
+     * Returns the Variable Normal Form (VNF) of the input TGD
+     *
+     * @param tgd an input TGD
+     * @return Variable Normal Form of tgd
+     */
+    public static TGDGSat VNF(TGDGSat tgd, String eVariable, String uVariable) {
+
+        if (tgd == null)
+            throw new IllegalArgumentException("Null TGD in VNF");
+
+        Variable[] uVariables = tgd.getUniversal();
+        Variable[] eVariables = tgd.getExistential();
+        // App.logger.finest(uVariables.toString());
+        // App.logger.finest(eVariables.toString());
+
+        Map<Term, Term> substitution = new HashMap<>();
+        int counter = 1;
+        for (Variable v : uVariables)
+            substitution.put(v, Variable.create(uVariable + counter++));
+        counter = 1;
+        for (Variable v : eVariables)
+            substitution.put(v, Variable.create(eVariable + counter++));
+
+        App.logger.fine("VNF substitution:\n" + substitution);
+
+        TGDGSat applySubstitution = (TGDGSat) Logic.applySubstitution(tgd, substitution);
+        App.logger.fine("VNF: " + tgd + "===>>>" + applySubstitution);
+        return applySubstitution;
+
+    }
+
+    /**
+     *
+     * Returns the Head Normal Form (HNF) of the input TGD
+     *
+     * @param tgd an input TGD
+     * @return Head Normal Form of tgd
+     */
+    static public Collection<TGDGSat> HNF(final TGDGSat tgd) {
+
+        if (tgd == null)
+            return new HashSet<>();
+
+        Variable[] eVariables = tgd.getExistential();
+
+        Set<Atom> eHead = new HashSet<>();
+        Set<Atom> fHead = new HashSet<>();
+
+        Set<Atom> bodyAtoms = tgd.getBodySet();
+        for (Atom a : tgd.getHeadAtoms())
+            if (a.equals(TGDGSat.Bottom))
+                // remove all head atoms since ⊥ & S ≡ ⊥ for any conjunction S
+                return Set.of(new TGDGSat(bodyAtoms, Set.of(TGDGSat.Bottom)));
+            else if (Logic.containsAny(a, eVariables))
+                eHead.add(a);
+            else if (!bodyAtoms.contains(a))
+                // Do not add atoms that already appear in the body.
+                // This is only needed for fHead since we have no existentials in the body
+                fHead.add(a);
+
+        if (tgd.getHeadAtoms().length == eHead.size() || tgd.getHeadAtoms().length == fHead.size())
+            return Set.of(tgd);
+
+        Collection<TGDGSat> result = new HashSet<>();
+        if (!eHead.isEmpty())
+            result.add(new TGDGSat(bodyAtoms, eHead));
+        if (!fHead.isEmpty())
+            result.add(new TGDGSat(bodyAtoms, fHead));
+        return result;
+
+    }
 
 	// public static Map<Term, Term> getMGU(List<Atom> s, List<Atom> t) {
 
