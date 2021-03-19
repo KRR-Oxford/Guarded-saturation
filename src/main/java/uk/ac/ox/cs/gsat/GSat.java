@@ -656,12 +656,6 @@ public class GSat {
 
     // }
 
-    private Set<Atom> applyMGU(Collection<Atom> atoms, Map<Term, Term> mgu) {
-
-        return atoms.stream().map(atom -> (Atom) Logic.applySubstitution(atom, mgu)).collect(Collectors.toSet());
-
-    }
-
     /**
      *
      * @param nftgd non-full TGD (guarded)
@@ -684,8 +678,8 @@ public class GSat {
 
             if (guardMGU != null && !guardMGU.isEmpty()) {
 
-                final TGDGSat new_nftgd = applyMGU(nftgd, guardMGU);
-                final TGDGSat new_ftgd = applyMGU(ftgd, guardMGU);
+                final TGDGSat new_nftgd = Logic.applyMGU(nftgd, guardMGU);
+                final TGDGSat new_ftgd = Logic.applyMGU(ftgd, guardMGU);
 
                 final List<Variable> new_nftgd_existentials = Arrays.asList(new_nftgd.getExistential());
 
@@ -731,7 +725,7 @@ public class GSat {
                         // no need to apply the MGU
                         results.addAll(Logic.VNFs(Logic.HNF(new TGDGSat(new_body, new_head)), eVariable, uVariable));
                     else
-                        results.addAll(Logic.VNFs(Logic.HNF(applyMGU(new_body, new_head, mgu)), eVariable, uVariable));
+                        results.addAll(Logic.VNFs(Logic.HNF(Logic.applyMGU(new_body, new_head, mgu)), eVariable, uVariable));
 
                 }
 
@@ -902,17 +896,6 @@ public class GSat {
 
     }
 
-    private TGDGSat applyMGU(TGDGSat tgd, Map<Term, Term> mgu) {
-
-        return applyMGU(tgd.getBodySet(), tgd.getHeadSet(), mgu);
-
-    }
-
-    private TGDGSat applyMGU(Set<Atom> bodyAtoms, Set<Atom> headAtoms, Map<Term, Term> mgu) {
-
-        return new TGDGSat(applyMGU(bodyAtoms, mgu), applyMGU(headAtoms, mgu));
-
-    }
 
     private Map<Term, Term> getGuardMGU(Atom guard, Atom h) {
 
