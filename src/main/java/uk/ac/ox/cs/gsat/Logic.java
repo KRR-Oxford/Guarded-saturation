@@ -294,6 +294,24 @@ public class Logic {
 	}
 
 
+    public static TGDGSat applyMGU(TGDGSat tgd, Map<Term, Term> mgu) {
+
+        return applyMGU(tgd.getBodySet(), tgd.getHeadSet(), mgu);
+
+    }
+
+    public static TGDGSat applyMGU(Set<Atom> bodyAtoms, Set<Atom> headAtoms, Map<Term, Term> mgu) {
+
+        return new TGDGSat(applyMGU(bodyAtoms, mgu), applyMGU(headAtoms, mgu));
+
+    }
+
+    public static Set<Atom> applyMGU(Collection<Atom> atoms, Map<Term, Term> mgu) {
+
+        return atoms.stream().map(atom -> (Atom) Logic.applySubstitution(atom, mgu)).collect(Collectors.toSet());
+
+    }
+    
     /**
      *
      * Returns the Variable Normal Form (VNF) of all the input TGDs
