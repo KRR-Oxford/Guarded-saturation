@@ -149,4 +149,11 @@ public class TGDGSat extends TGD {
         return headHashes;
     }
 
+    public int getWidth() {
+       int bwidth = this.getBody().getFreeVariables().length;
+       int hwidth = this.getHead().getFreeVariables().length + this.getHead().getBoundVariables().length;
+
+       return Math.max(bwidth, hwidth);
+    }
 }
+
