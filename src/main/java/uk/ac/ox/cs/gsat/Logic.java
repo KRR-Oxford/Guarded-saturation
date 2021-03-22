@@ -7,7 +7,6 @@ import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
 import java.io.PrintWriter;
 import java.nio.charset.StandardCharsets;
-import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -42,7 +41,6 @@ public class Logic {
 	/**
 	 * From PDQ code, slightly modified
 	 */
-	// TODO: inconsistent of vs create
 	static Formula applySubstitution(Formula formula, Map<Term, Term> substitution) {
 		if (formula instanceof Conjunction) {
 			Formula child1 = applySubstitution(((Conjunction) formula).getChildren()[0], substitution);
@@ -103,10 +101,10 @@ public class Logic {
 	}
 
 	static boolean containsAny(Atom atom, Variable[] eVariables) {
-		HashSet<Term> eVars = new HashSet<>(Arrays.asList(atom.getVariables()));
 		for (Variable v : eVariables)
-			if (eVars.contains(v))
-				return true;
+			for (Variable va : atom.getVariables())
+				if (v.equals(va))
+					return true;
 		return false;
 	}
 
