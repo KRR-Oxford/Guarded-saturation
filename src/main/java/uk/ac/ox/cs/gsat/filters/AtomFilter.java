@@ -7,6 +7,11 @@ import java.util.Map;
 import uk.ac.ox.cs.gsat.TGDGSat;
 import uk.ac.ox.cs.pdq.fol.Atom;
 
+/**
+ * Extension of the FormulaFilter class that for each atom contains a collection
+ * of the formulas in S with that atom either in the head or in the body
+ * (including the same variable names).
+ */
 public abstract class AtomFilter implements FormulaFilter {
     protected Map<Atom, Collection<TGDGSat>> bodyMap = new HashMap<>(), headMap = new HashMap<>();
     protected Collection<TGDGSat> all = new HashSet<>();

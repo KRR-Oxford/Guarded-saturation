@@ -6,8 +6,17 @@ import java.util.HashSet;
 import uk.ac.ox.cs.gsat.TGDGSat;
 import uk.ac.ox.cs.pdq.fol.Atom;
 
+/**
+ * An efficient usage of the bodyMap and headMap provided by AtomFilter.
+ * 
+ * Note: this is technically not an indexing method, as it may miss out on some
+ * subsumptions
+ */
 public class MinAtomFilter extends AtomFilter {
-
+    /**
+     * Iterates over all body atoms of {@code formula}, considers all collections
+     * indexed by these atoms in bodyMap, and returns the smallest of all of them
+     */
     @Override
     public Iterable<TGDGSat> getSubsumedCandidates(TGDGSat formula) {
         Atom[] atoms = formula.getBodyAtoms();
@@ -26,6 +35,10 @@ public class MinAtomFilter extends AtomFilter {
         return answer;
     }
 
+    /**
+     * Iterates over all head atoms of {@code formula}, considers all collections
+     * indexed by these atoms in headMap, and returns the smallest of all of them
+     */
     @Override
     public Iterable<TGDGSat> getSubsumingCandidates(TGDGSat formula) {
         Atom[] atoms = formula.getHeadAtoms();

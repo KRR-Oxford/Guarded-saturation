@@ -13,7 +13,10 @@ import uk.ac.ox.cs.gsat.TGDGSat;
 import uk.ac.ox.cs.pdq.fol.Atom;
 import uk.ac.ox.cs.pdq.fol.Predicate;
 
-// TODO: implement deletion of empty nodes
+/**
+ * Implements a tree based index that filters out subsumption candidates based
+ * on sets of predicates.
+ */
 public class TreePredicateFilter implements FormulaFilter {
 
     private class Node {
@@ -44,7 +47,6 @@ public class TreePredicateFilter implements FormulaFilter {
 
             private int[] bodyHashes, headHashes;
 
-            // the incoming hashes array should be sorted
             public SubsumedCandidatesIterator(int[] bodyHashes, int[] headHashes) {
                 this.bodyHashes = bodyHashes;
                 this.headHashes = headHashes;
@@ -54,12 +56,10 @@ public class TreePredicateFilter implements FormulaFilter {
 
             @Override
             public boolean hasNext() {
-                // System.out.println("starting subsumed hasNext");
                 if (next != null && next.hasNext())
                     return true;
                 while (!traversing.empty() && (next == null || !next.hasNext())) {
                     // [1, 2], [3] -> [1], [3, 4]
-                    // System.out.println(" traversing");
                     IntNodePair top = traversing.pop();
                     Node topNode = top.node;
                     int topIndex = top.index;
@@ -76,7 +76,7 @@ public class TreePredicateFilter implements FormulaFilter {
                                     traversing.push(new IntNodePair(i + 1, topNode.nextHead.get(headHashes[i])));
                                 }
                             }
-                        } else {// not correct I think
+                        } else {
                             for (Map.Entry<Integer, Node> nodeInt : topNode.nextBody.entrySet()) {
                                 if (nodeInt.getKey() > bodyHashes[topIndex])
                                     break;
@@ -97,16 +97,12 @@ public class TreePredicateFilter implements FormulaFilter {
                         }
                     }
                 }
-                // System.out.println("ending subsumed hasNext");
                 return next != null && next.hasNext();
             }
 
             @Override
             public TGDGSat next() {
-                // System.out.println("starting subsumed next" + hasNext());
-                // hasNext();
                 TGDGSat answer = next.next();
-                // System.out.println("ending subsuming next");
                 return answer;
             }
         }
@@ -141,7 +137,6 @@ public class TreePredicateFilter implements FormulaFilter {
 
             private int[] bodyHashes, headHashes;
 
-            // the incoming hashes array should be sorted
             public SubsumingCandidatesIterator(int[] bodyHashes, int[] headHashes) {
                 this.bodyHashes = bodyHashes;
                 this.headHashes = headHashes;
@@ -150,7 +145,6 @@ public class TreePredicateFilter implements FormulaFilter {
 
             @Override
             public boolean hasNext() {
-                // System.out.println("start subsuming hasNext");
                 if (next != null && next.hasNext())
                     return true;
                 while (!traversing.empty() && (next == null || !next.hasNext())) {
@@ -161,7 +155,6 @@ public class TreePredicateFilter implements FormulaFilter {
                         // [1], [2]
                         // [1, 2], [3] -> [1], [3, 4]
                         // if element appears in nextBody, it should appear in bodyHashes
-                        // if above true, this is clearly incorrect
                         for (int i = topIndex; i < bodyHashes.length; i++) {
                             if (topNode.nextBody.containsKey(bodyHashes[i]))
                                 traversing.push(new IntNodePair(i + 1, topNode.nextBody.get(bodyHashes[i])));
@@ -199,16 +192,12 @@ public class TreePredicateFilter implements FormulaFilter {
                         }
                     }
                 }
-                // System.out.println("end subsuming hasNext");
                 return next != null && next.hasNext();
             }
 
             @Override
             public TGDGSat next() {
-                // System.out.println("starting subsuming next" + hasNext());
-                // hasNext();
                 TGDGSat answer = next.next();
-                // System.out.println("finishing subsuming next");
                 return answer;
             }
         }
@@ -231,7 +220,6 @@ public class TreePredicateFilter implements FormulaFilter {
             private Stack<Node> traversing = new Stack<>();
             private Iterator<TGDGSat> next = null;
 
-            // the incoming hashes array should be sorted
             public AllIterator() {
                 traversing.push(root);
             }
@@ -269,20 +257,12 @@ public class TreePredicateFilter implements FormulaFilter {
     }
 
     public Collection<TGDGSat> getAll() {
-        // System.out.println("getting all");
         HashSet<TGDGSat> answer = new HashSet<>();
         (new AllIterable()).forEach(answer::add);
-        // System.out.println("end getting all");
         return answer;
     }
 
     public void add(TGDGSat formula) {
-        // StackTraceElement[] stackTraceElements =
-        // Thread.currentThread().getStackTrace();
-        // System.out.println(stackTraceElements[2].getClassName() + " " +
-        // stackTraceElements[2].getMethodName() + " "
-        // + stackTraceElements[1].getLineNumber());
-        // System.out.println("adding " + formula);
         checkHashes(formula);
         if (formula.getHeadAtoms().length == 0)
             return;
@@ -302,42 +282,61 @@ public class TreePredicateFilter implements FormulaFilter {
             current = current.nextHead.get(hash);
         }
         current.formulas.add(formula);
-        // System.out.println("end adding");
     }
 
-    // this can still be improved, as I am not deleting empty nodes
+    private class IntNodePair {
+        int index;
+        Node node;
+
+        IntNodePair(int index, Node node) {
+            this.index = index;
+            this.node = node;
+        }
+    }
+
     public void remove(TGDGSat formula) {
-        // System.out.println("removing");
-        // StackTraceElement[] stackTraceElements =
-        // Thread.currentThread().getStackTrace();
-        // System.out.println(stackTraceElements[2].getClassName() + " " +
-        // stackTraceElements[2].getMethodName() + " "
-        // + stackTraceElements[1].getLineNumber());
         checkHashes(formula);
+        Stack<IntNodePair> reversedTraversal = new Stack<>();
         Node current = root;
         for (int hash : formula.bodyHashes) {
+            reversedTraversal.add(new IntNodePair(hash * 2, current));
             if (!current.nextBody.containsKey(hash)) {
-                // System.out.println("element not found");
                 return;
             }
             current = current.nextBody.get(hash);
         }
         for (int hash : formula.headHashes) {
+            reversedTraversal.add(new IntNodePair(hash * 2 + 1, current));
             if (!current.nextHead.containsKey(hash)) {
-                // System.out.println("element not found");
                 return;
             }
             current = current.nextHead.get(hash);
         }
         current.formulas.remove(formula);
-        // System.out.println("ending remove");
+        while (!reversedTraversal.empty()) {
+            IntNodePair top = reversedTraversal.pop();
+            Node topNode = top.node;
+            int index = top.index / 2;
+            if (top.index % 2 == 0) {
+                Node node = topNode.nextBody.get(index);
+                if (node.nextBody.isEmpty() && node.nextHead.isEmpty() && node.formulas.isEmpty()) {
+                    topNode.nextBody.remove(index);
+                } else
+                    return;
+            } else {
+                Node node = topNode.nextHead.get(index);
+                if (node.nextBody.isEmpty() && node.nextHead.isEmpty() && node.formulas.isEmpty()) {
+                    topNode.nextHead.remove(index);
+                } else
+                    return;
+            }
+        }
     }
 
     private int atomCounter = 0;
     private HashMap<Predicate, Integer> bodyAtomIndeces = new HashMap<>(), headAtomIndeces = new HashMap<>();
 
     private int[] computeHashes(Atom[] atoms, HashMap<Predicate, Integer> atomIndeces) {
-        // System.out.println("computing hashes");
         TreeSet<Integer> hashes = new TreeSet<Integer>();
         for (Atom atom : atoms) {
             if (!atomIndeces.containsKey(atom.getPredicate())) {
@@ -346,28 +345,22 @@ public class TreePredicateFilter implements FormulaFilter {
             }
             hashes.add(atomIndeces.get(atom.getPredicate()));
         }
-        // System.out.println("end computing hashes");
-        // this should be already sorted
         return hashes.stream().mapToInt(Integer::intValue).toArray();
     }
 
     private void checkHashes(TGDGSat formula) {
-        // System.out.println("checking hashes");
         if (formula.bodyHashes == null)
             formula.bodyHashes = computeHashes(formula.getBodyAtoms(), bodyAtomIndeces);
         if (formula.headHashes == null)
             formula.headHashes = computeHashes(formula.getHeadAtoms(), headAtomIndeces);
-        // System.out.println("end checking hashes");
     }
 
     public Iterable<TGDGSat> getSubsumedCandidates(TGDGSat formula) {
-        // System.out.println("getting subsumed candidates");
         checkHashes(formula);
         return new SubsumedCandidatesIterable(formula);
     }
 
     public Iterable<TGDGSat> getSubsumingCandidates(TGDGSat formula) {
-        // System.out.println("getting subsuming candidates");
         checkHashes(formula);
         return new SubsumingCandidatesIterable(formula);
     }

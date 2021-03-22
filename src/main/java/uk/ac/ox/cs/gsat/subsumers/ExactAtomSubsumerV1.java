@@ -144,7 +144,6 @@ public class ExactAtomSubsumerV1 implements Subsumer {
             // if element appears in hashes, it should appear in nextHead
             else {
                 if (topIndex == headHashes.length) {
-                    // possibly just return true might work here, depending on how we delete TODO
                     if (topNode.currentFormula != null)
                         return true;
                     // add all elements in this subtree

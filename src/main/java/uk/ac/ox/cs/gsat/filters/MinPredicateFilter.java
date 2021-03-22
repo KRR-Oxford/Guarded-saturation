@@ -6,8 +6,16 @@ import java.util.HashSet;
 import uk.ac.ox.cs.gsat.TGDGSat;
 import uk.ac.ox.cs.pdq.fol.Atom;
 
+/**
+ * An efficient usage of the bodyMap and headMap provided by PredicateFilter
+ */
 public class MinPredicateFilter extends PredicateFilter {
 
+    /**
+     * Iterates over all body predicates of {@code formula}, considers all
+     * collections indexed by these predicates in bodyMap, and returns the smallest
+     * of all of them
+     */
     @Override
     public Iterable<TGDGSat> getSubsumedCandidates(TGDGSat formula) {
         Atom[] atoms = formula.getBodyAtoms();
@@ -26,6 +34,11 @@ public class MinPredicateFilter extends PredicateFilter {
         return answer;
     }
 
+    /**
+     * Iterates over all head predicates of {@code formula}, considers all
+     * collections indexed by these predicates in headMap, and returns the smallest
+     * of all of them.
+     */
     @Override
     public Iterable<TGDGSat> getSubsumingCandidates(TGDGSat formula) {
         Atom[] atoms = formula.getHeadAtoms();

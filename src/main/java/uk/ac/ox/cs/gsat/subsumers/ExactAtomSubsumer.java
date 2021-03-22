@@ -11,6 +11,13 @@ import java.util.TreeSet;
 import uk.ac.ox.cs.gsat.TGDGSat;
 import uk.ac.ox.cs.pdq.fol.Atom;
 
+/**
+ * Identifies tgd a as subsumed by tgd b if b.head is contained in a.head, and
+ * a.body is contained in b.body (without any unification).
+ * 
+ * Similar to the SimpleSubsumer class with a good index, but the indexing is
+ * built in.
+ */
 public class ExactAtomSubsumer implements Subsumer {
     private class Node {
         boolean isBody = true;
@@ -28,7 +35,6 @@ public class ExactAtomSubsumer implements Subsumer {
     private HashMap<Atom, Integer> bodyAtomIndeces = new HashMap<>(), headAtomIndeces = new HashMap<>();
 
     private int[] computeHashes(Atom[] atoms, HashMap<Atom, Integer> atomIndeces) {
-        // System.out.println("computing hashes");
         TreeSet<Integer> hashes = new TreeSet<Integer>();
         for (Atom atom : atoms) {
             if (!atomIndeces.containsKey(atom)) {
@@ -37,7 +43,6 @@ public class ExactAtomSubsumer implements Subsumer {
             }
             hashes.add(atomIndeces.get(atom));
         }
-        // this should be already sorted
         return hashes.stream().mapToInt(Integer::intValue).toArray();
     }
 
@@ -70,7 +75,6 @@ public class ExactAtomSubsumer implements Subsumer {
             traversing.push(new IntNodePair(0, root));
         while (!traversing.empty()) {
             // [1, 2], [3] -> [1], [3, 4]
-            // System.out.println(" traversing");
             IntNodePair top = traversing.pop();
             Node topNode = top.node;
             int topIndex = top.index;
@@ -150,10 +154,8 @@ public class ExactAtomSubsumer implements Subsumer {
             Node topNode = top.node;
             int topIndex = top.index;
             if (topNode.isBody) {
-                // [1], [2]
                 // [1, 2], [3] -> [1], [3, 4]
                 // if element appears in nextBody, it should appear in bodyHashes
-                // if above true, this is clearly incorrect
                 for (int i = topIndex; i < bodyHashes.length; i++) {
                     if (topNode.nextBody.containsKey(bodyHashes[i]))
                         traversing.push(new IntNodePair(i + 1, topNode.nextBody.get(bodyHashes[i])));

@@ -5,6 +5,10 @@ import java.util.HashSet;
 
 import uk.ac.ox.cs.gsat.TGDGSat;
 
+/**
+ * A FormulaFilter that simply returns the whole set S. Equivalent to not having
+ * any indexing method.
+ */
 public class IdentityFormulaFilter implements FormulaFilter {
     HashSet<TGDGSat> formulas = new HashSet<>();
 

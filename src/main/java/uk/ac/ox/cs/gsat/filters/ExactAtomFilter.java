@@ -12,6 +12,12 @@ import java.util.TreeSet;
 import uk.ac.ox.cs.gsat.TGDGSat;
 import uk.ac.ox.cs.pdq.fol.Atom;
 
+/**
+ * Predecessor of ExactAtomSubsumer
+ * 
+ * Note: this is technically not an indexing method, as it may miss out on some
+ * subsumptions
+ */
 public class ExactAtomFilter implements FormulaFilter {
 
     private class Node {

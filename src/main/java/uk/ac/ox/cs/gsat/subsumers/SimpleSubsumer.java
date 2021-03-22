@@ -6,9 +6,14 @@ import java.util.HashSet;
 import uk.ac.ox.cs.gsat.TGDGSat;
 import uk.ac.ox.cs.gsat.filters.FormulaFilter;
 
+/**
+ * A subsumer that uses an index to filter out only candidates for subsumption,
+ * then identifies tgd a as subsumed by tgd b if b.head is contained in a.head,
+ * and a.body is contained in b.body (without any unification).
+ */
 public class SimpleSubsumer implements Subsumer {
 
-    FormulaFilter filter;
+    final FormulaFilter filter;
     private long num_filter_discarded = 0, num_subsumed = 0;
 
     public SimpleSubsumer(FormulaFilter filter) {
