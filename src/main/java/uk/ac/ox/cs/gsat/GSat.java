@@ -21,11 +21,7 @@ import uk.ac.ox.cs.gsat.filters.IdentityFormulaFilter;
 import uk.ac.ox.cs.gsat.filters.MinAtomFilter;
 import uk.ac.ox.cs.gsat.filters.MinPredicateFilter;
 import uk.ac.ox.cs.gsat.filters.TreePredicateFilter;
-import uk.ac.ox.cs.gsat.filters.AnyPredicateFilter;
-import uk.ac.ox.cs.gsat.filters.ExactAtomFilter;
-import uk.ac.ox.cs.gsat.filters.ExactAtomFilterV1;
 import uk.ac.ox.cs.gsat.subsumers.ExactAtomSubsumer;
-import uk.ac.ox.cs.gsat.subsumers.ExactAtomSubsumerV1;
 import uk.ac.ox.cs.gsat.subsumers.SimpleSubsumer;
 import uk.ac.ox.cs.gsat.subsumers.Subsumer;
 import uk.ac.ox.cs.pdq.fol.Atom;
@@ -142,29 +138,6 @@ public class GSat {
         String subsumptionMethod = Configuration.getSubsumptionMethod();
         App.logger.info("Subsumption method : " + subsumptionMethod);
 
-        // FormulaFilter fullTGDsFilter = new ExactAtomFilter();
-        // FormulaFilter nonFullTGDsFilter = new ExactAtomFilter();
-
-        // FormulaFilter fullTGDsFilter = new ExactAtomFilterV1();
-        // FormulaFilter nonFullTGDsFilter = new ExactAtomFilterV1();
-
-        // FormulaFilter fullTGDsFilter = new IdentityFormulaFilter();
-        // FormulaFilter nonFullTGDsFilter = new IdentityFormulaFilter();
-
-        // FormulaFilter fullTGDsFilter = new AnyPredicateFilter();
-        // FormulaFilter nonFullTGDsFilter = new AnyPredicateFilter();
-
-        // FormulaFilter fullTGDsFilter = new MinPredicateFilter();
-        // FormulaFilter nonFullTGDsFilter = new MinPredicateFilter();
-
-        // Subsumer fullTGDsSubsumer = new SimpleSubsumer(fullTGDsFilter);
-        // Subsumer nonFullTGDsSubsumer = new SimpleSubsumer(nonFullTGDsFilter);
-
-        // Subsumer fullTGDsSubsumer = new ExactAtomSubsumer();
-        // Subsumer nonFullTGDsSubsumer = new ExactAtomSubsumer();
-
-        // Subsumer fullTGDsSubsumer = new ExactAtomSubsumerV1();
-        // Subsumer nonFullTGDsSubsumer = new ExactAtomSubsumerV1();
         Subsumer fullTGDsSubsumer;
         Subsumer nonFullTGDsSubsumer;
 
