@@ -13,10 +13,9 @@ import org.junit.jupiter.api.BeforeAll;
 import uk.ac.ox.cs.pdq.fol.Atom;
 import uk.ac.ox.cs.pdq.fol.Dependency;
 import uk.ac.ox.cs.pdq.fol.Predicate;
-import uk.ac.ox.cs.pdq.fol.TGD;
 import uk.ac.ox.cs.pdq.fol.Variable;
 
-public class SimpleGSatTest {
+public class SimpleSatTest {
 
     private static final Variable x1 = Variable.create("x1");
     private static final Variable x2 = Variable.create("x2");
@@ -40,7 +39,7 @@ public class SimpleGSatTest {
         @Test
     public void defaultTest() {
 
-        SimpleGSat sgsat = SimpleGSat.getInstance();
+        SimpleSat sgsat = SimpleSat.getInstance();
         // Variables
 
         // R(x1, x2) -> ∃ y1, y2. S(x1, x2, y1, y2) & T(x1, x2, y2)
@@ -64,7 +63,7 @@ public class SimpleGSatTest {
         input.add(full);
         input.add(full1);
 
-        Collection<GTGD> result = sgsat.run(input);
+        Collection<TGD> result = sgsat.run(input);
 
         for(TGD tgd : result)
             System.out.println(tgd);
