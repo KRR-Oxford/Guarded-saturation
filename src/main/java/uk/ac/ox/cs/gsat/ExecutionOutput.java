@@ -4,11 +4,11 @@ import java.util.Collection;
 
 public class ExecutionOutput {
 
-    protected Collection<TGDGSat> guardedSaturation;
+    protected Collection<GTGD> guardedSaturation;
 
     protected SolverOutput solverOutput;
 
-    public ExecutionOutput(Collection<TGDGSat> guardedSaturation, SolverOutput solverOutput) {
+    public ExecutionOutput(Collection<GTGD> guardedSaturation, SolverOutput solverOutput) {
         setGuardedSaturation(guardedSaturation);
         setSolverOutput(solverOutput);
     }
@@ -19,11 +19,11 @@ public class ExecutionOutput {
                 + "\n}\n";
     }
 
-    public Collection<TGDGSat> getGuardedSaturation() {
+    public Collection<GTGD> getGuardedSaturation() {
         return guardedSaturation;
     }
 
-    public void setGuardedSaturation(Collection<TGDGSat> guardedSaturation) {
+    public void setGuardedSaturation(Collection<GTGD> guardedSaturation) {
         this.guardedSaturation = guardedSaturation;
     }
 

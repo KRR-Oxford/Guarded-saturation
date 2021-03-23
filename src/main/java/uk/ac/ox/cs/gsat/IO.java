@@ -59,7 +59,7 @@ public class IO {
 
         Collection<String> rules = new LinkedList<>();
 
-        if (tgd.getHeadAtoms().length == 1 && tgd.getHeadAtoms()[0].equals(TGDGSat.Bottom))
+        if (tgd.getHeadAtoms().length == 1 && tgd.getHeadAtoms()[0].equals(GTGD.Bottom))
             rules.add(bodyString); // Negative Constraint
         else
             // if multiple atoms in the head, we have to return multiple rules

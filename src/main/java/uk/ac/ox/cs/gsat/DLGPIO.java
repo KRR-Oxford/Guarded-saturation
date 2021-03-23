@@ -126,7 +126,7 @@ public class DLGPIO implements ExecutionSteps {
             if (!body.isEmpty())
                 if (rule instanceof NegativeConstraint)
                     tgds.add(TGD.create(body.toArray(new uk.ac.ox.cs.pdq.fol.Atom[body.size()]),
-                            new uk.ac.ox.cs.pdq.fol.Atom[] { TGDGSat.Bottom }));
+                            new uk.ac.ox.cs.pdq.fol.Atom[] { GTGD.Bottom }));
                 else if (!head.isEmpty())
                     tgds.add(TGD.create(body.toArray(new uk.ac.ox.cs.pdq.fol.Atom[body.size()]),
                             head.toArray(new uk.ac.ox.cs.pdq.fol.Atom[head.size()])));

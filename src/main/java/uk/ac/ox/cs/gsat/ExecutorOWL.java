@@ -125,7 +125,7 @@ public class ExecutorOWL {
 		System.out.println("\n====================");
 		System.out.println("GSat Start");
 		final long startTimeGSat = System.nanoTime();
-		Collection<TGDGSat> runGSat = new LinkedList<>();
+		Collection<GTGD> runGSat = new LinkedList<>();
 		ExecutorService executorGSat = Executors.newSingleThreadExecutor();
 		Future<String> futureGSat = executorGSat.submit(new Callable<String>() {
 			@Override
@@ -193,10 +193,10 @@ public class ExecutorOWL {
 		return reductionToDLP;
 	}
 
-	private static Collection<TGDGSat> runGSat(String input_file) throws Exception {
+	private static Collection<GTGD> runGSat(String input_file) throws Exception {
 		OWLIO owlio = new OWLIO(input_file, true);
 		Collection<Dependency> rules = owlio.getRules();
-		Collection<TGDGSat> runGSat = GSat.getInstance().runGSat(rules);
+		Collection<GTGD> runGSat = GSat.getInstance().runGSat(rules);
 		return runGSat;
 	}
 
