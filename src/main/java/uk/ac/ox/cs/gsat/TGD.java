@@ -1,25 +1,22 @@
 package uk.ac.ox.cs.gsat;
 
-import java.util.Arrays;
 import java.util.Collection;
 import java.util.LinkedList;
-import java.util.List;
 import java.util.Objects;
 import java.util.Set;
 
 import uk.ac.ox.cs.pdq.fol.Atom;
 import uk.ac.ox.cs.pdq.fol.LogicalSymbols;
 import uk.ac.ox.cs.pdq.fol.Predicate;
-import uk.ac.ox.cs.pdq.fol.TGD;
 import uk.ac.ox.cs.pdq.fol.Term;
 import uk.ac.ox.cs.pdq.fol.TypedConstant;
 import uk.ac.ox.cs.pdq.fol.UntypedConstant;
 import uk.ac.ox.cs.pdq.fol.Variable;
 
 /**
- * TGDGSat
+ * TGD
  */
-public class TGDGSat extends TGD {
+public class TGD extends uk.ac.ox.cs.pdq.fol.TGD {
 
     private static final long serialVersionUID = 1L;
 
@@ -33,26 +30,16 @@ public class TGDGSat extends TGD {
     private final Set<Atom> headSet;
     private int[] bodyHashes = null, headHashes = null;
 
-    private final Atom guard;
-
-    private TGDGSat(Atom[] body, Atom[] head) {
+    private TGD(Atom[] body, Atom[] head) {
 
         super(body, head);
 
         bodySet = Set.of(body);
         headSet = Set.of(head);
 
-        guard = computeGuard();
-
     }
 
-    // protected TGDGSat(TGD tgd) {
-
-    // this(tgd.getBodyAtoms(), tgd.getHeadAtoms());
-
-    // }
-
-    public TGDGSat(Set<Atom> body, Set<Atom> head) {
+    public TGD(Set<Atom> body, Set<Atom> head) {
 
         this(body.toArray(new Atom[body.size()]), head.toArray(new Atom[head.size()]));
 
@@ -69,10 +56,10 @@ public class TGDGSat extends TGD {
     @Override
     public boolean equals(Object obj) {
 
-        if (!(obj instanceof TGDGSat))
+        if (!(obj instanceof TGD))
             return false;
 
-        TGDGSat tgd2 = (TGDGSat) obj;
+        TGD tgd2 = (TGD) obj;
 
         return this.getBodySet().equals(tgd2.getBodySet()) && this.getHeadSet().equals(tgd2.getHeadSet());
 
@@ -87,8 +74,6 @@ public class TGDGSat extends TGD {
 
     public Collection<String> getAllTermSymbols() {
 
-        // Collection<String> result = getTypedConstants().stream().map((constant) -> )
-        // .collect(Collectors.toList());
         Collection<String> result = new LinkedList<>();
 
         for (Term term : getTerms())
@@ -105,32 +90,8 @@ public class TGDGSat extends TGD {
 
     }
 
-    public Atom computeGuard() {
-
-        List<Variable> universalList = Arrays.asList(getUniversal());
-
-        Atom currentGuard = null;
-        for (Atom atom : getBodySet())
-            if (Arrays.asList(atom.getTerms()).containsAll(universalList))
-                if (currentGuard == null || atom.getPredicate().getArity() < currentGuard.getPredicate().getArity())
-                    currentGuard = atom;
-                else if (atom.getPredicate().getArity() == currentGuard.getPredicate().getArity()
-                        && atom.getPredicate().getName().compareTo(currentGuard.getPredicate().getName()) < 0)
-                    currentGuard = atom;
-
-        if (currentGuard == null)
-            throw new IllegalArgumentException("TGDGSat must be guarded!");
-
-        return currentGuard;
-
-    }
-
     public Variable[] getUniversal() {
         return getTopLevelQuantifiedVariables();
-    }
-
-    public Atom getGuard() {
-        return guard;
     }
 
     public void setBodyHashes(int[] newHashes) {
