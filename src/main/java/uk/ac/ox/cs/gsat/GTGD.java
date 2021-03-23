@@ -1,8 +1,10 @@
 package uk.ac.ox.cs.gsat;
 
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.List;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 import uk.ac.ox.cs.pdq.fol.Atom;
 import uk.ac.ox.cs.pdq.fol.Variable;
@@ -15,7 +17,7 @@ public class GTGD extends TGD {
     private static final long serialVersionUID = 1L;
 
 	private final Atom guard;
-    
+
     public GTGD(Set<Atom> body, Set<Atom> head) {
         super(body, head);
 
@@ -36,7 +38,7 @@ public class GTGD extends TGD {
                     currentGuard = atom;
 
         if (currentGuard == null)
-            throw new IllegalArgumentException("TGDGSat must be guarded!");
+            throw new IllegalArgumentException("GTGD must be guarded!");
 
         return currentGuard;
 
@@ -45,5 +47,12 @@ public class GTGD extends TGD {
     public Atom getGuard() {
         return guard;
     }
-}
 
+    public static GTGD fromTGD(TGD tgd) {
+        return new GTGD(tgd.getBodySet(), tgd.getHeadSet());
+    }
+
+    public static Set<GTGD> fromTGD(Collection<TGD> tgds) {
+        return tgds.stream().map(tgd -> fromTGD(tgd)).collect(Collectors.toSet());
+    }
+}

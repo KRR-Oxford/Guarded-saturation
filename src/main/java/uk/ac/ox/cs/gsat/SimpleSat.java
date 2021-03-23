@@ -1,7 +1,6 @@
 package uk.ac.ox.cs.gsat;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -9,15 +8,13 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
-import java.util.stream.Collector;
 
 import uk.ac.ox.cs.pdq.fol.Atom;
 import uk.ac.ox.cs.pdq.fol.Dependency;
-import uk.ac.ox.cs.pdq.fol.TGD;
 import uk.ac.ox.cs.pdq.fol.Term;
 import uk.ac.ox.cs.pdq.fol.Variable;
 
-public class SimpleGSat {
+public class SimpleSat {
 
     // New variable name for Universally Quantified Variables
     public String uVariable = "GSat_u";
@@ -26,16 +23,16 @@ public class SimpleGSat {
     // New variable name for renamed Variables
     public String zVariable = "GSat_z";
 
-    private static final SimpleGSat INSTANCE = new SimpleGSat();
+    private static final SimpleSat INSTANCE = new SimpleSat();
 
-    public static SimpleGSat getInstance() {
+    public static SimpleSat getInstance() {
         return INSTANCE;
     }
 
     /**
      * Private construtor, we want this class to be a Singleton
      */
-    private SimpleGSat() {
+    private SimpleSat() {
     }
 
     /**
@@ -45,14 +42,14 @@ public class SimpleGSat {
      * @param allDependencies the Guarded TGDs to process
      * @return the Guarded Saturation of allDependencies
      */
-    public Collection<GTGD> run(Collection<Dependency> allDependencies) {
+    public Collection<TGD> run(Collection<Dependency> allDependencies) {
 
         int discarded = 0;
 
-        Collection<GTGD> selectedTGDs = new HashSet<>();
+        Collection<TGD> selectedTGDs = new HashSet<>();
         for (Dependency d : allDependencies)
             if (d instanceof TGD && ((TGD) d).isGuarded())
-                selectedTGDs.add(new GTGD(Set.of(d.getBodyAtoms()), Set.of(d.getHeadAtoms())));
+                selectedTGDs.add(new TGD(Set.of(d.getBodyAtoms()), Set.of(d.getHeadAtoms())));
             else
                 discarded++;
 
@@ -60,12 +57,12 @@ public class SimpleGSat {
                 + String.format(Locale.UK, "%.3f", (float) discarded / allDependencies.size() * 100) + "%");
 
         // compute the set of full and non-full tgds in normal forms
-        List<GTGD> fullTGDs = new ArrayList<>();
-        List<GTGD> nonfullTGDs = new ArrayList<>();
+        List<TGD> fullTGDs = new ArrayList<>();
+        List<TGD> nonfullTGDs = new ArrayList<>();
         int width = 0;
 
-        for (GTGD tgd : selectedTGDs) {
-            for (GTGD currentTGD : Logic.VNFs(Logic.HNF(tgd), eVariable, uVariable)) {
+        for (TGD tgd : selectedTGDs) {
+            for (TGD currentTGD : Logic.VNFs(Logic.HNF(tgd), eVariable, uVariable)) {
                 width = Math.max(currentTGD.getWidth(), width);
                 if (Logic.isFull(currentTGD)) {
                     fullTGDs.add(currentTGD);
@@ -77,11 +74,11 @@ public class SimpleGSat {
 
         App.logger.info("SimpleGSat width : " + width);
 
-        Collection<GTGD> resultingFullTDGs = new ArrayList<>(fullTGDs);
+        Collection<TGD> resultingFullTDGs = new ArrayList<>(fullTGDs);
 
         while (!resultingFullTDGs.isEmpty()) {
 
-            List<GTGD> currentFullTDGs = new ArrayList<>(resultingFullTDGs);
+            List<TGD> currentFullTDGs = new ArrayList<>(resultingFullTDGs);
 
             resultingFullTDGs.clear();
 
@@ -95,10 +92,10 @@ public class SimpleGSat {
 
     }
 
-    public void insertAllOriginal(Collection<GTGD> nonfullTGDs, Collection<GTGD> fullTGDs,
-            Collection<GTGD> resultingFullTGDs) {
-        for (GTGD nftgdbis : nonfullTGDs) {
-            GTGD nftgd = renameTgd(nftgdbis);
+    public void insertAllOriginal(Collection<TGD> nonfullTGDs, Collection<TGD> fullTGDs,
+            Collection<TGD> resultingFullTGDs) {
+        for (TGD nftgdbis : nonfullTGDs) {
+            TGD nftgd = renameTgd(nftgdbis);
 
             Map<Term, Term> identityOnExistential = new HashMap<>();
             for(Variable variable : nftgd.getExistential()) {
@@ -106,7 +103,7 @@ public class SimpleGSat {
             }
             System.out.println(identityOnExistential);
             
-            for (GTGD ftgd : fullTGDs) {
+            for (TGD ftgd : fullTGDs) {
                 Atom[] head = nftgd.getHead().getAtoms();
                 Atom[] body = ftgd.getBody().getAtoms();
 
@@ -121,7 +118,7 @@ public class SimpleGSat {
                             System.out.println(nftgd);
                             System.out.println(ftgd);
                             // if there is a mgu create the composition of the tgds
-                            GTGD original = createOriginal(nftgd, ftgd, mgu);
+                            TGD original = createOriginal(nftgd, ftgd, mgu);
                             if (original != null) {
                                 resultingFullTGDs.add(original);
                             }
@@ -133,7 +130,7 @@ public class SimpleGSat {
         }
     }
 
-    public GTGD createOriginal(GTGD nftgd, GTGD ftgd, Map<Term, Term> unifier) {
+    public TGD createOriginal(TGD nftgd, TGD ftgd, Map<Term, Term> unifier) {
         Set<Atom> body = Logic.applyMGU(ftgd.getBodySet(), unifier);
         body.removeAll(Logic.applyMGU(nftgd.getHeadSet(), unifier));
 
@@ -169,16 +166,16 @@ public class SimpleGSat {
             }
             
             //
-            return new GTGD(body, head);
+            return new TGD(body, head);
         }
         return null;
     }
 
-    public void insertAllComposition(Collection<GTGD> s1, Collection<GTGD> s2, int width,
-            Collection<GTGD> resultingFullTGDs) {
-        for (GTGD t1bis : s1) {
-            GTGD t1 = renameTgd(t1bis);
-            for (GTGD t2 : s2) {
+    public void insertAllComposition(Collection<TGD> s1, Collection<TGD> s2, int width,
+            Collection<TGD> resultingFullTGDs) {
+        for (TGD t1bis : s1) {
+            TGD t1 = renameTgd(t1bis);
+            for (TGD t2 : s2) {
                 insertComposition(t1, t2, width, resultingFullTGDs);
             }
         }
@@ -188,7 +185,7 @@ public class SimpleGSat {
      * assume that t1 and t2 do not share variables insert to resultingFullTGDs the
      * composition of t1 with t2 according to width
      */
-    private void insertComposition(GTGD t1, GTGD t2, int width, Collection<GTGD> resultingFullTGDs) {
+    private void insertComposition(TGD t1, TGD t2, int width, Collection<TGD> resultingFullTGDs) {
         Atom[] head = t1.getHead().getAtoms();
         Atom[] body = t2.getBody().getAtoms();
 
@@ -200,13 +197,13 @@ public class SimpleGSat {
                 Map<Term, Term> mgu = Logic.getMGU(ha, ba);
                 if (mgu != null) {
                     // if there is a mgu create the composition of the tgds
-                    GTGD composition = createComposition(t1, t2, mgu, width);
+                    TGD composition = createComposition(t1, t2, mgu, width);
                     Variable[] variables = composition.getTopLevelQuantifiedVariables();
                     if (variables.length > width) {
                         // if the composition contains more universal variables
                         // than the width, we need to form partitions the variables having $width parts.
                         for (Map<Term, Term> unifier : getUnifiersWith(variables, width)) {
-                            resultingFullTGDs.add(Logic.VNF((GTGD) Logic.applySubstitution(composition, unifier),
+                            resultingFullTGDs.add(Logic.VNF((TGD) Logic.applySubstitution(composition, unifier),
                                     eVariable, uVariable));
                         }
                     } else {
@@ -217,13 +214,13 @@ public class SimpleGSat {
         }
     }
 
-    private GTGD createComposition(GTGD t1, GTGD t2, Map<Term, Term> mgu, int width) {
+    private TGD createComposition(TGD t1, TGD t2, Map<Term, Term> mgu, int width) {
         Set<Atom> body = Logic.applyMGU(t2.getBodySet(), mgu);
         body.removeAll(Logic.applyMGU(t1.getHeadSet(), mgu));
         body.addAll(Logic.applyMGU(t1.getBodySet(), mgu));
         Set<Atom> head = Logic.applyMGU(t2.getHeadSet(), mgu);
 
-        return new GTGD(body, head);
+        return new TGD(body, head);
     }
 
     public static List<Map<Term, Term>> getUnifiersWith(Term[] variables, int partNumber) {
@@ -282,7 +279,7 @@ public class SimpleGSat {
         return unifier;
     }
 
-    private GTGD renameTgd(GTGD tgd) {
+    private TGD renameTgd(TGD tgd) {
 
         Variable[] uVariables = tgd.getTopLevelQuantifiedVariables();
 
@@ -292,7 +289,7 @@ public class SimpleGSat {
             substitution.put(v, Variable.create(zVariable + counter++));
         }
 
-        return (GTGD) Logic.applySubstitution(tgd, substitution);
+        return (TGD) Logic.applySubstitution(tgd, substitution);
 
     }
 
