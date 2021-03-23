@@ -9,7 +9,7 @@ import java.util.Stack;
 import java.util.TreeMap;
 import java.util.TreeSet;
 
-import uk.ac.ox.cs.gsat.TGDGSat;
+import uk.ac.ox.cs.gsat.GTGD;
 import uk.ac.ox.cs.pdq.fol.Atom;
 
 /**
@@ -26,13 +26,13 @@ public class ExactAtomFilter implements FormulaFilter {
         TreeMap<Integer, Node> nextBody = new TreeMap<>();
         TreeMap<Integer, Node> nextHead = new TreeMap<>();
         // Formulas that end up at this node
-        HashSet<TGDGSat> formulas = new HashSet<>();
+        HashSet<GTGD> formulas = new HashSet<>();
     }
 
     Node root = new Node();
 
-    private class SubsumedCandidatesIterable implements Iterable<TGDGSat> {
-        private class SubsumedCandidatesIterator implements Iterator<TGDGSat> {
+    private class SubsumedCandidatesIterable implements Iterable<GTGD> {
+        private class SubsumedCandidatesIterator implements Iterator<GTGD> {
             private class IntNodePair {
                 int index;
                 Node node;
@@ -44,7 +44,7 @@ public class ExactAtomFilter implements FormulaFilter {
             }
 
             private Stack<IntNodePair> traversing = new Stack<>();
-            private Iterator<TGDGSat> next = null;
+            private Iterator<GTGD> next = null;
 
             private int[] bodyHashes, headHashes;
 
@@ -106,30 +106,30 @@ public class ExactAtomFilter implements FormulaFilter {
             }
 
             @Override
-            public TGDGSat next() {
+            public GTGD next() {
                 // System.out.println("starting subsumed next" + hasNext());
                 // hasNext();
-                TGDGSat answer = next.next();
+                GTGD answer = next.next();
                 // System.out.println("ending subsuming next");
                 return answer;
             }
         }
 
-        private final TGDGSat formula;
+        private final GTGD formula;
 
-        public SubsumedCandidatesIterable(TGDGSat formula) {
+        public SubsumedCandidatesIterable(GTGD formula) {
             this.formula = formula;
         }
 
         @Override
-        public Iterator<TGDGSat> iterator() {
+        public Iterator<GTGD> iterator() {
             return new SubsumedCandidatesIterator(formula.getBodyHashes(), formula.getHeadHashes());
         }
 
     }
 
-    private class SubsumingCandidatesIterable implements Iterable<TGDGSat> {
-        private class SubsumingCandidatesIterator implements Iterator<TGDGSat> {
+    private class SubsumingCandidatesIterable implements Iterable<GTGD> {
+        private class SubsumingCandidatesIterator implements Iterator<GTGD> {
             private class IntNodePair {
                 int index;
                 Node node;
@@ -141,7 +141,7 @@ public class ExactAtomFilter implements FormulaFilter {
             }
 
             private Stack<IntNodePair> traversing = new Stack<>();
-            private Iterator<TGDGSat> next = null;
+            private Iterator<GTGD> next = null;
 
             private int[] bodyHashes, headHashes;
 
@@ -208,32 +208,32 @@ public class ExactAtomFilter implements FormulaFilter {
             }
 
             @Override
-            public TGDGSat next() {
+            public GTGD next() {
                 // System.out.println("starting subsuming next" + hasNext());
                 // hasNext();
-                TGDGSat answer = next.next();
+                GTGD answer = next.next();
                 // System.out.println("finishing subsuming next");
                 return answer;
             }
         }
 
-        private final TGDGSat formula;
+        private final GTGD formula;
 
-        public SubsumingCandidatesIterable(TGDGSat formula) {
+        public SubsumingCandidatesIterable(GTGD formula) {
             this.formula = formula;
         }
 
         @Override
-        public Iterator<TGDGSat> iterator() {
+        public Iterator<GTGD> iterator() {
             return new SubsumingCandidatesIterator(formula.getBodyHashes(), formula.getHeadHashes());
         }
 
     }
 
-    private class AllIterable implements Iterable<TGDGSat> {
-        private class AllIterator implements Iterator<TGDGSat> {
+    private class AllIterable implements Iterable<GTGD> {
+        private class AllIterator implements Iterator<GTGD> {
             private Stack<Node> traversing = new Stack<>();
-            private Iterator<TGDGSat> next = null;
+            private Iterator<GTGD> next = null;
 
             // the incoming hashes array should be sorted
             public AllIterator() {
@@ -258,29 +258,29 @@ public class ExactAtomFilter implements FormulaFilter {
             }
 
             @Override
-            public TGDGSat next() {
+            public GTGD next() {
                 hasNext();
-                TGDGSat answer = next.next();
+                GTGD answer = next.next();
                 return answer;
             }
         }
 
         @Override
-        public Iterator<TGDGSat> iterator() {
+        public Iterator<GTGD> iterator() {
             return new AllIterator();
         }
 
     }
 
-    public Collection<TGDGSat> getAll() {
+    public Collection<GTGD> getAll() {
         // System.out.println("getting all");
-        HashSet<TGDGSat> answer = new HashSet<>();
+        HashSet<GTGD> answer = new HashSet<>();
         (new AllIterable()).forEach(answer::add);
         // System.out.println("end getting all");
         return answer;
     }
 
-    public void add(TGDGSat formula) {
+    public void add(GTGD formula) {
         // StackTraceElement[] stackTraceElements =
         // Thread.currentThread().getStackTrace();
         // System.out.println(stackTraceElements[2].getClassName() + " " +
@@ -310,7 +310,7 @@ public class ExactAtomFilter implements FormulaFilter {
     }
 
     // this can still be improved, as I am not deleting empty nodes
-    public void remove(TGDGSat formula) {
+    public void remove(GTGD formula) {
         // System.out.println("removing");
         // StackTraceElement[] stackTraceElements =
         // Thread.currentThread().getStackTrace();
@@ -355,20 +355,20 @@ public class ExactAtomFilter implements FormulaFilter {
         return hashes.stream().mapToInt(Integer::intValue).toArray();
     }
 
-    private void checkHashes(TGDGSat formula) {
+    private void checkHashes(GTGD formula) {
         if (formula.getBodyHashes() == null)
             formula.setBodyHashes(computeHashes(formula.getBodyAtoms(), bodyAtomIndeces));
         if (formula.getHeadHashes() == null)
             formula.setHeadHashes(computeHashes(formula.getHeadAtoms(), headAtomIndeces));
     }
 
-    public Iterable<TGDGSat> getSubsumedCandidates(TGDGSat formula) {
+    public Iterable<GTGD> getSubsumedCandidates(GTGD formula) {
         // System.out.println("getting subsumed candidates");
         checkHashes(formula);
         return new SubsumedCandidatesIterable(formula);
     }
 
-    public Iterable<TGDGSat> getSubsumingCandidates(TGDGSat formula) {
+    public Iterable<GTGD> getSubsumingCandidates(GTGD formula) {
         // System.out.println("getting subsuming candidates");
         checkHashes(formula);
         return new SubsumingCandidatesIterable(formula);

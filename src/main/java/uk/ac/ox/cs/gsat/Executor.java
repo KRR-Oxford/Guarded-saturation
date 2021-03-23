@@ -81,7 +81,7 @@ public class Executor {
 		DLGPIO dlgpio = new DLGPIO(input_file, true);
 		try {
 			Collection<Dependency> rules = dlgpio.getRules();
-			Collection<TGDGSat> TGDRules = discardNonTGDRules(rules);
+			Collection<GTGD> TGDRules = discardNonTGDRules(rules);
 			Collection<TGD> normalisedTGDRules = normaliseTGDRules(TGDRules);
 			System.out.println("Rules: " + TGDRules.size() + " vs. " + normalisedTGDRules.size());
 
@@ -132,7 +132,7 @@ public class Executor {
 
 	}
 
-	private static Collection<TGD> normaliseTGDRules(Collection<TGDGSat> tGDRules) {
+	private static Collection<TGD> normaliseTGDRules(Collection<GTGD> tGDRules) {
 
 		final long startTime = System.nanoTime();
 
@@ -233,12 +233,12 @@ public class Executor {
 				// IERC: ERC with Inverse role - p(y,x), B(y) :- A(x)
 
 				// TODO
-			} else if (numberOfBodyAtoms == 2 && numberOfHeadAtoms == 1 && headAtom.equals(TGDGSat.Bottom)) {
+			} else if (numberOfBodyAtoms == 2 && numberOfHeadAtoms == 1 && headAtom.equals(GTGD.Bottom)) {
 				// DC: Disjoint Concept - ! :- A(x), B(x)
 				// DR: Disjoint Role - ! :- p(x,y), r(x,y)
 
 				// TODO
-			} else if (numberOfBodyAtoms == 1 && numberOfHeadAtoms == 1 && headAtom.equals(TGDGSat.Bottom)) {
+			} else if (numberOfBodyAtoms == 1 && numberOfHeadAtoms == 1 && headAtom.equals(GTGD.Bottom)) {
 				// ! :- OWL#Nothing(X)
 
 				// TODO
@@ -327,16 +327,16 @@ public class Executor {
 	// return terms;
 	// }
 
-	private static Collection<TGDGSat> discardNonTGDRules(Collection<Dependency> allDependencies) {
+	private static Collection<GTGD> discardNonTGDRules(Collection<Dependency> allDependencies) {
 
 		final long startTime = System.nanoTime();
 
 		int discarded = 0;
 
-		Collection<TGDGSat> selectedTGDs = new HashSet<>();
+		Collection<GTGD> selectedTGDs = new HashSet<>();
 		for (Dependency d : allDependencies)
 			if (d instanceof TGD && ((TGD) d).isGuarded())
-				selectedTGDs.add(new TGDGSat(Set.of(d.getBodyAtoms()), Set.of(d.getHeadAtoms())));
+				selectedTGDs.add(new GTGD(Set.of(d.getBodyAtoms()), Set.of(d.getHeadAtoms())));
 			else
 				discarded++;
 

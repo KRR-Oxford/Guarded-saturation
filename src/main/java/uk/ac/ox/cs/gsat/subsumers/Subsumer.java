@@ -2,7 +2,7 @@ package uk.ac.ox.cs.gsat.subsumers;
 
 import java.util.Collection;
 
-import uk.ac.ox.cs.gsat.TGDGSat;
+import uk.ac.ox.cs.gsat.GTGD;
 
 /**
  * A class to encapsulate subsumption methods for tgds. It stores a set of tgds
@@ -17,7 +17,7 @@ public interface Subsumer {
      * 
      * @return a collection of the removed tgds.
      */
-    public Collection<TGDGSat> subsumesAny(TGDGSat tgd);
+    public Collection<GTGD> subsumesAny(GTGD tgd);
 
     /**
      * Should not modify S. Updates the counts for number of filtered elements if an
@@ -26,12 +26,12 @@ public interface Subsumer {
      * 
      * @return whether {@code tgd} is subsumed by something in S.
      */
-    public boolean subsumed(TGDGSat tgd);
+    public boolean subsumed(GTGD tgd);
 
     /**
      * Adds {@code tgd} to S
      */
-    public void add(TGDGSat tgd);
+    public void add(GTGD tgd);
 
     /**
      * This does not need to be efficient. It is intended to be called at most once
@@ -39,7 +39,7 @@ public interface Subsumer {
      * 
      * @return S
      */
-    public Collection<TGDGSat> getAll();
+    public Collection<GTGD> getAll();
 
     /**
      * 

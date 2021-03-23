@@ -46,7 +46,7 @@ public class GSat {
     // New variable name for evolveRename
     public String zVariable = "GSat_z";
 
-    private static Comparator<? super TGDGSat> comparator = (tgd1, tgd2) -> {
+    private static Comparator<? super GTGD> comparator = (tgd1, tgd2) -> {
 
         int numberOfHeadAtoms1 = tgd1.getNumberOfHeadAtoms();
         int numberOfHeadAtoms2 = tgd2.getNumberOfHeadAtoms();
@@ -89,17 +89,17 @@ public class GSat {
      * @param allDependencies the Guarded TGDs to process
      * @return the Guarded Saturation of allDependencies
      */
-    public Collection<TGDGSat> runGSat(Collection<Dependency> allDependencies) {
+    public Collection<GTGD> runGSat(Collection<Dependency> allDependencies) {
 
         System.out.println("Running GSat...");
         final long startTime = System.nanoTime();
 
         int discarded = 0;
 
-        Collection<TGDGSat> selectedTGDs = new HashSet<>();
+        Collection<GTGD> selectedTGDs = new HashSet<>();
         for (Dependency d : allDependencies)
             if (isSupportedRule(d))
-                selectedTGDs.add(new TGDGSat(Set.of(d.getBodyAtoms()), Set.of(d.getHeadAtoms())));
+                selectedTGDs.add(new GTGD(Set.of(d.getBodyAtoms()), Set.of(d.getHeadAtoms())));
             else
                 discarded++;
 
@@ -116,8 +116,8 @@ public class GSat {
             zVariable += "0";
         }
 
-        Collection<TGDGSat> newFullTGDs = new HashSet<>();
-        Collection<TGDGSat> newNonFullTGDs = new HashSet<>();
+        Collection<GTGD> newFullTGDs = new HashSet<>();
+        Collection<GTGD> newNonFullTGDs = new HashSet<>();
 
         if (Configuration.getOptimizationValue() >= 5) {
 
@@ -131,10 +131,10 @@ public class GSat {
 
         }
 
-        Map<Predicate, Set<TGDGSat>> nonFullTGDsMap = new HashMap<>();
-        Map<Predicate, Set<TGDGSat>> fullTGDsMap = new HashMap<>();
-        Set<TGDGSat> fullTGDsSet = new HashSet<>();
-        Set<TGDGSat> nonFullTGDsSet = new HashSet<>();
+        Map<Predicate, Set<GTGD>> nonFullTGDsMap = new HashMap<>();
+        Map<Predicate, Set<GTGD>> fullTGDsMap = new HashMap<>();
+        Set<GTGD> fullTGDsSet = new HashSet<>();
+        Set<GTGD> nonFullTGDsSet = new HashSet<>();
         String subsumptionMethod = Configuration.getSubsumptionMethod();
         App.logger.info("Subsumption method : " + subsumptionMethod);
 
@@ -163,8 +163,8 @@ public class GSat {
             fullTGDsSubsumer = new SimpleSubsumer(fullTGDsFilter);
             nonFullTGDsSubsumer = new SimpleSubsumer(nonFullTGDsFilter);
         }
-        for (TGDGSat tgd : selectedTGDs)
-            for (TGDGSat currentTGD : Logic.VNFs(Logic.HNF(tgd), eVariable, uVariable))
+        for (GTGD tgd : selectedTGDs)
+            for (GTGD currentTGD : Logic.VNFs(Logic.HNF(tgd), eVariable, uVariable))
                 if (Logic.isFull(currentTGD)) {
                     addFullTGD(currentTGD, fullTGDsMap, fullTGDsSet);
                     fullTGDsSubsumer.add(currentTGD);
@@ -189,22 +189,22 @@ public class GSat {
                 } else
                     counter++;
 
-            Collection<TGDGSat> toAdd = new ArrayList<>();
+            Collection<GTGD> toAdd = new ArrayList<>();
 
             if (!newNonFullTGDs.isEmpty()) {
 
-                Iterator<TGDGSat> iterator = newNonFullTGDs.iterator();
-                TGDGSat currentTGD = iterator.next();
+                Iterator<GTGD> iterator = newNonFullTGDs.iterator();
+                GTGD currentTGD = iterator.next();
                 // System.out.println("currentTGD " + currentTGD);
                 iterator.remove();
                 App.logger.fine("current TGD: " + currentTGD);
 
                 boolean added = addNonFullTGD(currentTGD, nonFullTGDsMap, nonFullTGDsSet);
                 if (added)
-                    for (TGDGSat ftgd : getFullTGDsToEvolve(fullTGDsMap, currentTGD))
+                    for (GTGD ftgd : getFullTGDsToEvolve(fullTGDsMap, currentTGD))
                         if (Configuration.getOptimizationValue() >= 3) {
                             boolean subsumed = false;
-                            for (TGDGSat newTGD : evolveNew(currentTGD, ftgd)) {
+                            for (GTGD newTGD : evolveNew(currentTGD, ftgd)) {
                                 if (!currentTGD.equals(newTGD)) {
                                     toAdd.add(newTGD);
                                     subsumed = subsumed || subsumed(currentTGD, newTGD);
@@ -213,23 +213,23 @@ public class GSat {
                             if (subsumed)
                                 break;
                         } else
-                            for (TGDGSat newTGD : evolveNew(currentTGD, ftgd))
+                            for (GTGD newTGD : evolveNew(currentTGD, ftgd))
                                 toAdd.add(newTGD);
 
             } else {
 
-                Iterator<TGDGSat> iterator = newFullTGDs.iterator();
-                TGDGSat currentTGD = iterator.next();
+                Iterator<GTGD> iterator = newFullTGDs.iterator();
+                GTGD currentTGD = iterator.next();
                 iterator.remove();
                 App.logger.fine("current TGD: " + currentTGD);
 
                 boolean added = addFullTGD(currentTGD, fullTGDsMap, fullTGDsSet);
-                Set<TGDGSat> set = nonFullTGDsMap.get(currentTGD.getGuard().getPredicate());
+                Set<GTGD> set = nonFullTGDsMap.get(currentTGD.getGuard().getPredicate());
                 if (added && set != null)
-                    for (TGDGSat nftgd : set)
+                    for (GTGD nftgd : set)
                         if (Configuration.getOptimizationValue() >= 3) {
                             boolean subsumed = false;
-                            for (TGDGSat newTGD : evolveNew(nftgd, currentTGD)) {
+                            for (GTGD newTGD : evolveNew(nftgd, currentTGD)) {
                                 if (!currentTGD.equals(newTGD)) {
                                     toAdd.add(newTGD);
                                     subsumed = subsumed || subsumed(currentTGD, newTGD);
@@ -238,11 +238,11 @@ public class GSat {
                             if (subsumed)
                                 break;
                         } else
-                            for (TGDGSat newTGD : evolveNew(nftgd, currentTGD))
+                            for (GTGD newTGD : evolveNew(nftgd, currentTGD))
                                 toAdd.add(newTGD);
 
             }
-            for (TGDGSat newTGD : toAdd) {
+            for (GTGD newTGD : toAdd) {
                 addNewTGD(newTGD, newFullTGDs, newNonFullTGDs, fullTGDsSubsumer, nonFullTGDsSubsumer, fullTGDsMap,
                         nonFullTGDsMap, fullTGDsSet, nonFullTGDsSet);
 
@@ -264,15 +264,15 @@ public class GSat {
 
     }
 
-    private Set<TGDGSat> getFullTGDsToEvolve(Map<Predicate, Set<TGDGSat>> fullTGDsMap, TGDGSat currentTGD) {
+    private Set<GTGD> getFullTGDsToEvolve(Map<Predicate, Set<GTGD>> fullTGDsMap, GTGD currentTGD) {
 
-        Set<TGDGSat> result = new HashSet<>();
+        Set<GTGD> result = new HashSet<>();
 
         if (Configuration.getOptimizationValue() >= 4)
             result = new TreeSet<>(comparator);
 
         for (Atom atom : currentTGD.getHeadSet()) {
-            Set<TGDGSat> set = fullTGDsMap.get(atom.getPredicate());
+            Set<GTGD> set = fullTGDsMap.get(atom.getPredicate());
             if (set != null)
                 result.addAll(set);
         }
@@ -285,36 +285,36 @@ public class GSat {
 
     }
 
-    private boolean addFullTGD(TGDGSat currentTGD, Map<Predicate, Set<TGDGSat>> fullTGDsMap, Set<TGDGSat> fullTGDsSet) {
+    private boolean addFullTGD(GTGD currentTGD, Map<Predicate, Set<GTGD>> fullTGDsMap, Set<GTGD> fullTGDsSet) {
 
-        fullTGDsMap.computeIfAbsent(currentTGD.getGuard().getPredicate(), k -> new HashSet<TGDGSat>()).add(currentTGD);
+        fullTGDsMap.computeIfAbsent(currentTGD.getGuard().getPredicate(), k -> new HashSet<GTGD>()).add(currentTGD);
 
         return fullTGDsSet.add(currentTGD);
 
     }
 
-    private boolean addNonFullTGD(TGDGSat currentTGD, Map<Predicate, Set<TGDGSat>> nonFullTGDsMap,
-            Set<TGDGSat> nonFullTGDsSet) {
+    private boolean addNonFullTGD(GTGD currentTGD, Map<Predicate, Set<GTGD>> nonFullTGDsMap,
+            Set<GTGD> nonFullTGDsSet) {
 
         if (Configuration.getOptimizationValue() >= 4)
             for (Atom atom : currentTGD.getHeadSet())
-                nonFullTGDsMap.computeIfAbsent(atom.getPredicate(), k -> new TreeSet<TGDGSat>(comparator))
+                nonFullTGDsMap.computeIfAbsent(atom.getPredicate(), k -> new TreeSet<GTGD>(comparator))
                         .add(currentTGD);
         else
             for (Atom atom : currentTGD.getHeadSet())
-                nonFullTGDsMap.computeIfAbsent(atom.getPredicate(), k -> new HashSet<TGDGSat>()).add(currentTGD);
+                nonFullTGDsMap.computeIfAbsent(atom.getPredicate(), k -> new HashSet<GTGD>()).add(currentTGD);
 
         return nonFullTGDsSet.add(currentTGD);
 
     }
 
-    private void addNewTGD(TGDGSat newTGD, Collection<TGDGSat> newFullTGDs, Collection<TGDGSat> newNonFullTGDs,
-            Subsumer fullTGDsSubsumer, Subsumer nonFullTGDsSubsumer, Map<Predicate, Set<TGDGSat>> fullTGDsMap,
-            Map<Predicate, Set<TGDGSat>> nonFullTGDsMap, Set<TGDGSat> fullTGDsSet, Set<TGDGSat> nonFullTGDsSet) {
-        final Collection<TGDGSat> newTGDs;
-        final Map<Predicate, Set<TGDGSat>> TGDsMap;
+    private void addNewTGD(GTGD newTGD, Collection<GTGD> newFullTGDs, Collection<GTGD> newNonFullTGDs,
+            Subsumer fullTGDsSubsumer, Subsumer nonFullTGDsSubsumer, Map<Predicate, Set<GTGD>> fullTGDsMap,
+            Map<Predicate, Set<GTGD>> nonFullTGDsMap, Set<GTGD> fullTGDsSet, Set<GTGD> nonFullTGDsSet) {
+        final Collection<GTGD> newTGDs;
+        final Map<Predicate, Set<GTGD>> TGDsMap;
         final Subsumer TGDsSubsumer;
-        final Set<TGDGSat> TGDsSet;
+        final Set<GTGD> TGDsSet;
         if (Logic.isFull(newTGD)) {
             newTGDs = newFullTGDs;
             TGDsMap = fullTGDsMap;
@@ -332,19 +332,19 @@ public class GSat {
             if (TGDsSubsumer.subsumed(newTGD))
                 return;
 
-            Collection<TGDGSat> sub = TGDsSubsumer.subsumesAny(newTGD);
+            Collection<GTGD> sub = TGDsSubsumer.subsumesAny(newTGD);
             TGDsSet.removeAll(sub);
             newTGDs.removeAll(sub);
             if (Logic.isFull(newTGD)) {
                 sub.forEach(tgd -> {
-                    Set<TGDGSat> set = TGDsMap.get(tgd.getGuard().getPredicate());
+                    Set<GTGD> set = TGDsMap.get(tgd.getGuard().getPredicate());
                     if (set != null)
                         set.remove(tgd);
                 });
             } else
-                for (TGDGSat tgd : sub) {
+                for (GTGD tgd : sub) {
                     for (Atom atom : tgd.getHeadSet()) {
-                        Set<TGDGSat> set = TGDsMap.get(atom.getPredicate());
+                        Set<GTGD> set = TGDsMap.get(atom.getPredicate());
                         if (set != null)
                             set.remove(tgd);
                     }
@@ -362,12 +362,12 @@ public class GSat {
     // use this for correctness testing
     // same as normal addNewTGD, except it uses 2 subsumers, and asserts that they
     // return the same results
-    private void addNewTGD(TGDGSat newTGD, Collection<TGDGSat> newFullTGDs, Collection<TGDGSat> newNonFullTGDs,
+    private void addNewTGD(GTGD newTGD, Collection<GTGD> newFullTGDs, Collection<GTGD> newNonFullTGDs,
             Subsumer fullTGDsSubsumer, Subsumer nonFullTGDsSubsumer, Subsumer fullTGDsSubsumer2,
-            Subsumer nonFullTGDsSubsumer2, Map<Predicate, Set<TGDGSat>> fullTGDsMap,
-            Map<Predicate, Set<TGDGSat>> nonFullTGDsMap) {
-        final Collection<TGDGSat> newTGDs;
-        final Map<Predicate, Set<TGDGSat>> TGDsMap;
+            Subsumer nonFullTGDsSubsumer2, Map<Predicate, Set<GTGD>> fullTGDsMap,
+            Map<Predicate, Set<GTGD>> nonFullTGDsMap) {
+        final Collection<GTGD> newTGDs;
+        final Map<Predicate, Set<GTGD>> TGDsMap;
         final Subsumer TGDsSubsumer, TGDsSubsumer2;
         if (Logic.isFull(newTGD)) {
             newTGDs = newFullTGDs;
@@ -388,14 +388,14 @@ public class GSat {
             if (TGDsSubsumer.subsumed(newTGD))
                 return;
 
-            Collection<TGDGSat> sub = TGDsSubsumer.subsumesAny(newTGD);
-            Collection<TGDGSat> sub2 = TGDsSubsumer2.subsumesAny(newTGD);
-            for (TGDGSat tgd : sub) {
+            Collection<GTGD> sub = TGDsSubsumer.subsumesAny(newTGD);
+            Collection<GTGD> sub2 = TGDsSubsumer2.subsumesAny(newTGD);
+            for (GTGD tgd : sub) {
                 if (!subsumed(tgd, newTGD))
                     System.out.println("not subsumed");
                 assert (subsumed(tgd, newTGD));
             }
-            for (TGDGSat tgd : sub2) {
+            for (GTGD tgd : sub2) {
                 if (!subsumed(tgd, newTGD))
                     System.out.println("not subsumed");
                 assert (subsumed(tgd, newTGD));
@@ -422,18 +422,18 @@ public class GSat {
                 // System.out.println(TGDsMap.get(tgd.getGuard().getPredicate())));
                 // System.out.println("full");
                 sub.forEach(tgd -> {
-                    Set<TGDGSat> set = TGDsMap.get(tgd.getGuard().getPredicate());
+                    Set<GTGD> set = TGDsMap.get(tgd.getGuard().getPredicate());
                     if (set != null)
                         set.remove(tgd);
                 });
                 // System.out.println("done with for each");
                 // System.out.println("full end");
             } else
-                for (TGDGSat tgd : sub) {
+                for (GTGD tgd : sub) {
                     // System.out.println(tgd);
                     for (Atom atom : tgd.getHeadSet()) {
                         // System.out.println("not full" + atom);
-                        Set<TGDGSat> set = TGDsMap.get(atom.getPredicate());
+                        Set<GTGD> set = TGDsMap.get(atom.getPredicate());
                         if (set != null)
                             set.remove(tgd);
                         // System.out.println("not full end");
@@ -451,7 +451,7 @@ public class GSat {
         assert TGDsSubsumer.getAll().equals(TGDsSubsumer2.getAll());
     }
 
-    private boolean subsumed(TGDGSat tgd1, TGDGSat tgd2) {
+    private boolean subsumed(GTGD tgd1, GTGD tgd2) {
 
         var body1 = tgd1.getBodySet();
         var headN = tgd1.getHeadSet();
@@ -510,9 +510,9 @@ public class GSat {
      * @return true if it founds a variable with the same name of one of our rename
      *         variables
      */
-    private boolean checkRenameVariablesInTGDs(Collection<TGDGSat> TGDs) {
+    private boolean checkRenameVariablesInTGDs(Collection<GTGD> TGDs) {
 
-        for (TGDGSat tgd : TGDs)
+        for (GTGD tgd : TGDs)
             for (String symbol : tgd.getAllTermSymbols())
                 if (symbol.startsWith(uVariable) || symbol.startsWith(eVariable) || symbol.startsWith(zVariable)) {
                     App.logger.info("Found rename variable: " + symbol);
@@ -543,7 +543,7 @@ public class GSat {
 
     // }
 
-    private TGDGSat evolveRename(TGDGSat ftgd) {
+    private GTGD evolveRename(GTGD ftgd) {
 
         Variable[] uVariables = ftgd.getUniversal();
 
@@ -555,7 +555,7 @@ public class GSat {
             substitution.put(v, Variable.create(zVariable + counter++));
         }
 
-        return (TGDGSat) Logic.applySubstitution(ftgd, substitution);
+        return (GTGD) Logic.applySubstitution(ftgd, substitution);
 
     }
 
@@ -663,14 +663,14 @@ public class GSat {
      * @return the derived rules of nftgd and ftgd according to the EVOLVE inference
      *         rule
      */
-    public Collection<TGDGSat> evolveNew(TGDGSat nftgd, TGDGSat ftgd) {
+    public Collection<GTGD> evolveNew(GTGD nftgd, GTGD ftgd) {
 
         ftgd = evolveRename(ftgd);
 
         App.logger.fine("Composing:\n" + nftgd + "\nand\n" + ftgd);
 
-        Atom guard = new TGDGSat(ftgd.getBodySet(), ftgd.getHeadSet()).getGuard();
-        Collection<TGDGSat> results = new HashSet<>();
+        Atom guard = new GTGD(ftgd.getBodySet(), ftgd.getHeadSet()).getGuard();
+        Collection<GTGD> results = new HashSet<>();
 
         for (Atom H : nftgd.getHeadAtoms()) {
 
@@ -678,8 +678,8 @@ public class GSat {
 
             if (guardMGU != null && !guardMGU.isEmpty()) {
 
-                final TGDGSat new_nftgd = Logic.applyMGU(nftgd, guardMGU);
-                final TGDGSat new_ftgd = Logic.applyMGU(ftgd, guardMGU);
+                final GTGD new_nftgd = Logic.applyMGU(nftgd, guardMGU);
+                final GTGD new_ftgd = Logic.applyMGU(ftgd, guardMGU);
 
                 final List<Variable> new_nftgd_existentials = Arrays.asList(new_nftgd.getExistential());
 
@@ -702,7 +702,7 @@ public class GSat {
                 // in fact, we should never have Shead == null and Sbody.isEmpty
                 if (Shead == null || Shead.isEmpty()) {
                     if (Sbody.isEmpty())
-                        results.addAll(Logic.VNFs(Logic.HNF(new TGDGSat(new_body, new_head)), eVariable, uVariable));
+                        results.addAll(Logic.VNFs(Logic.HNF(new GTGD(new_body, new_head)), eVariable, uVariable));
                     // no matching head atom for some atom in Sbody -> continue
                     continue;
                 }
@@ -723,7 +723,7 @@ public class GSat {
 
                     if (mgu.isEmpty())
                         // no need to apply the MGU
-                        results.addAll(Logic.VNFs(Logic.HNF(new TGDGSat(new_body, new_head)), eVariable, uVariable));
+                        results.addAll(Logic.VNFs(Logic.HNF(new GTGD(new_body, new_head)), eVariable, uVariable));
                     else
                         results.addAll(Logic.VNFs(Logic.HNF(Logic.applyMGU(new_body, new_head, mgu)), eVariable, uVariable));
 

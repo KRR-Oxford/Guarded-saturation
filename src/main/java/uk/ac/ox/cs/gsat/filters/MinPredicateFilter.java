@@ -3,7 +3,7 @@ package uk.ac.ox.cs.gsat.filters;
 import java.util.Collection;
 import java.util.HashSet;
 
-import uk.ac.ox.cs.gsat.TGDGSat;
+import uk.ac.ox.cs.gsat.GTGD;
 import uk.ac.ox.cs.pdq.fol.Atom;
 
 /**
@@ -17,17 +17,17 @@ public class MinPredicateFilter extends PredicateFilter {
      * of all of them
      */
     @Override
-    public Iterable<TGDGSat> getSubsumedCandidates(TGDGSat formula) {
+    public Iterable<GTGD> getSubsumedCandidates(GTGD formula) {
         Atom[] atoms = formula.getBodyAtoms();
         if (atoms.length == 0)
             return all;
-        Collection<TGDGSat> answer = bodyMap.getOrDefault(atoms[0].getPredicate(), null);
+        Collection<GTGD> answer = bodyMap.getOrDefault(atoms[0].getPredicate(), null);
         if (answer == null)
-            return new HashSet<TGDGSat>();
+            return new HashSet<GTGD>();
         for (int i = 1; i < atoms.length; i++) {
-            Collection<TGDGSat> newAnswer = bodyMap.getOrDefault(atoms[i].getPredicate(), null);
+            Collection<GTGD> newAnswer = bodyMap.getOrDefault(atoms[i].getPredicate(), null);
             if (newAnswer == null)
-                return new HashSet<TGDGSat>();
+                return new HashSet<GTGD>();
             if (newAnswer.size() < answer.size())
                 answer = newAnswer;
         }
@@ -40,17 +40,17 @@ public class MinPredicateFilter extends PredicateFilter {
      * of all of them.
      */
     @Override
-    public Iterable<TGDGSat> getSubsumingCandidates(TGDGSat formula) {
+    public Iterable<GTGD> getSubsumingCandidates(GTGD formula) {
         Atom[] atoms = formula.getHeadAtoms();
         if (atoms.length == 0)
             return all;
-        Collection<TGDGSat> answer = headMap.getOrDefault(atoms[0].getPredicate(), null);
+        Collection<GTGD> answer = headMap.getOrDefault(atoms[0].getPredicate(), null);
         if (answer == null)
-            return new HashSet<TGDGSat>();
+            return new HashSet<GTGD>();
         for (int i = 1; i < atoms.length; i++) {
-            Collection<TGDGSat> newAnswer = headMap.getOrDefault(atoms[i].getPredicate(), null);
+            Collection<GTGD> newAnswer = headMap.getOrDefault(atoms[i].getPredicate(), null);
             if (newAnswer == null)
-                return new HashSet<TGDGSat>();
+                return new HashSet<GTGD>();
             if (newAnswer.size() < answer.size())
                 answer = newAnswer;
         }

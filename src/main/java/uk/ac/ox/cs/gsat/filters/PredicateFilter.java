@@ -4,7 +4,7 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
-import uk.ac.ox.cs.gsat.TGDGSat;
+import uk.ac.ox.cs.gsat.GTGD;
 import uk.ac.ox.cs.pdq.fol.Atom;
 import uk.ac.ox.cs.pdq.fol.Predicate;
 
@@ -13,14 +13,14 @@ import uk.ac.ox.cs.pdq.fol.Predicate;
  * of the formulas in S with that predicate either in the head or in the body.
  */
 public abstract class PredicateFilter implements FormulaFilter {
-    protected Map<Predicate, Collection<TGDGSat>> bodyMap = new HashMap<>(), headMap = new HashMap<>();
-    protected Collection<TGDGSat> all = new HashSet<>();
+    protected Map<Predicate, Collection<GTGD>> bodyMap = new HashMap<>(), headMap = new HashMap<>();
+    protected Collection<GTGD> all = new HashSet<>();
 
-    public Collection<TGDGSat> getAll() {
+    public Collection<GTGD> getAll() {
         return all;
     }
 
-    public void add(TGDGSat formula) {
+    public void add(GTGD formula) {
         all.add(formula);
         for (Atom atom : formula.getBodyAtoms()) {
             if (!bodyMap.containsKey(atom.getPredicate())) {
@@ -36,7 +36,7 @@ public abstract class PredicateFilter implements FormulaFilter {
         }
     }
 
-    public void remove(TGDGSat formula) {
+    public void remove(GTGD formula) {
         all.remove(formula);
         for (Atom atom : formula.getBodyAtoms()) {
             bodyMap.get(atom.getPredicate()).remove(formula);

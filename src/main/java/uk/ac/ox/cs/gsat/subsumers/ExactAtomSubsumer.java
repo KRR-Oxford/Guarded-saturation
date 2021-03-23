@@ -8,7 +8,7 @@ import java.util.Stack;
 import java.util.TreeMap;
 import java.util.TreeSet;
 
-import uk.ac.ox.cs.gsat.TGDGSat;
+import uk.ac.ox.cs.gsat.GTGD;
 import uk.ac.ox.cs.pdq.fol.Atom;
 
 /**
@@ -25,7 +25,7 @@ public class ExactAtomSubsumer implements Subsumer {
         TreeMap<Integer, Node> nextBody = new TreeMap<>();
         TreeMap<Integer, Node> nextHead = new TreeMap<>();
         // Formulas that end up at this node
-        TGDGSat currentFormula = null;
+        GTGD currentFormula = null;
     }
 
     Node root = new Node();
@@ -46,7 +46,7 @@ public class ExactAtomSubsumer implements Subsumer {
         return hashes.stream().mapToInt(Integer::intValue).toArray();
     }
 
-    private void checkHashes(TGDGSat formula) {
+    private void checkHashes(GTGD formula) {
         if (formula.getBodyHashes() == null)
             formula.setBodyHashes(computeHashes(formula.getBodyAtoms(), bodyAtomIndeces));
         if (formula.getHeadHashes() == null)
@@ -64,8 +64,8 @@ public class ExactAtomSubsumer implements Subsumer {
     }
 
     @Override
-    public Collection<TGDGSat> subsumesAny(TGDGSat formula) {
-        HashSet<TGDGSat> answer = new HashSet<>();
+    public Collection<GTGD> subsumesAny(GTGD formula) {
+        HashSet<GTGD> answer = new HashSet<>();
         Stack<IntNodePair> traversing = new Stack<>();
         // TODO: implement this in a less hacky manner
         Stack<IntNodePair> reversedTraversal = new Stack<>();
@@ -143,7 +143,7 @@ public class ExactAtomSubsumer implements Subsumer {
     }
 
     @Override
-    public boolean subsumed(TGDGSat formula) {
+    public boolean subsumed(GTGD formula) {
         checkHashes(formula);
         int[] bodyHashes = formula.getBodyHashes();
         int[] headHashes = formula.getHeadHashes();
@@ -194,7 +194,7 @@ public class ExactAtomSubsumer implements Subsumer {
     }
 
     @Override
-    public void add(TGDGSat formula) {
+    public void add(GTGD formula) {
         checkHashes(formula);
         if (formula.getHeadAtoms().length == 0)
             return;
@@ -217,9 +217,9 @@ public class ExactAtomSubsumer implements Subsumer {
     }
 
     @Override
-    public Collection<TGDGSat> getAll() {
+    public Collection<GTGD> getAll() {
         Stack<Node> traversing = new Stack<>();
-        HashSet<TGDGSat> answer = new HashSet<>();
+        HashSet<GTGD> answer = new HashSet<>();
         traversing.push(root);
         while (!traversing.empty()) {
             Node top = traversing.pop();
