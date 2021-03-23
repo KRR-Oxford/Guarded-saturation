@@ -2,7 +2,7 @@ package uk.ac.ox.cs.gsat.filters;
 
 import java.util.Collection;
 
-import uk.ac.ox.cs.gsat.TGDGSat;
+import uk.ac.ox.cs.gsat.GTGD;
 
 /**
  * Stores and operates on a set of tgds S. Allows adding / removing elements
@@ -15,8 +15,8 @@ public interface FormulaFilter {
     /**
      * Adds {@code tgds} to S.
      */
-    default void addAll(Collection<TGDGSat> tgds) {
-        for (TGDGSat tgd : tgds) {
+    default void addAll(Collection<GTGD> tgds) {
+        for (GTGD tgd : tgds) {
             add(tgd);
         }
     }
@@ -24,8 +24,8 @@ public interface FormulaFilter {
     /**
      * Removes {@code tgds} from S.
      */
-    default void removeAll(Collection<TGDGSat> tgds) {
-        for (TGDGSat tgd : tgds) {
+    default void removeAll(Collection<GTGD> tgds) {
+        for (GTGD tgd : tgds) {
             remove(tgd);
         }
     }
@@ -35,25 +35,25 @@ public interface FormulaFilter {
      * 
      * @return all tgds in S
      */
-    Collection<TGDGSat> getAll();
+    Collection<GTGD> getAll();
 
     /**
      * Adds {@code tgd} to S.
      */
-    void add(TGDGSat tgd);
+    void add(GTGD tgd);
 
     /**
      * Removes {@code tgd} from S.
      */
-    void remove(TGDGSat tgd);
+    void remove(GTGD tgd);
 
     /**
      * Returns elements in S that could subsume {@code tgd}
      */
-    Iterable<TGDGSat> getSubsumedCandidates(TGDGSat tgd);
+    Iterable<GTGD> getSubsumedCandidates(GTGD tgd);
 
     /**
      * Returns elements in S that could be subsumed by {@code tgd}
      */
-    Iterable<TGDGSat> getSubsumingCandidates(TGDGSat formula);
+    Iterable<GTGD> getSubsumingCandidates(GTGD formula);
 }

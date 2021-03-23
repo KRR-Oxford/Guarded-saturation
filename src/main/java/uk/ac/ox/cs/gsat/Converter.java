@@ -64,24 +64,24 @@ public class Converter {
 		OWLIO owlio = new OWLIO(input_path, true);
 		try {
 			Collection<Dependency> rules = owlio.getRules();
-			Collection<TGDGSat> TGDRules = discardNonTGDRules(rules);
+			Collection<GTGD> TGDRules = discardNonTGDRules(rules);
 			IO.writeDatalogRules(TGDRules, output_path);
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
 	}
 
-	private static Collection<TGDGSat> discardNonTGDRules(Collection<Dependency> allDependencies) {
+	private static Collection<GTGD> discardNonTGDRules(Collection<Dependency> allDependencies) {
 
 		System.out.println("Running GSat...");
 		final long startTime = System.nanoTime();
 
 		int discarded = 0;
 
-		Collection<TGDGSat> selectedTGDs = new HashSet<>();
+		Collection<GTGD> selectedTGDs = new HashSet<>();
 		for (Dependency d : allDependencies)
 			if (d instanceof TGD && ((TGD) d).isGuarded())
-				selectedTGDs.add(new TGDGSat(Set.of(d.getBodyAtoms()), Set.of(d.getHeadAtoms())));
+				selectedTGDs.add(new GTGD(Set.of(d.getBodyAtoms()), Set.of(d.getHeadAtoms())));
 			else
 				discarded++;
 

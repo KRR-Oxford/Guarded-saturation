@@ -50,21 +50,21 @@ public class SimpleGSatTest {
         Atom Rx1x2 = Atom.create(Predicate.create("R", 2), x1, x2);
         Atom Sx1x2y1y2 = Atom.create(Predicate.create("S", 4), x1, x2, y1, y2);
         Atom Tx1x2y2 = Atom.create(Predicate.create("T", 3), x1, x2, y2);
-        TGDGSat nonFull = new TGDGSat(Set.of(Rx1x2), Set.of(Sx1x2y1y2, Tx1x2y2));
+        GTGD nonFull = new GTGD(Set.of(Rx1x2), Set.of(Sx1x2y1y2, Tx1x2y2));
         Atom Sx1x2x3x4 = Atom.create(Predicate.create("S", 4), x1, x2,x3,x4);
         Atom Ux4 = Atom.create(Predicate.create("U", 1), x4);
-        TGDGSat full = new TGDGSat(Set.of(Sx1x2x3x4), Set.of(Ux4));
+        GTGD full = new GTGD(Set.of(Sx1x2x3x4), Set.of(Ux4));
         Atom Tz1z2z3 = Atom.create(Predicate.create("T", 3), z1, z2, z3);
         Atom Uz3 = Atom.create(Predicate.create("U", 1), z3);
         Atom Pz1 = Atom.create(Predicate.create("P", 1), z1);
-        TGDGSat full1 = new TGDGSat(Set.of(Tz1z2z3, Uz3), Set.of(Pz1));
+        GTGD full1 = new GTGD(Set.of(Tz1z2z3, Uz3), Set.of(Pz1));
 
         Collection<Dependency> input = new ArrayList<>();
         input.add(nonFull);
         input.add(full);
         input.add(full1);
 
-        Collection<TGDGSat> result = sgsat.run(input);
+        Collection<GTGD> result = sgsat.run(input);
 
         for(TGD tgd : result)
             System.out.println(tgd);

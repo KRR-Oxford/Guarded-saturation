@@ -4,7 +4,7 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
-import uk.ac.ox.cs.gsat.TGDGSat;
+import uk.ac.ox.cs.gsat.GTGD;
 import uk.ac.ox.cs.pdq.fol.Atom;
 
 /**
@@ -13,14 +13,14 @@ import uk.ac.ox.cs.pdq.fol.Atom;
  * (including the same variable names).
  */
 public abstract class AtomFilter implements FormulaFilter {
-    protected Map<Atom, Collection<TGDGSat>> bodyMap = new HashMap<>(), headMap = new HashMap<>();
-    protected Collection<TGDGSat> all = new HashSet<>();
+    protected Map<Atom, Collection<GTGD>> bodyMap = new HashMap<>(), headMap = new HashMap<>();
+    protected Collection<GTGD> all = new HashSet<>();
 
-    public Collection<TGDGSat> getAll() {
+    public Collection<GTGD> getAll() {
         return all;
     }
 
-    public void add(TGDGSat formula) {
+    public void add(GTGD formula) {
         all.add(formula);
         for (Atom atom : formula.getBodyAtoms()) {
             if (!bodyMap.containsKey(atom)) {
@@ -36,7 +36,7 @@ public abstract class AtomFilter implements FormulaFilter {
         }
     }
 
-    public void remove(TGDGSat formula) {
+    public void remove(GTGD formula) {
         all.remove(formula);
         for (Atom atom : formula.getBodyAtoms()) {
             bodyMap.get(atom).remove(formula);

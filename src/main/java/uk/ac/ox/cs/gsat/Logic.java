@@ -63,16 +63,16 @@ public class Logic {
 			for (int atomIndex = 0; atomIndex < atoms.length; ++atomIndex)
 				bodyAtoms[atomIndex] = applySubstitution(atoms[atomIndex], substitution);
 			return Conjunction.create(bodyAtoms);
-		} else if (formula instanceof TGDGSat) {
-			Set<Atom> headAtoms = ((TGDGSat) formula).getHeadSet();
+		} else if (formula instanceof GTGD) {
+			Set<Atom> headAtoms = ((GTGD) formula).getHeadSet();
 			Set<Atom> headAtomsF = new HashSet<>();
-			Set<Atom> bodyAtoms = ((TGDGSat) formula).getBodySet();
+			Set<Atom> bodyAtoms = ((GTGD) formula).getBodySet();
 			Set<Atom> bodyAtomsF = new HashSet<>();
 			for (Atom headAtom : headAtoms)
 				headAtomsF.add((Atom) applySubstitution(headAtom, substitution));
 			for (Atom bodyAtom : bodyAtoms)
 				bodyAtomsF.add((Atom) applySubstitution(bodyAtom, substitution));
-			return new TGDGSat(bodyAtomsF, headAtomsF);
+			return new GTGD(bodyAtomsF, headAtomsF);
 		} else if (formula instanceof TGD) {
 			Atom[] headAtoms = ((TGD) formula).getHeadAtoms();
 			Atom[] headAtomsF = new Atom[headAtoms.length];
@@ -294,15 +294,15 @@ public class Logic {
 	}
 
 
-    public static TGDGSat applyMGU(TGDGSat tgd, Map<Term, Term> mgu) {
+    public static GTGD applyMGU(GTGD tgd, Map<Term, Term> mgu) {
 
         return applyMGU(tgd.getBodySet(), tgd.getHeadSet(), mgu);
 
     }
 
-    public static TGDGSat applyMGU(Set<Atom> bodyAtoms, Set<Atom> headAtoms, Map<Term, Term> mgu) {
+    public static GTGD applyMGU(Set<Atom> bodyAtoms, Set<Atom> headAtoms, Map<Term, Term> mgu) {
 
-        return new TGDGSat(applyMGU(bodyAtoms, mgu), applyMGU(headAtoms, mgu));
+        return new GTGD(applyMGU(bodyAtoms, mgu), applyMGU(headAtoms, mgu));
 
     }
 
@@ -319,7 +319,7 @@ public class Logic {
      * @param tgds a collection of TGDs
      * @return Variable Normal Form of tgds
      */
-    public static Collection<TGDGSat> VNFs(Collection<TGDGSat> tgds, String eVariable, String uVariable) {
+    public static Collection<GTGD> VNFs(Collection<GTGD> tgds, String eVariable, String uVariable) {
 
         return tgds.stream().map((tgd) -> VNF(tgd, eVariable, uVariable)).collect(Collectors.toList());
 
@@ -332,7 +332,7 @@ public class Logic {
      * @param tgd an input TGD
      * @return Variable Normal Form of tgd
      */
-    public static TGDGSat VNF(TGDGSat tgd, String eVariable, String uVariable) {
+    public static GTGD VNF(GTGD tgd, String eVariable, String uVariable) {
 
         if (tgd == null)
             throw new IllegalArgumentException("Null TGD in VNF");
@@ -352,7 +352,7 @@ public class Logic {
 
         App.logger.fine("VNF substitution:\n" + substitution);
 
-        TGDGSat applySubstitution = (TGDGSat) Logic.applySubstitution(tgd, substitution);
+        GTGD applySubstitution = (GTGD) Logic.applySubstitution(tgd, substitution);
         App.logger.fine("VNF: " + tgd + "===>>>" + applySubstitution);
         return applySubstitution;
 
@@ -365,7 +365,7 @@ public class Logic {
      * @param tgd an input TGD
      * @return Head Normal Form of tgd
      */
-    static public Collection<TGDGSat> HNF(final TGDGSat tgd) {
+    static public Collection<GTGD> HNF(final GTGD tgd) {
 
         if (tgd == null)
             return new HashSet<>();
@@ -377,9 +377,9 @@ public class Logic {
 
         Set<Atom> bodyAtoms = tgd.getBodySet();
         for (Atom a : tgd.getHeadAtoms())
-            if (a.equals(TGDGSat.Bottom))
+            if (a.equals(GTGD.Bottom))
                 // remove all head atoms since ⊥ & S ≡ ⊥ for any conjunction S
-                return Set.of(new TGDGSat(bodyAtoms, Set.of(TGDGSat.Bottom)));
+                return Set.of(new GTGD(bodyAtoms, Set.of(GTGD.Bottom)));
             else if (Logic.containsAny(a, eVariables))
                 eHead.add(a);
             else if (!bodyAtoms.contains(a))
@@ -390,11 +390,11 @@ public class Logic {
         if (tgd.getHeadAtoms().length == eHead.size() || tgd.getHeadAtoms().length == fHead.size())
             return Set.of(tgd);
 
-        Collection<TGDGSat> result = new HashSet<>();
+        Collection<GTGD> result = new HashSet<>();
         if (!eHead.isEmpty())
-            result.add(new TGDGSat(bodyAtoms, eHead));
+            result.add(new GTGD(bodyAtoms, eHead));
         if (!fHead.isEmpty())
-            result.add(new TGDGSat(bodyAtoms, fHead));
+            result.add(new GTGD(bodyAtoms, fHead));
         return result;
 
     }

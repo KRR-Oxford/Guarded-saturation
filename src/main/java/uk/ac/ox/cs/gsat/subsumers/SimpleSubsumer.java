@@ -3,7 +3,7 @@ package uk.ac.ox.cs.gsat.subsumers;
 import java.util.Collection;
 import java.util.HashSet;
 
-import uk.ac.ox.cs.gsat.TGDGSat;
+import uk.ac.ox.cs.gsat.GTGD;
 import uk.ac.ox.cs.gsat.filters.FormulaFilter;
 
 /**
@@ -21,13 +21,13 @@ public class SimpleSubsumer implements Subsumer {
     }
 
     @Override
-    public Collection<TGDGSat> subsumesAny(TGDGSat newTGD) {
-        Collection<TGDGSat> subsumed = new HashSet<>();
+    public Collection<GTGD> subsumesAny(GTGD newTGD) {
+        Collection<GTGD> subsumed = new HashSet<>();
 
         var bodyN = newTGD.getBodySet();
         var headN = newTGD.getHeadSet();
 
-        for (TGDGSat tgd : filter.getSubsumedCandidates(newTGD)) {
+        for (GTGD tgd : filter.getSubsumedCandidates(newTGD)) {
             var body = tgd.getBodySet();
             var head = tgd.getHeadSet();
 
@@ -49,11 +49,11 @@ public class SimpleSubsumer implements Subsumer {
     }
 
     @Override
-    public boolean subsumed(TGDGSat newTGD) {
+    public boolean subsumed(GTGD newTGD) {
         var bodyN = newTGD.getBodySet();
         var headN = newTGD.getHeadSet();
 
-        for (TGDGSat tgd : filter.getSubsumingCandidates(newTGD)) {
+        for (GTGD tgd : filter.getSubsumingCandidates(newTGD)) {
             var body = tgd.getBodySet();
             var head = tgd.getHeadSet();
 
@@ -73,11 +73,11 @@ public class SimpleSubsumer implements Subsumer {
         return false;
     }
 
-    public void add(TGDGSat newTGD) {
+    public void add(GTGD newTGD) {
         filter.add(newTGD);
     }
 
-    public Collection<TGDGSat> getAll() {
+    public Collection<GTGD> getAll() {
         return filter.getAll();
     }
 
