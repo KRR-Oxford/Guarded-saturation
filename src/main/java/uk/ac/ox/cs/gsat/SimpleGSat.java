@@ -9,6 +9,7 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
+import java.util.stream.Collector;
 
 import uk.ac.ox.cs.pdq.fol.Atom;
 import uk.ac.ox.cs.pdq.fol.Dependency;
@@ -74,8 +75,6 @@ public class SimpleGSat {
             }
         }
 
-        // compute the width of the TGDs
-
         App.logger.info("SimpleGSat width : " + width);
 
         Collection<TGDGSat> resultingFullTDGs = new ArrayList<>(fullTGDs);
@@ -83,10 +82,12 @@ public class SimpleGSat {
         while (!resultingFullTDGs.isEmpty()) {
 
             List<TGDGSat> currentFullTDGs = new ArrayList<>(resultingFullTDGs);
+
             resultingFullTDGs.clear();
 
             insertAllComposition(fullTGDs, currentFullTDGs, width, resultingFullTDGs);
             insertAllComposition(currentFullTDGs, fullTGDs, width, resultingFullTDGs);
+            insertAllOriginal(nonfullTGDs, fullTGDs, resultingFullTDGs);
 
             fullTGDs.addAll(resultingFullTDGs);
         }
@@ -94,15 +95,93 @@ public class SimpleGSat {
 
     }
 
+    public void insertAllOriginal(Collection<TGDGSat> nonfullTGDs, Collection<TGDGSat> fullTGDs,
+            Collection<TGDGSat> resultingFullTGDs) {
+        for (TGDGSat nftgdbis : nonfullTGDs) {
+            TGDGSat nftgd = renameTgd(nftgdbis);
+
+            Map<Term, Term> identityOnExistential = new HashMap<>();
+            for(Variable variable : nftgd.getExistential()) {
+                identityOnExistential.put(variable, variable);
+            }
+            System.out.println(identityOnExistential);
+            
+            for (TGDGSat ftgd : fullTGDs) {
+                Atom[] head = nftgd.getHead().getAtoms();
+                Atom[] body = ftgd.getBody().getAtoms();
+
+                // check if there is a mgu between each atoms of the body and the head
+                for (int k = 0; k < head.length; k++) {
+                    for (int l = k; l < body.length; l++) {
+                        Atom ha = head[k];
+                        Atom ba = body[l];
+                        Map<Term, Term> mgu = Logic.getMGU(ha, ba, identityOnExistential);
+                        if (mgu != null) {
+                            System.out.println("mgu : " + mgu + "\n");
+                            System.out.println(nftgd);
+                            System.out.println(ftgd);
+                            // if there is a mgu create the composition of the tgds
+                            TGDGSat original = createOriginal(nftgd, ftgd, mgu);
+                            if (original != null) {
+                                resultingFullTGDs.add(original);
+                            }
+                        }
+                    }
+                }
+
+            }
+        }
+    }
+
+    public TGDGSat createOriginal(TGDGSat nftgd, TGDGSat ftgd, Map<Term, Term> unifier) {
+        Set<Atom> body = Logic.applyMGU(ftgd.getBodySet(), unifier);
+        body.removeAll(Logic.applyMGU(nftgd.getHeadSet(), unifier));
+
+        Collection<Term> imageFullVariable = new HashSet<>();
+
+        for (Variable var : ftgd.getTopLevelQuantifiedVariables()) {
+            imageFullVariable.add(unifier.get(var));
+        }
+
+        boolean isPieceUnification = true;
+        for (Atom atom : body) {
+            for(Variable var : atom.getVariables())
+                isPieceUnification = isPieceUnification && imageFullVariable.contains(var);
+        }
+        
+        if (isPieceUnification) {
+            body.addAll(Logic.applyMGU(nftgd.getBodySet(), unifier));
+            Set<Atom> headBeforePruning = Logic.applyMGU(ftgd.getHeadSet(), unifier);
+            // remove atom from head, if they contain existential variables
+            Set<Atom> head = new HashSet<>();
+            Set<Variable> existentialVariables = Set.of(nftgd.getExistential());
+            for (Atom atom: headBeforePruning) {
+                boolean containsExistential = false;
+                for (Variable var : atom.getVariables()) {
+                    if (existentialVariables.contains(var)) {
+                        containsExistential = true;
+                        break;
+                    }
+                }
+                if (!containsExistential) {
+                    head.add(atom);
+                }
+            }
+            
+            //
+            return new TGDGSat(body, head);
+        }
+        return null;
+    }
+
     public void insertAllComposition(Collection<TGDGSat> s1, Collection<TGDGSat> s2, int width,
-                                     Collection<TGDGSat> resultingFullTGDs) {
+            Collection<TGDGSat> resultingFullTGDs) {
         for (TGDGSat t1bis : s1) {
             TGDGSat t1 = renameTgd(t1bis);
-            for (TGDGSat t2: s2) {
+            for (TGDGSat t2 : s2) {
                 insertComposition(t1, t2, width, resultingFullTGDs);
             }
         }
-
     }
 
     /*
@@ -113,7 +192,7 @@ public class SimpleGSat {
         Atom[] head = t1.getHead().getAtoms();
         Atom[] body = t2.getBody().getAtoms();
 
-        // check if there is a mgu between each atoms of the body and the head  
+        // check if there is a mgu between each atoms of the body and the head
         for (int k = 0; k < head.length; k++) {
             for (int l = k; l < body.length; l++) {
                 Atom ha = head[k];
@@ -121,7 +200,6 @@ public class SimpleGSat {
                 Map<Term, Term> mgu = Logic.getMGU(ha, ba);
                 if (mgu != null) {
                     // if there is a mgu create the composition of the tgds
-                    App.logger.info("mgu : " + mgu + "\n");
                     TGDGSat composition = createComposition(t1, t2, mgu, width);
                     Variable[] variables = composition.getTopLevelQuantifiedVariables();
                     if (variables.length > width) {
@@ -174,9 +252,7 @@ public class SimpleGSat {
             for (int j = 1; j <= Math.min(g[n - 1] + 1, partNumber); j++) {
                 code[n - 1] = j;
                 if (g[n - 1] == partNumber || j == partNumber) {
-                    System.out.println(Arrays.toString(code));
                     results.add(createUniferFromPart(variables, code));
-                    System.out.println(createUniferFromPart(variables, code));
                 }
             }
             // backtrack to find a position to increase
@@ -206,7 +282,7 @@ public class SimpleGSat {
         return unifier;
     }
 
-        private TGDGSat renameTgd(TGDGSat tgd) {
+    private TGDGSat renameTgd(TGDGSat tgd) {
 
         Variable[] uVariables = tgd.getTopLevelQuantifiedVariables();
 
