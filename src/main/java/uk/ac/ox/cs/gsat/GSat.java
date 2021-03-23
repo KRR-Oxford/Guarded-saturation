@@ -27,7 +27,6 @@ import uk.ac.ox.cs.gsat.subsumers.Subsumer;
 import uk.ac.ox.cs.pdq.fol.Atom;
 import uk.ac.ox.cs.pdq.fol.Dependency;
 import uk.ac.ox.cs.pdq.fol.Predicate;
-import uk.ac.ox.cs.pdq.fol.TGD;
 import uk.ac.ox.cs.pdq.fol.Term;
 import uk.ac.ox.cs.pdq.fol.Variable;
 
@@ -164,14 +163,16 @@ public class GSat {
             nonFullTGDsSubsumer = new SimpleSubsumer(nonFullTGDsFilter);
         }
         for (GTGD tgd : selectedTGDs)
-            for (GTGD currentTGD : Logic.VNFs(Logic.HNF(tgd), eVariable, uVariable))
+            for (TGD currentTGD : Logic.VNFs(Logic.HNF(tgd), eVariable, uVariable)) {
+                GTGD currentGTGD = new GTGD(currentTGD.getBodySet(), currentTGD.getHeadSet());
                 if (Logic.isFull(currentTGD)) {
-                    addFullTGD(currentTGD, fullTGDsMap, fullTGDsSet);
-                    fullTGDsSubsumer.add(currentTGD);
+                    addFullTGD(currentGTGD, fullTGDsMap, fullTGDsSet);
+                    fullTGDsSubsumer.add(currentGTGD);
                 } else {
-                    nonFullTGDsSubsumer.add(currentTGD);
-                    newNonFullTGDs.add(currentTGD);
+                    nonFullTGDsSubsumer.add(currentGTGD);
+                    newNonFullTGDs.add(currentGTGD);
                 }
+            }
 
         App.logger.fine("# initial TGDs: " + fullTGDsSet.size() + " , " + newNonFullTGDs.size());
 
@@ -497,7 +498,7 @@ public class GSat {
     private boolean isSupportedRule(Dependency d) {
         // if (d instanceof TGD && ((TGD) d).isGuarded() && !containsSelfJoin((TGD) d))
         // // Adding only Guarded TGDs
-        return d instanceof TGD && ((TGD) d).isGuarded(); // Adding only Guarded TGDs
+        return d instanceof uk.ac.ox.cs.pdq.fol.TGD && ((uk.ac.ox.cs.pdq.fol.TGD) d).isGuarded(); // Adding only Guarded TGDs
         // if (!(d instanceof EGD))
     }
 
@@ -702,7 +703,7 @@ public class GSat {
                 // in fact, we should never have Shead == null and Sbody.isEmpty
                 if (Shead == null || Shead.isEmpty()) {
                     if (Sbody.isEmpty())
-                        results.addAll(Logic.VNFs(Logic.HNF(new GTGD(new_body, new_head)), eVariable, uVariable));
+                        results.addAll(GTGD.fromTGD(Logic.VNFs(Logic.HNF(new GTGD(new_body, new_head)), eVariable, uVariable)));
                     // no matching head atom for some atom in Sbody -> continue
                     continue;
                 }
@@ -723,9 +724,9 @@ public class GSat {
 
                     if (mgu.isEmpty())
                         // no need to apply the MGU
-                        results.addAll(Logic.VNFs(Logic.HNF(new GTGD(new_body, new_head)), eVariable, uVariable));
+                        results.addAll(GTGD.fromTGD(Logic.VNFs(Logic.HNF(new GTGD(new_body, new_head)), eVariable, uVariable)));
                     else
-                        results.addAll(Logic.VNFs(Logic.HNF(Logic.applyMGU(new_body, new_head, mgu)), eVariable, uVariable));
+                        results.addAll(GTGD.fromTGD(Logic.VNFs(Logic.HNF(Logic.applyMGU(new_body, new_head, mgu)), eVariable, uVariable)));
 
                 }
 

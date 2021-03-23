@@ -19,7 +19,6 @@ import uk.ac.ox.cs.pdq.fol.Atom;
 import uk.ac.ox.cs.pdq.fol.Constant;
 import uk.ac.ox.cs.pdq.fol.Dependency;
 import uk.ac.ox.cs.pdq.fol.Predicate;
-import uk.ac.ox.cs.pdq.fol.TGD;
 import uk.ac.ox.cs.pdq.fol.UntypedConstant;
 import uk.ac.ox.cs.pdq.fol.Variable;
 
@@ -97,10 +96,10 @@ public class GSatTest {
 		// ∀ x1,x2,x3 T(x1,x2,x3) → ∃ y1 U(x1,x2,y1)
 		// ∀ x1,x2,x3 U(x1,x2,x3) → P(x1) ∧ V(x1,x2)
 		// ∀ x1,x2,x3 T(x1,x2,x3) ∧ V(x1,x2) ∧ S(x1) → M(x1)
-		TGD t1 = TGD.create(new Atom[] { R_x1 }, new Atom[] { T_x1y1y2 });
-		TGD t2 = TGD.create(new Atom[] { T_x1x2x3 }, new Atom[] { U_x1x2y1 });
-		TGD t3 = TGD.create(new Atom[] { U_x1x2x3 }, new Atom[] { P_x1, V_x1x2 });
-		TGD t4 = TGD.create(new Atom[] { T_x1x2x3, V_x1x2, S_x1 }, new Atom[] { M_x1 });
+		uk.ac.ox.cs.pdq.fol.TGD t1 = uk.ac.ox.cs.pdq.fol.TGD.create(new Atom[] { R_x1 }, new Atom[] { T_x1y1y2 });
+		uk.ac.ox.cs.pdq.fol.TGD t2 = uk.ac.ox.cs.pdq.fol.TGD.create(new Atom[] { T_x1x2x3 }, new Atom[] { U_x1x2y1 });
+		uk.ac.ox.cs.pdq.fol.TGD t3 = uk.ac.ox.cs.pdq.fol.TGD.create(new Atom[] { U_x1x2x3 }, new Atom[] { P_x1, V_x1x2 });
+		uk.ac.ox.cs.pdq.fol.TGD t4 = uk.ac.ox.cs.pdq.fol.TGD.create(new Atom[] { T_x1x2x3, V_x1x2, S_x1 }, new Atom[] { M_x1 });
 
 		Collection<Dependency> initial = new HashSet<>();
 		initial.add(t1);
@@ -153,7 +152,7 @@ public class GSatTest {
 		// ∀ x1,x2 B(x1,x2) → ∃ y1 H1(x1,y1) ∧ H2(x2)
 		Set<Atom> body = Set.of(B_x1x2);
 		GTGD tgd = new GTGD(body, Set.of(H1_x1y1, H2_x2));
-		Collection<GTGD> result = Logic.HNF(tgd);
+		Collection<TGD> result = Logic.HNF(tgd);
 
 		// ∀ x1,x2 B(x1,x2) → ∃ y1 H1(x1,y1)
 		GTGD tgdExpected1 = new GTGD(body, Set.of(H1_x1y1));
@@ -190,7 +189,7 @@ public class GSatTest {
 		checkHNFTest(tgd, expected, result);
 	}
 
-	private void checkHNFTest(GTGD tgd, Collection<GTGD> expected, Collection<GTGD> result) {
+	private void checkHNFTest(GTGD tgd, Collection<GTGD> expected, Collection<TGD> result) {
 		System.out.println("Original TGD: " + tgd);
 		System.out.println("Created rules: " + result);
 		System.out.println("Expected rules: " + expected);
@@ -206,7 +205,7 @@ public class GSatTest {
 		GTGD tgd = new GTGD(Set.of(B_x2x1x3), Set.of(H1_x1z1y1y2, H2_y1y2));
 		System.out.println("Original TGD: " + tgd);
 
-		Collection<GTGD> tgdsVNFs = Logic.VNFs(Arrays.asList(tgd), gsat.eVariable, gsat.uVariable);
+		Collection<TGD> tgdsVNFs = Logic.VNFs(Arrays.asList(tgd), gsat.eVariable, gsat.uVariable);
 		System.out.println("TGDs in VNFs: " + tgdsVNFs);
 
 		// ∀ u1,u2,u3 B(u1,u2,u3) → ∃ e1,e2,e3 H1(u2,e1,e2,e3) & H2(e2,e3)
@@ -228,7 +227,7 @@ public class GSatTest {
 		GTGD tgd = new GTGD(Set.of(B_x2x1x3), Set.of(H1_x1z1y1y2, H2_y1y2));
 		System.out.println("Original TGD: " + tgd);
 
-		GTGD tgdVNF = Logic.VNF(tgd, gsat.eVariable, gsat.uVariable);
+		TGD tgdVNF = Logic.VNF(tgd, gsat.eVariable, gsat.uVariable);
 		System.out.println("TGD in VNF: " + tgdVNF);
 
 		// ∀ u1,u2,u3 B(u1,u2,u3) → ∃ e1,e2,e3 H1(u2,e1,e2,e3) & H2(e2,e3)

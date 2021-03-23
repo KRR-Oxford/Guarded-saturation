@@ -7,7 +7,6 @@ import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
 import java.io.PrintWriter;
 import java.nio.charset.StandardCharsets;
-import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -24,7 +23,6 @@ import uk.ac.ox.cs.pdq.fol.ConjunctiveQuery;
 import uk.ac.ox.cs.pdq.fol.Disjunction;
 import uk.ac.ox.cs.pdq.fol.Formula;
 import uk.ac.ox.cs.pdq.fol.Implication;
-import uk.ac.ox.cs.pdq.fol.TGD;
 import uk.ac.ox.cs.pdq.fol.Term;
 import uk.ac.ox.cs.pdq.fol.Variable;
 
@@ -35,7 +33,7 @@ import uk.ac.ox.cs.pdq.fol.Variable;
  */
 public class Logic {
 
-	public static boolean isFull(TGD tgd) {
+	public static boolean isFull(uk.ac.ox.cs.pdq.fol.TGD tgd) {
 
 		return tgd.getExistential().length == 0;
 
@@ -75,14 +73,14 @@ public class Logic {
 			return new GTGD(bodyAtomsF, headAtomsF);
 		} else if (formula instanceof TGD) {
 			Atom[] headAtoms = ((TGD) formula).getHeadAtoms();
-			Atom[] headAtomsF = new Atom[headAtoms.length];
+			Set<Atom> headAtomsF = new HashSet<>();
 			Atom[] bodyAtoms = ((TGD) formula).getBodyAtoms();
-			Atom[] bodyAtomsF = new Atom[bodyAtoms.length];
+			Set<Atom> bodyAtomsF = new HashSet<>();
 			for (int atomIndex = 0; atomIndex < headAtoms.length; ++atomIndex)
-				headAtomsF[atomIndex] = (Atom) applySubstitution(headAtoms[atomIndex], substitution);
+				headAtomsF.add((Atom) applySubstitution(headAtoms[atomIndex], substitution));
 			for (int atomIndex = 0; atomIndex < bodyAtoms.length; ++atomIndex)
-				bodyAtomsF[atomIndex] = (Atom) applySubstitution(bodyAtoms[atomIndex], substitution);
-			return TGD.create(bodyAtomsF, headAtomsF);
+				bodyAtomsF.add((Atom) applySubstitution(bodyAtoms[atomIndex], substitution));
+			return new TGD(bodyAtomsF, headAtomsF);
 		} else if (formula instanceof Atom) {
 			Term[] nterms = new Term[((Atom) formula).getNumberOfTerms()];
 			for (int termIndex = 0; termIndex < nterms.length; ++termIndex) {
@@ -317,9 +315,11 @@ public class Logic {
      * Returns the Variable Normal Form (VNF) of all the input TGDs
      *
      * @param tgds a collection of TGDs
+     * @param eVariable existential variable prefix
+     * @param uVariable universal variable prefix
      * @return Variable Normal Form of tgds
      */
-    public static Collection<GTGD> VNFs(Collection<GTGD> tgds, String eVariable, String uVariable) {
+    public static Collection<TGD> VNFs(Collection<? extends TGD> tgds, String eVariable, String uVariable) {
 
         return tgds.stream().map((tgd) -> VNF(tgd, eVariable, uVariable)).collect(Collectors.toList());
 
@@ -330,9 +330,11 @@ public class Logic {
      * Returns the Variable Normal Form (VNF) of the input TGD
      *
      * @param tgd an input TGD
+     * @param eVariable existential variable prefix
+     * @param uVariable universal variable prefix
      * @return Variable Normal Form of tgd
      */
-    public static GTGD VNF(GTGD tgd, String eVariable, String uVariable) {
+    public static TGD VNF(TGD tgd, String eVariable, String uVariable) {
 
         if (tgd == null)
             throw new IllegalArgumentException("Null TGD in VNF");
@@ -352,7 +354,7 @@ public class Logic {
 
         App.logger.fine("VNF substitution:\n" + substitution);
 
-        GTGD applySubstitution = (GTGD) Logic.applySubstitution(tgd, substitution);
+        TGD applySubstitution = (TGD) Logic.applySubstitution(tgd, substitution);
         App.logger.fine("VNF: " + tgd + "===>>>" + applySubstitution);
         return applySubstitution;
 
@@ -365,7 +367,7 @@ public class Logic {
      * @param tgd an input TGD
      * @return Head Normal Form of tgd
      */
-    static public Collection<GTGD> HNF(final GTGD tgd) {
+    static public Collection<TGD> HNF(final TGD tgd) {
 
         if (tgd == null)
             return new HashSet<>();
@@ -377,9 +379,9 @@ public class Logic {
 
         Set<Atom> bodyAtoms = tgd.getBodySet();
         for (Atom a : tgd.getHeadAtoms())
-            if (a.equals(GTGD.Bottom))
+            if (a.equals(TGD.Bottom))
                 // remove all head atoms since ⊥ & S ≡ ⊥ for any conjunction S
-                return Set.of(new GTGD(bodyAtoms, Set.of(GTGD.Bottom)));
+                return Set.of(new TGD(bodyAtoms, Set.of(TGD.Bottom)));
             else if (Logic.containsAny(a, eVariables))
                 eHead.add(a);
             else if (!bodyAtoms.contains(a))
@@ -390,11 +392,11 @@ public class Logic {
         if (tgd.getHeadAtoms().length == eHead.size() || tgd.getHeadAtoms().length == fHead.size())
             return Set.of(tgd);
 
-        Collection<GTGD> result = new HashSet<>();
+        Collection<TGD> result = new HashSet<>();
         if (!eHead.isEmpty())
-            result.add(new GTGD(bodyAtoms, eHead));
+            result.add(new TGD(bodyAtoms, eHead));
         if (!fHead.isEmpty())
-            result.add(new GTGD(bodyAtoms, fHead));
+            result.add(new TGD(bodyAtoms, fHead));
         return result;
 
     }
