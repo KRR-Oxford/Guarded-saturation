@@ -47,10 +47,10 @@ public class ExactAtomSubsumer implements Subsumer {
     }
 
     private void checkHashes(TGDGSat formula) {
-        if (formula.bodyHashes == null)
-            formula.bodyHashes = computeHashes(formula.getBodyAtoms(), bodyAtomIndeces);
-        if (formula.headHashes == null)
-            formula.headHashes = computeHashes(formula.getHeadAtoms(), headAtomIndeces);
+        if (formula.getBodyHashes() == null)
+            formula.setBodyHashes(computeHashes(formula.getBodyAtoms(), bodyAtomIndeces));
+        if (formula.getHeadHashes() == null)
+            formula.setHeadHashes(computeHashes(formula.getHeadAtoms(), headAtomIndeces));
     }
 
     private class IntNodePair {
@@ -69,8 +69,8 @@ public class ExactAtomSubsumer implements Subsumer {
         Stack<IntNodePair> traversing = new Stack<>();
         // TODO: implement this in a less hacky manner
         Stack<IntNodePair> reversedTraversal = new Stack<>();
-        int[] bodyHashes = formula.bodyHashes;
-        int[] headHashes = formula.headHashes;
+        int[] bodyHashes = formula.getBodyHashes();
+        int[] headHashes = formula.getHeadHashes();
         if (bodyHashes.length != 0)
             traversing.push(new IntNodePair(0, root));
         while (!traversing.empty()) {
@@ -145,8 +145,8 @@ public class ExactAtomSubsumer implements Subsumer {
     @Override
     public boolean subsumed(TGDGSat formula) {
         checkHashes(formula);
-        int[] bodyHashes = formula.bodyHashes;
-        int[] headHashes = formula.headHashes;
+        int[] bodyHashes = formula.getBodyHashes();
+        int[] headHashes = formula.getHeadHashes();
         Stack<IntNodePair> traversing = new Stack<>();
         traversing.push(new IntNodePair(0, root));
         while (!traversing.empty()) {
@@ -199,13 +199,13 @@ public class ExactAtomSubsumer implements Subsumer {
         if (formula.getHeadAtoms().length == 0)
             return;
         Node current = root;
-        for (int hash : formula.bodyHashes) {
+        for (int hash : formula.getBodyHashes()) {
             if (!current.nextBody.containsKey(hash)) {
                 current.nextBody.put(hash, new Node());
             }
             current = current.nextBody.get(hash);
         }
-        for (int hash : formula.headHashes) {
+        for (int hash : formula.getHeadHashes()) {
             if (!current.nextHead.containsKey(hash)) {
                 Node newNode = new Node();
                 newNode.isBody = false;

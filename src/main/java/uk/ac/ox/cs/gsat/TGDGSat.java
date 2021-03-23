@@ -31,7 +31,7 @@ public class TGDGSat extends TGD {
 
     private final Set<Atom> bodySet;
     private final Set<Atom> headSet;
-    public int[] bodyHashes = null, headHashes = null;
+    private int[] bodyHashes = null, headHashes = null;
 
     private final Atom guard;
 
@@ -131,6 +131,22 @@ public class TGDGSat extends TGD {
 
     public Atom getGuard() {
         return guard;
+    }
+
+    public void setBodyHashes(int[] newHashes) {
+        bodyHashes = newHashes;
+    }
+
+    public int[] getBodyHashes() {
+        return bodyHashes;
+    }
+
+    public void setHeadHashes(int[] newHashes) {
+        headHashes = newHashes;
+    }
+
+    public int[] getHeadHashes() {
+        return headHashes;
     }
 
 }

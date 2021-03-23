@@ -123,7 +123,7 @@ public class ExactAtomFilter implements FormulaFilter {
 
         @Override
         public Iterator<TGDGSat> iterator() {
-            return new SubsumedCandidatesIterator(formula.bodyHashes, formula.headHashes);
+            return new SubsumedCandidatesIterator(formula.getBodyHashes(), formula.getHeadHashes());
         }
 
     }
@@ -225,7 +225,7 @@ public class ExactAtomFilter implements FormulaFilter {
 
         @Override
         public Iterator<TGDGSat> iterator() {
-            return new SubsumingCandidatesIterator(formula.bodyHashes, formula.headHashes);
+            return new SubsumingCandidatesIterator(formula.getBodyHashes(), formula.getHeadHashes());
         }
 
     }
@@ -291,13 +291,13 @@ public class ExactAtomFilter implements FormulaFilter {
         if (formula.getHeadAtoms().length == 0)
             return;
         Node current = root;
-        for (int hash : formula.bodyHashes) {
+        for (int hash : formula.getBodyHashes()) {
             if (!current.nextBody.containsKey(hash)) {
                 current.nextBody.put(hash, new Node());
             }
             current = current.nextBody.get(hash);
         }
-        for (int hash : formula.headHashes) {
+        for (int hash : formula.getHeadHashes()) {
             if (!current.nextHead.containsKey(hash)) {
                 Node newNode = new Node();
                 newNode.isBody = false;
@@ -319,14 +319,14 @@ public class ExactAtomFilter implements FormulaFilter {
         // + stackTraceElements[1].getLineNumber());
         checkHashes(formula);
         Node current = root;
-        for (int hash : formula.bodyHashes) {
+        for (int hash : formula.getBodyHashes()) {
             if (!current.nextBody.containsKey(hash)) {
                 // System.out.println("element not found");
                 return;
             }
             current = current.nextBody.get(hash);
         }
-        for (int hash : formula.headHashes) {
+        for (int hash : formula.getHeadHashes()) {
             if (!current.nextHead.containsKey(hash)) {
                 // System.out.println("element not found");
                 return;
@@ -356,12 +356,10 @@ public class ExactAtomFilter implements FormulaFilter {
     }
 
     private void checkHashes(TGDGSat formula) {
-        // System.out.println("checking hashes");
-        if (formula.bodyHashes == null)
-            formula.bodyHashes = computeHashes(formula.getBodyAtoms(), bodyAtomIndeces);
-        if (formula.headHashes == null)
-            formula.headHashes = computeHashes(formula.getHeadAtoms(), headAtomIndeces);
-        // System.out.println("end checking hashes");
+        if (formula.getBodyHashes() == null)
+            formula.setBodyHashes(computeHashes(formula.getBodyAtoms(), bodyAtomIndeces));
+        if (formula.getHeadHashes() == null)
+            formula.setHeadHashes(computeHashes(formula.getHeadAtoms(), headAtomIndeces));
     }
 
     public Iterable<TGDGSat> getSubsumedCandidates(TGDGSat formula) {
