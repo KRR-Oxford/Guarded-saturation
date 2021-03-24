@@ -57,7 +57,7 @@ public class SimpleSat {
                 + String.format(Locale.UK, "%.3f", (float) discarded / allDependencies.size() * 100) + "%");
 
         // compute the set of full and non-full tgds in normal forms
-        List<TGD> fullTGDs = new ArrayList<>();
+        Set<TGD> fullTGDs = new HashSet<>();
         List<TGD> nonfullTGDs = new ArrayList<>();
         int width = 0;
 
@@ -77,7 +77,7 @@ public class SimpleSat {
 
         Collection<TGD> resultingFullTDGs = new ArrayList<>(fullTGDs);
 
-        while (!resultingFullTDGs.isEmpty()) {
+        do {
 
             List<TGD> currentFullTDGs = new ArrayList<>(resultingFullTDGs);
 
@@ -87,23 +87,19 @@ public class SimpleSat {
             insertAllComposition(currentFullTDGs, fullTGDs, width, resultingFullTDGs);
             insertAllOriginal(nonfullTGDs, fullTGDs, resultingFullTDGs);
 
-            fullTGDs.addAll(resultingFullTDGs);
-        }
-        return fullTGDs;
+			System.out.println("step result" + resultingFullTDGs);
 
+		} while (fullTGDs.addAll(resultingFullTDGs));
+
+        return fullTGDs;
     }
 
     public void insertAllOriginal(Collection<TGD> nonfullTGDs, Collection<TGD> fullTGDs,
             Collection<TGD> resultingFullTGDs) {
         for (TGD nftgdbis : nonfullTGDs) {
             TGD nftgd = renameTgd(nftgdbis);
+			Set<Variable> existentialVariables = Set.of(nftgd.getExistential());
 
-            Map<Term, Term> identityOnExistential = new HashMap<>();
-            for(Variable variable : nftgd.getExistential()) {
-                identityOnExistential.put(variable, variable);
-            }
-            System.out.println(identityOnExistential);
-            
             for (TGD ftgd : fullTGDs) {
                 Atom[] head = nftgd.getHead().getAtoms();
                 Atom[] body = ftgd.getBody().getAtoms();
@@ -113,12 +109,14 @@ public class SimpleSat {
                     for (int l = k; l < body.length; l++) {
                         Atom ha = head[k];
                         Atom ba = body[l];
-                        Map<Term, Term> mgu = Logic.getMGU(ha, ba, identityOnExistential);
+						Map<Term, Term> mgu = Logic.getMGU(ba, ha);
+
+						if (mgu != null) 
+							mgu = makeUnifierIdentityOnVariables(mgu, existentialVariables);
+
                         if (mgu != null) {
-                            System.out.println("mgu : " + mgu + "\n");
-                            System.out.println(nftgd);
-                            System.out.println(ftgd);
-                            // if there is a mgu create the composition of the tgds
+                            // if there is a mgu with identify on existential variables
+							// insert the result of the original inference rules on the tgds
                             TGD original = createOriginal(nftgd, ftgd, mgu);
                             if (original != null) {
                                 resultingFullTGDs.add(original);
@@ -131,61 +129,119 @@ public class SimpleSat {
         }
     }
 
-    public TGD createOriginal(TGD nftgd, TGD ftgd, Map<Term, Term> unifier) {
-        Set<Atom> body = Logic.applyMGU(ftgd.getBodySet(), unifier);
-        body.removeAll(Logic.applyMGU(nftgd.getHeadSet(), unifier));
+	/**
+	 * @param unifier - an unifier
+	 * @param variables - an set of variables
+	 * @return an equivalent unifier, whose is the identity on variables, or null if a such unifier does not exist
+	 */	
+	private Map<Term, Term> makeUnifierIdentityOnVariables(Map<Term, Term> unifier, Set<Variable> variables) {
+	
+		Set<Term> domain = new HashSet<>(unifier.keySet());
+		for(Term v : domain) {
+			if (variables.contains(v)) {
+				// if the unifier is the identity on the variable
+				if (unifier.get(v).equals(v)) {
+					unifier.remove(v);
+				} else {
+					Term img = unifier.get(v);
+					// need to unify the image to the variable
+					if (variables.contains(img) && !img.isVariable()) 
+						return null;
 
-        Collection<Term> imageFullVariable = new HashSet<>();
+					unifier.put(img, v);
+					unifier.remove(v);
 
-        for (Variable var : ftgd.getTopLevelQuantifiedVariables()) {
-            imageFullVariable.add(unifier.get(var));
-        }
+					// others variables of the domain having the same image
+					// have to unify to the current variable
+					for (Term u : domain) {
+						if (unifier.containsKey(u) &&
+							unifier.get(u).equals(img)) {
 
-        boolean isPieceUnification = true;
-        for (Atom atom : body) {
-            for(Variable var : atom.getVariables())
-                isPieceUnification = isPieceUnification && imageFullVariable.contains(var);
-        }
-        
-        if (isPieceUnification) {
-            body.addAll(Logic.applyMGU(nftgd.getBodySet(), unifier));
-            Set<Atom> headBeforePruning = Logic.applyMGU(ftgd.getHeadSet(), unifier);
-            // remove atom from head, if they contain existential variables
-            Set<Atom> head = new HashSet<>();
-            Set<Variable> existentialVariables = Set.of(nftgd.getExistential());
-            for (Atom atom: headBeforePruning) {
-                boolean containsExistential = false;
-                for (Variable var : atom.getVariables()) {
-                    if (existentialVariables.contains(var)) {
-                        containsExistential = true;
-                        break;
-                    }
-                }
-                if (!containsExistential) {
-                    head.add(atom);
-                }
-            }
-            
-            //
-            return new TGD(body, head);
-        }
-        return null;
-    }
+							if (variables.contains(u))
+								return null;
+							
+							unifier.put(u, v);
+						}
+					}
+				}
+			}
+		}
+		return unifier;
+	}
 
-    public void insertAllComposition(Collection<TGD> s1, Collection<TGD> s2, int width,
-            Collection<TGD> resultingFullTGDs) {
-        for (TGD t1bis : s1) {
-            TGD t1 = renameTgd(t1bis);
-            for (TGD t2 : s2) {
-                insertComposition(t1, t2, width, resultingFullTGDs);
-            }
-        }
-    }
-
-    /*
-     * assume that t1 and t2 do not share variables insert to resultingFullTGDs the
-     * composition of t1 with t2 according to width
-     */
+	/**
+	 * @return the application of original on nftgd and ftgd wrt unifier, 
+	 *         if possible otherwise null
+	 */	
+	public TGD createOriginal(TGD nftgd, TGD ftgd, Map<Term, Term> unifier) {
+	    Set<Atom> body = Logic.applyMGU(ftgd.getBodySet(), unifier);
+	    body.removeAll(Logic.applyMGU(nftgd.getHeadSet(), unifier));
+	
+	    Collection<Term> imageFullVariable = new HashSet<>();
+	
+	    for (Variable var : nftgd.getTopLevelQuantifiedVariables()) {
+			Term img = unifier.get(var);
+			if (img != null) {
+				imageFullVariable.add(img);
+			} else {
+				imageFullVariable.add(var);
+			}
+	    }
+	
+	    boolean haveNotExistentialInBody = true;
+	    for (Atom atom : body) {
+	        for(Variable var : atom.getVariables())
+	            haveNotExistentialInBody = haveNotExistentialInBody && imageFullVariable.contains(var);
+	    }
+	    
+	    if (haveNotExistentialInBody) {
+	
+			System.out.println(unifier);
+			System.out.println(nftgd);
+			System.out.println(ftgd);
+			
+	        body.addAll(Logic.applyMGU(nftgd.getBodySet(), unifier));
+	        Set<Atom> headBeforePruning = Logic.applyMGU(ftgd.getHeadSet(), unifier);
+	        // remove atom from head, if they contain existential variables
+	        Set<Atom> head = new HashSet<>();
+	        Set<Variable> existentialVariables = Set.of(nftgd.getExistential());
+	        for (Atom atom: headBeforePruning) {
+	            boolean containsExistential = false;
+	            for (Variable var : atom.getVariables()) {
+	                if (existentialVariables.contains(var)) {
+	                    containsExistential = true;
+	                    break;
+	                }
+	            }
+	            if (!containsExistential) {
+	                head.add(atom);
+	            }
+	        }
+			System.out.println("body : " +body);
+			System.out.println("head : " +head);
+	        //
+			if (!head.isEmpty()) {
+				System.out.println("-> " + new TGD(body, head));
+				return new TGD(body, head);
+			}
+	    }
+	    return null;
+	}
+	
+	public void insertAllComposition(Collection<TGD> s1, Collection<TGD> s2, int width,
+	        Collection<TGD> resultingFullTGDs) {
+	    for (TGD t1bis : s1) {
+	        TGD t1 = renameTgd(t1bis);
+	        for (TGD t2 : s2) {
+	            insertComposition(t1, t2, width, resultingFullTGDs);
+	        }
+	    }
+	}
+	
+	/*
+	 * assume that t1 and t2 do not share variables insert to resultingFullTGDs the
+	 * composition of t1 with t2 according to width
+	 */
     private void insertComposition(TGD t1, TGD t2, int width, Collection<TGD> resultingFullTGDs) {
         Atom[] head = t1.getHead().getAtoms();
         Atom[] body = t2.getBody().getAtoms();
