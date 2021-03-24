@@ -62,7 +62,8 @@ public class SimpleSat {
         int width = 0;
 
         for (TGD tgd : selectedTGDs) {
-            for (TGD currentTGD : Logic.VNFs(Logic.HNF(tgd), eVariable, uVariable)) {
+            for (TGD hnf : tgd.computeHNF()) {
+				TGD currentTGD = hnf.computeVNF(eVariable, uVariable);
                 width = Math.max(currentTGD.getWidth(), width);
                 if (Logic.isFull(currentTGD)) {
                     fullTGDs.add(currentTGD);
@@ -203,8 +204,8 @@ public class SimpleSat {
                         // if the composition contains more universal variables
                         // than the width, we need to form partitions the variables having $width parts.
                         for (Map<Term, Term> unifier : getUnifiersWith(variables, width)) {
-                            resultingFullTGDs.add(Logic.VNF((TGD) Logic.applySubstitution(composition, unifier),
-                                    eVariable, uVariable));
+							resultingFullTGDs.add(((TGD) Logic.applySubstitution(composition, unifier))
+									.computeVNF(eVariable, uVariable));
                         }
                     } else {
                         resultingFullTGDs.add(composition);

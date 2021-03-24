@@ -138,7 +138,7 @@ public class Executor {
 
 		Collection<TGD> selectedTGDs = new HashSet<>();
 
-		tGDRules.forEach(tgd -> selectedTGDs.addAll(Logic.HNF(tgd)));
+		tGDRules.forEach(tgd -> selectedTGDs.addAll(tgd.computeHNF()));
 
 		final long stopTime = System.nanoTime();
 
