@@ -163,9 +163,9 @@ public class GSat {
             nonFullTGDsSubsumer = new SimpleSubsumer(nonFullTGDsFilter);
         }
         for (GTGD tgd : selectedTGDs)
-            for (TGD currentTGD : Logic.VNFs(Logic.HNF(tgd), eVariable, uVariable)) {
-                GTGD currentGTGD = new GTGD(currentTGD.getBodySet(), currentTGD.getHeadSet());
-                if (Logic.isFull(currentTGD)) {
+            for (GTGD hnf : tgd.computeHNF()) {
+				GTGD currentGTGD = hnf.computeVNF(eVariable, uVariable);
+                if (Logic.isFull(currentGTGD)) {
                     addFullTGD(currentGTGD, fullTGDsMap, fullTGDsSet);
                     fullTGDsSubsumer.add(currentGTGD);
                 } else {
@@ -702,8 +702,10 @@ public class GSat {
                 // if Sbody is empty, then Shead is empty, and we take this short-cut;
                 // in fact, we should never have Shead == null and Sbody.isEmpty
                 if (Shead == null || Shead.isEmpty()) {
-                    if (Sbody.isEmpty())
-                        results.addAll(GTGD.fromTGD(Logic.VNFs(Logic.HNF(new GTGD(new_body, new_head)), eVariable, uVariable)));
+                    if (Sbody.isEmpty()) {
+						for (GTGD hnf : new GTGD(new_body, new_head).computeHNF())
+							results.add(hnf.computeVNF(eVariable, uVariable));
+					}
                     // no matching head atom for some atom in Sbody -> continue
                     continue;
                 }
@@ -724,9 +726,11 @@ public class GSat {
 
                     if (mgu.isEmpty())
                         // no need to apply the MGU
-                        results.addAll(GTGD.fromTGD(Logic.VNFs(Logic.HNF(new GTGD(new_body, new_head)), eVariable, uVariable)));
+						for (GTGD hnf : new GTGD(new_body, new_head).computeHNF())
+							results.add(hnf.computeVNF(eVariable, uVariable));
                     else
-                        results.addAll(GTGD.fromTGD(Logic.VNFs(Logic.HNF(Logic.applyMGU(new_body, new_head, mgu)), eVariable, uVariable)));
+						for (GTGD hnf : Logic.applyMGU(new_body, new_head, mgu).computeHNF())
+							results.add(hnf.computeVNF(eVariable, uVariable));
 
                 }
 
