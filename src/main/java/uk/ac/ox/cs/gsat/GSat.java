@@ -495,7 +495,7 @@ public class GSat {
     // return false;
     // }
 
-    private boolean isSupportedRule(Dependency d) {
+    static boolean isSupportedRule(Dependency d) {
         // if (d instanceof TGD && ((TGD) d).isGuarded() && !containsSelfJoin((TGD) d))
         // // Adding only Guarded TGDs
         return d instanceof uk.ac.ox.cs.pdq.fol.TGD && ((uk.ac.ox.cs.pdq.fol.TGD) d).isGuarded(); // Adding only Guarded TGDs
@@ -783,7 +783,7 @@ public class GSat {
 
     // }
 
-    public Map<Term, Term> getVariableSubstitution(List<Atom> head, List<Atom> body) {
+    static Map<Term, Term> getVariableSubstitution(List<Atom> head, List<Atom> body) {
 
         Map<Term, Term> sigma = new HashMap<>();
 
@@ -811,7 +811,7 @@ public class GSat {
      * @param shead
      * @return
      */
-    private List<List<Atom>> getProduct(List<List<Atom>> shead) {
+    static List<List<Atom>> getProduct(List<List<Atom>> shead) {
 
         List<List<Atom>> resultLists = new ArrayList<List<Atom>>();
         if (shead.size() == 0) {
@@ -832,7 +832,7 @@ public class GSat {
         return resultLists;
     }
 
-    private List<List<Atom>> getShead(Collection<Atom> headAtoms, Collection<Atom> sbody, List<Variable> eVariables) {
+    static List<List<Atom>> getShead(Collection<Atom> headAtoms, Collection<Atom> sbody, Collection<Variable> eVariables) {
 
         List<List<Atom>> resultLists = new ArrayList<List<Atom>>();
 
@@ -885,13 +885,13 @@ public class GSat {
 
     // }
 
-    private List<Atom> getSbody(Collection<Atom> new_bodyAtoms, Collection<Variable> eVariables) {
+    static List<Atom> getSbody(Collection<Atom> new_bodyAtoms, Collection<Variable> eVariables) {
 
         return new_bodyAtoms.stream().filter(atom -> containsY(atom, eVariables)).collect(Collectors.toList());
 
     }
 
-    private boolean containsY(Atom atom, Collection<Variable> eVariables) {
+    private static boolean containsY(Atom atom, Collection<Variable> eVariables) {
 
         for (Term term : atom.getTerms())
             if (eVariables.contains(term))
@@ -903,7 +903,8 @@ public class GSat {
 
 
     private Map<Term, Term> getGuardMGU(Atom guard, Atom h) {
-
+        return getGuardMGU(guard, h, eVariable, uVariable);
+    }
         // if (!guard.getPredicate().equals(h.getPredicate()))
         // return null;
 
@@ -920,7 +921,7 @@ public class GSat {
         // result.put(guardTerm, headTerm);
 
         // }
-
+    static Map<Term, Term> getGuardMGU(Atom guard, Atom h, String eVariable, String uVariable) {
         Map<Term, Term> mgu = Logic.getMGU(guard, h);
 
         if (mgu == null)
