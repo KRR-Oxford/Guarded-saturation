@@ -83,9 +83,9 @@ public class SimpleSat {
 
             resultingFullTDGs.clear();
 
-            insertAllComposition(fullTGDs, currentFullTDGs, width, resultingFullTDGs);
-            insertAllComposition(currentFullTDGs, fullTGDs, width, resultingFullTDGs);
-            insertAllOriginal(nonfullTGDs, fullTGDs, resultingFullTDGs);
+			resultingFullTDGs.addAll(applyComposition(fullTGDs, currentFullTDGs, width));
+			resultingFullTDGs.addAll(applyComposition(currentFullTDGs, fullTGDs, width));
+            resultingFullTDGs.addAll(applyOriginal(nonfullTGDs, fullTGDs));
 
 			System.out.println("step result" + resultingFullTDGs);
 
@@ -94,8 +94,8 @@ public class SimpleSat {
         return fullTGDs;
     }
 
-    public void insertAllOriginal(Collection<TGD> nonfullTGDs, Collection<TGD> fullTGDs,
-            Collection<TGD> resultingFullTGDs) {
+    public Collection<TGD> applyOriginal(Collection<TGD> nonfullTGDs, Collection<TGD> fullTGDs) {
+		Collection<TGD> resultingFullTGDs = new ArrayList<>();
         for (TGD nftgdbis : nonfullTGDs) {
             TGD nftgd = renameTgd(nftgdbis);
 			Set<Variable> existentialVariables = Set.of(nftgd.getExistential());
@@ -127,6 +127,7 @@ public class SimpleSat {
 
             }
         }
+		return resultingFullTGDs;
     }
 
 	/**
@@ -228,21 +229,31 @@ public class SimpleSat {
 	    return null;
 	}
 	
-	public void insertAllComposition(Collection<TGD> s1, Collection<TGD> s2, int width,
-	        Collection<TGD> resultingFullTGDs) {
+	/**
+	 * @param s1 - a set of full TGDs
+	 * @param s2 - a set of full TGDs
+	 * @return all the possible on tgds infered by applying COMPOSITION on t1 in s1 and t2 in s2
+	 *         with respect to the width
+	 */	
+	public Collection<TGD> applyComposition(Collection<TGD> s1, Collection<TGD> s2, int width) {
+		Collection<TGD> resultingFullTGDs = new ArrayList<>();
 	    for (TGD t1bis : s1) {
 	        TGD t1 = renameTgd(t1bis);
 	        for (TGD t2 : s2) {
-	            insertComposition(t1, t2, width, resultingFullTGDs);
+	            resultingFullTGDs.addAll(compose(t1, t2, width));
 	        }
 	    }
+		return resultingFullTGDs;
 	}
 	
-	/*
-	 * assume that t1 and t2 do not share variables insert to resultingFullTGDs the
-	 * composition of t1 with t2 according to width
+	/**
+	 * create the result of COMPOSITION inference rule
+	 * @param t1 - a full {@link TGD}
+	 * @param t2 - another full {@link TGD} sharing no variable with t1
+	 * @return the composition of t1 with t2 with respect to the width
 	 */
-    private void insertComposition(TGD t1, TGD t2, int width, Collection<TGD> resultingFullTGDs) {
+    private Collection<TGD> compose(TGD t1, TGD t2, int width) {
+		Collection<TGD> resultingFullTGDs = new ArrayList<>();
         Atom[] head = t1.getHead().getAtoms();
         Atom[] body = t2.getBody().getAtoms();
 
@@ -254,33 +265,56 @@ public class SimpleSat {
                 Map<Term, Term> mgu = Logic.getMGU(ha, ba);
                 if (mgu != null) {
                     // if there is a mgu create the composition of the tgds
-                    TGD composition = createComposition(t1, t2, mgu, width);
+                    TGD composition = createComposition(t1, t2, mgu);
                     Variable[] variables = composition.getTopLevelQuantifiedVariables();
                     if (variables.length > width) {
                         // if the composition contains more universal variables
-                        // than the width, we need to form partitions the variables having $width parts.
-                        for (Map<Term, Term> unifier : getUnifiersWith(variables, width)) {
+                        // than the width, we need to form partitions of the variables having $width parts.
+                        for (Map<Term, Term> unifier : getPartitionUnifiers(variables, width)) {
 							resultingFullTGDs.add(((TGD) Logic.applySubstitution(composition, unifier))
 									.computeVNF(eVariable, uVariable));
                         }
                     } else {
-                        resultingFullTGDs.add(composition);
+                        resultingFullTGDs.add(composition.computeVNF(eVariable, uVariable));
                     }
                 }
             }
         }
+		return resultingFullTGDs;
     }
 
-    private TGD createComposition(TGD t1, TGD t2, Map<Term, Term> mgu, int width) {
-        Set<Atom> body = Logic.applyMGU(t2.getBodySet(), mgu);
-        body.removeAll(Logic.applyMGU(t1.getHeadSet(), mgu));
-        body.addAll(Logic.applyMGU(t1.getBodySet(), mgu));
-        Set<Atom> head = Logic.applyMGU(t2.getHeadSet(), mgu);
+	/**
+	 * @param t1 - a full TGD 
+	 * @param t2 - a full TGD
+	 * @param unifier - an unifier of an head atom of t1 with a body atom of t2
+	 * @return the composition of t1 and t2 wrt the unifier
+	 */
+    private TGD createComposition(TGD t1, TGD t2, Map<Term, Term> unifier) {
+        Set<Atom> body = Logic.applyMGU(t2.getBodySet(), unifier);
+        body.removeAll(Logic.applyMGU(t1.getHeadSet(), unifier));
+        body.addAll(Logic.applyMGU(t1.getBodySet(), unifier));
+        Set<Atom> head = Logic.applyMGU(t2.getHeadSet(), unifier);
 
         return new TGD(body, head);
     }
 
-    public static List<Map<Term, Term>> getUnifiersWith(Term[] variables, int partNumber) {
+	/**
+	 * This algorithm returns substitutions based on the different partitions of a set of variables
+	 * having a fixed number of parts.
+	 * This algorithm is highly inspired by the first algorithm presented in 
+	 * "A fast iterative algorithm for generating set partitions"
+	 * see https://academic.oup.com/comjnl/article/32/3/281/331557
+	 *	
+	 * @param variables - a array of variables
+	 * @param partNumber - an integer
+	 * @return a list of all u subtitutions of the variables such that 
+	 *         domain(u) = {variables}
+	 *         range(u)  included in variables	
+	 *         |range(u)| = partNumber
+	 *         whitout u1 and u2 in the results such that u1 != u2 
+	 *                 and {u1^-1(y) | y in range(u1) } and {u2^-1(y) | y in range(u2) } are the same partition of {variables}	
+	 */
+    public static List<Map<Term, Term>> getPartitionUnifiers(Variable[] variables, int partNumber) {
 
         List<Map<Term, Term>> results = new ArrayList<>();
         int n = variables.length;
@@ -306,7 +340,7 @@ public class SimpleSat {
             for (int j = 1; j <= Math.min(g[n - 1] + 1, partNumber); j++) {
                 code[n - 1] = j;
                 if (g[n - 1] == partNumber || j == partNumber) {
-                    results.add(createUniferFromPart(variables, code));
+                    results.add(createUniferFromPartition(variables, code));
                 }
             }
             // backtrack to find a position to increase
@@ -324,12 +358,18 @@ public class SimpleSat {
         return results;
     }
 
-    public static Map<Term, Term> createUniferFromPart(Term[] variables, int[] part) {
+	/**
+	 * @param variables - array of variables
+	 * @param partitionCode - array of integer of length variables.length
+	 * @return a substitution of the variables where each variable is mapped 
+	 *         to a representative of the partition of the part it belongs
+	 */
+    public static Map<Term, Term> createUniferFromPartition(Variable[] variables, int[] partitionCode) {
         Map<Term, Term> unifier = new HashMap<>();
 
-        for (int pos = 0; pos < part.length; pos++) {
+        for (int pos = 0; pos < partitionCode.length; pos++) {
             Term key = variables[pos];
-            Term value = variables[part[pos]];
+            Term value = variables[partitionCode[pos]];
             unifier.put(key, value);
         }
 
