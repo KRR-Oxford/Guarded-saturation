@@ -96,7 +96,10 @@ public class SimpleSat {
     }
 
 
-    public Collection<TGD> applyOriginal(Collection<TGD> nonfullTGDs, Collection<TGD> fullTGDs) {
+    /**
+     * @return all the ORIGINAL compositions between a collection of non full TGDs and a collection of full TGDs
+     */    
+    private Collection<TGD> applyOriginal(Collection<TGD> nonfullTGDs, Collection<TGD> fullTGDs) {
         Collection<TGD> resultingFullTGDs = new HashSet<>();
         for (TGD nftgdbis : nonfullTGDs) {
             for (TGD ftgd : fullTGDs) {
@@ -105,153 +108,21 @@ public class SimpleSat {
         }
         return resultingFullTGDs;
     }
-
-
-	public Collection<TGD> applyOriginalOld(Collection<TGD> nonfullTGDs, Collection<TGD> fullTGDs) {
-		Collection<TGD> resultingFullTGDs = new ArrayList<>();
-        for (TGD nftgdbis : nonfullTGDs) {
-            TGD nftgd = renameTgd(nftgdbis);
-			Set<Variable> existentialVariables = Set.of(nftgd.getExistential());
-
-            for (TGD ftgd : fullTGDs) {
-                Atom[] head = nftgd.getHead().getAtoms();
-                Atom[] body = ftgd.getBody().getAtoms();
-
-                // check if there is a mgu between each atoms of the body and the head
-                for (int k = 0; k < head.length; k++) {
-                    for (int l = k; l < body.length; l++) {
-                        Atom ha = head[k];
-                        Atom ba = body[l];
-						Map<Term, Term> mgu = Logic.getMGU(ba, ha);
-
-						if (mgu != null) 
-							mgu = makeUnifierIdentityOnVariables(mgu, existentialVariables);
-
-                        if (mgu != null) {
-                            // if there is a mgu with identify on existential variables
-							// insert the result of the original inference rules on the tgds
-                            TGD original = createOriginal(nftgd, ftgd, mgu);
-                            if (original != null) {
-                                resultingFullTGDs.add(original);
-                            }
-                        }
-                    }
-                }
-
-            }
-        }
-		return resultingFullTGDs;
-    }
-
-	/**
-	 * @param unifier - an unifier
-	 * @param variables - an set of variables
-	 * @return an equivalent unifier, whose is the identity on variables, or null if a such unifier does not exist
-	 */	
-	private Map<Term, Term> makeUnifierIdentityOnVariables(Map<Term, Term> unifier, Set<Variable> variables) {
-	
-		Set<Term> domain = new HashSet<>(unifier.keySet());
-		for(Term v : domain) {
-			if (variables.contains(v)) {
-				// if the unifier is the identity on the variable
-				if (unifier.get(v).equals(v)) {
-					unifier.remove(v);
-				} else {
-					Term img = unifier.get(v);
-					// need to unify the image to the variable
-					if (variables.contains(img) && !img.isVariable()) 
-						return null;
-
-					unifier.put(img, v);
-					unifier.remove(v);
-
-					// others variables of the domain having the same image
-					// have to unify to the current variable
-					for (Term u : domain) {
-						if (unifier.containsKey(u) &&
-							unifier.get(u).equals(img)) {
-
-							if (variables.contains(u))
-								return null;
-							
-							unifier.put(u, v);
-						}
-					}
-				}
-			}
-		}
-		return unifier;
-	}
-
-	/**
-	 * @return the application of original on nftgd and ftgd wrt unifier, 
-	 *         if possible otherwise null
-	 */	
-	public TGD createOriginal(TGD nftgd, TGD ftgd, Map<Term, Term> unifier) {
-	    Set<Atom> body = Logic.applyMGU(ftgd.getBodySet(), unifier);
-	    body.removeAll(Logic.applyMGU(nftgd.getHeadSet(), unifier));
-	
-	    Collection<Term> imageFullVariable = new HashSet<>();
-	
-	    for (Variable var : nftgd.getTopLevelQuantifiedVariables()) {
-			Term img = unifier.get(var);
-			if (img != null) {
-				imageFullVariable.add(img);
-			} else {
-				imageFullVariable.add(var);
-			}
-	    }
-	
-	    boolean haveNotExistentialInBody = true;
-	    for (Atom atom : body) {
-	        for(Variable var : atom.getVariables())
-	            haveNotExistentialInBody = haveNotExistentialInBody && imageFullVariable.contains(var);
-	    }
-	    
-	    if (haveNotExistentialInBody) {
-	
-			System.out.println(unifier);
-			System.out.println(nftgd);
-			System.out.println(ftgd);
-			
-	        body.addAll(Logic.applyMGU(nftgd.getBodySet(), unifier));
-	        Set<Atom> headBeforePruning = Logic.applyMGU(ftgd.getHeadSet(), unifier);
-	        // remove atom from head, if they contain existential variables
-	        Set<Atom> head = new HashSet<>();
-	        Set<Variable> existentialVariables = Set.of(nftgd.getExistential());
-	        for (Atom atom: headBeforePruning) {
-	            boolean containsExistential = false;
-	            for (Variable var : atom.getVariables()) {
-	                if (existentialVariables.contains(var)) {
-	                    containsExistential = true;
-	                    break;
-	                }
-	            }
-	            if (!containsExistential) {
-	                head.add(atom);
-	            }
-	        }
-			System.out.println("body : " +body);
-			System.out.println("head : " +head);
-	        //
-			if (!head.isEmpty()) {
-				System.out.println("-> " + new TGD(body, head));
-				return new TGD(body, head);
-			}
-	    }
-	    return null;
-	}
-
-
-    public Collection<TGD> originalNew(TGD nftgd, TGD ftgd) {
-
+    
+    /**
+     * @param nftgd - Non full TGD
+     * @param ftgd - Full TGD
+     * @return the collection of full TGDs resulting from the ORIGINAL compositions of nftgd with ftgd
+     */
+    Collection<TGD> originalNew(TGD nftgd, TGD ftgd) {
+    
         ftgd = renameTgd(ftgd);
-
+    
         App.logger.fine("apply original on:\n" + nftgd + "\nand\n" + ftgd);
-
-
+    
+    
         Collection<TGD> results = new ArrayList<>();
-
+    
         // if the ftgd is guarded it is sufficient to all unify the guard
         Collection<Atom> bodyAtomsToUnify;
         if (ftgd.isGuarded()) {
@@ -259,80 +130,80 @@ public class SimpleSat {
         } else {
             bodyAtomsToUnify = Arrays.asList(ftgd.getBodyAtoms());
         }
-
+    
         for (Atom B : bodyAtomsToUnify) {
             for (Atom H : nftgd.getHeadAtoms()) {
-
+    
                 Map<Term, Term> guardMGU = GSat.getGuardMGU(B, H, eVariable, uVariable);
-
+    
                 if (guardMGU != null && !guardMGU.isEmpty()) {
-
+    
                     final TGD new_nftgd = (TGD) Logic.applySubstitution(nftgd, guardMGU);
                     final TGD new_ftgd = (TGD) Logic.applySubstitution(ftgd, guardMGU);
-
+    
                     final Set<Variable> new_nftgd_existentials = Set.of(new_nftgd.getExistential());
-
+    
                     var new_nftgd_head_atoms = new_nftgd.getHeadSet();
                     var new_nftgd_body_atoms = new_nftgd.getBodySet();
                     var new_ftgd_head_atoms = new_ftgd.getHeadSet();
                     var new_ftgd_body_atoms = new_ftgd.getBodySet();
-
+    
                     Set<Atom> new_body = new HashSet<>(new_ftgd_body_atoms);
                     Atom new_B = (Atom) Logic.applySubstitution(B, guardMGU);
                     new_body.remove(new_B);
                     List<Atom> Sbody = GSat.getSbody(new_body, new_nftgd_existentials);
                     new_body.addAll(new_nftgd_body_atoms);
-
+    
                     TGD original_tgd = createOriginal(new_body, new_ftgd_head_atoms, new_nftgd_existentials);
                     // if the head of the original tgd is empty, no need to look for further mgu of Sbody
                     if (original_tgd == null) {
                         continue;
                     }
-
+    
                     // variable of Sbody not included in the image of x variables, for any mgu
                     Set<Variable> SbodyVariables = new HashSet<>();
                     SbodyVariables.addAll(Set.of(new_B.getVariables()));
                     for (Atom a : Sbody)
                         for (Variable v : a.getVariables())
                             SbodyVariables.add(v);
-
+    
                     if (!SbodyVariables.containsAll(Set.of(new_ftgd.getUniversal())))
                         continue;
-
+    
                     List<List<Atom>> Shead = GSat.getShead(new_nftgd_head_atoms, Sbody, new_nftgd_existentials);
-
+    
                     // if Sbody is empty, then Shead is empty, and we take this short-cut;
                     // in fact, we should never have Shead == null and Sbody.isEmpty
                     if (Shead == null || Shead.isEmpty()) {
                         if (Sbody.isEmpty()) {
-                            results.add(original_tgd.computeVNF(eVariable, uVariable));
+                            results.add(original_tgd);
                         }
                         // no matching head atom for some atom in Sbody -> continue
                         continue;
                     }
-
+    
                     App.logger.fine("Shead:" + Shead.toString());
-
+    
                     for (List<Atom> S : GSat.getProduct(Shead)) {
-
+    
                         App.logger.fine("Non-Full:" + new_nftgd.toString() + "\nFull:" + new_ftgd.toString() + "\nSbody:"
                                         + Sbody + "\nS:" + S);
-
+    
                         Map<Term, Term> mgu = GSat.getVariableSubstitution(S, Sbody);
-
+    
                         if (mgu == null)
                             // unification failed -> continue with next sequence
                             continue;
-
+    
                         new_body.removeAll(Sbody);
-
+    
                         if (mgu.isEmpty()) {
                             // no need to apply the MGU
                             TGD new_tgd = createOriginal(Logic.applyMGU(new_body, mgu), Logic.applyMGU(new_ftgd_head_atoms, mgu), new_nftgd_existentials);
-                            results.add(new_tgd.computeVNF(eVariable, uVariable));
+                            results.add(new_tgd);
                         } else {
                             TGD new_tgd = createOriginal(Logic.applyMGU(new_body, mgu), Logic.applyMGU(new_ftgd_head_atoms, mgu), new_nftgd_existentials);
-                            results.add(new_tgd.computeVNF(eVariable, uVariable));
+                            results.add(new_tgd);
                         }
                     }
                 }
@@ -340,37 +211,46 @@ public class SimpleSat {
         }
         return results;
     }
-
-	TGD createOriginal(Set<Atom> body, Collection<Atom> headWithExistential, Collection<Variable> existentialVariable) {
-		// define the head of the resulting tgd 
-		// remove atom from head, if they contain existential variables
-		Set<Atom> new_head = new HashSet<>();
-		for (Atom atom: headWithExistential) {
-			boolean containsExistential = false;
-			for (Variable var : atom.getVariables()) {
-				if (existentialVariable.contains(var)) {
-					containsExistential = true;
-					break;
-				}
-			}
-			if (!containsExistential) {
-				new_head.add(atom);
-			}
-		}
-
-		if(!new_head.isEmpty()) {
-			return new TGD(body, new_head);
-		} else {
-			return null;
-		}
-	}
-	
-	/**
-	 * @param s1 - a set of full TGDs
-	 * @param s2 - a set of full TGDs
-	 * @return all the possible on tgds infered by applying COMPOSITION on t1 in s1 and t2 in s2
-	 *         with respect to the width
-	 */	
+    
+    
+    /**
+     * @param body - a set of atoms
+     * @param headWithExistential - a collection of atoms with possibly some variables that are not in body
+     * @param existentialVariable - the set of variable in headWithExistential, not in body
+     * @return the full TGDs with body and headWithExistential from which the atoms 
+     *         containing existential variables have been removed, or 
+     *         null if all atom in headWithExistential contain at least an existential variable
+     */    
+    TGD createOriginal(Set<Atom> body, Collection<Atom> headWithExistential, Collection<Variable> existentialVariable) {
+    	// define the head of the resulting tgd 
+    	// remove atom from head, if they contain existential variables
+    	Set<Atom> new_head = new HashSet<>();
+    	for (Atom atom: headWithExistential) {
+    		boolean containsExistential = false;
+    		for (Variable var : atom.getVariables()) {
+    			if (existentialVariable.contains(var)) {
+    				containsExistential = true;
+    				break;
+    			}
+    		}
+    		if (!containsExistential) {
+    			new_head.add(atom);
+    		}
+    	}
+    
+    	if(!new_head.isEmpty()) {
+    		return new TGD(body, new_head).computeVNF(eVariable, uVariable);
+    	} else {
+    		return null;
+    	}
+    }
+    
+    /**
+     * @param s1 - a set of full TGDs
+     * @param s2 - a set of full TGDs
+     * @return all the possible on tgds infered by applying COMPOSITION on t1 in s1 and t2 in s2
+     *         with respect to the width
+     */	
 	public Collection<TGD> applyComposition(Collection<TGD> s1, Collection<TGD> s2, int width) {
 		Collection<TGD> resultingFullTGDs = new HashSet<>();
 	    for (TGD t1bis : s1) {
@@ -416,6 +296,8 @@ public class SimpleSat {
                 }
             }
         }
+        // for(TGD tgd : resultingFullTGDs)
+        //     System.out.println(tgd);
 		return resultingFullTGDs;
     }
 
