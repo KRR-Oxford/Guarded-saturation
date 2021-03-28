@@ -27,6 +27,9 @@ public class DLGPTest {
 		App.logger.addHandler(handlerObj);
 		App.logger.setLevel(Level.WARNING);
 		App.logger.setUseParentHandlers(false);
+
+        // force the saturation algo to be gsat
+        Configuration.setSaturationAlg("gsat");
 	}
 
 	@Test
@@ -34,7 +37,7 @@ public class DLGPTest {
 
 		String path = baseChaseBench + "animals.dlp";
 
-		assertEquals(16, App.fromDLGP(path).getGuardedSaturation().size());
+		assertEquals(16, App.fromDLGP(path).getFullTGDSaturation().size());
 
 	}
 
@@ -43,7 +46,7 @@ public class DLGPTest {
 
 		String path = baseChaseBench + "A.dlp";
 
-		assertEquals(95, App.fromDLGP(path).getGuardedSaturation().size());
+		assertEquals(95, App.fromDLGP(path).getFullTGDSaturation().size());
 
 	}
 
@@ -52,7 +55,7 @@ public class DLGPTest {
 
 		String path = baseChaseBench + "imdb.dlgp";
 
-		assertEquals(89, App.fromDLGP(path).getGuardedSaturation().size());
+		assertEquals(89, App.fromDLGP(path).getFullTGDSaturation().size());
 
 	}
 

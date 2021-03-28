@@ -28,6 +28,10 @@ public class OWLTest {
 		App.logger.addHandler(handlerObj);
 		App.logger.setLevel(Level.WARNING);
 		App.logger.setUseParentHandlers(false);
+
+        // force the saturation algo to be gsat
+        Configuration.setSaturationAlg("gsat");
+
 	}
 
 	@Disabled("Disabled because it is too slow")
@@ -38,7 +42,7 @@ public class OWLTest {
 
 		ExecutionOutput executeChaseBenchScenario = App.fromOWL(path, "");
 
-		assertEquals(12, executeChaseBenchScenario.getGuardedSaturation().size());
+		assertEquals(12, executeChaseBenchScenario.getFullTGDSaturation().size());
 
 	}
 
@@ -49,7 +53,7 @@ public class OWLTest {
 
 		ExecutionOutput executeChaseBenchScenario = App.fromOWL(path, "");
 
-		assertEquals(223, executeChaseBenchScenario.getGuardedSaturation().size());
+		assertEquals(223, executeChaseBenchScenario.getFullTGDSaturation().size());
 
 	}
 
@@ -60,7 +64,7 @@ public class OWLTest {
 
 		ExecutionOutput executeChaseBenchScenario = App.fromOWL(path, "");
 
-		assertEquals(86, executeChaseBenchScenario.getGuardedSaturation().size());
+		assertEquals(86, executeChaseBenchScenario.getFullTGDSaturation().size());
 
 	}
 
@@ -71,7 +75,8 @@ public class OWLTest {
 
 		ExecutionOutput executeChaseBenchScenario = App.fromOWL(path, "");
 
-		assertEquals(72, executeChaseBenchScenario.getGuardedSaturation().size());
+		assertEquals(72, executeChaseBenchScenario.getFullTGDSaturation().size());
+
 
 	}
 

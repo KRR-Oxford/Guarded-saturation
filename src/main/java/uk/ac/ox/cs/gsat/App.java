@@ -25,7 +25,7 @@ public class App {
 		logger.setLevel(level);
 		logger.setUseParentHandlers(false);
 
-		System.out.println("Starting GSat...");
+		System.out.println("Starting Saturation...");
 
 		try {
 			Class.forName("uk.ac.ox.cs.pdq.fol.TGD");
@@ -128,7 +128,7 @@ public class App {
 
 		System.out.println("Executing from DLGP files");
 
-		return executeAllSteps(new DLGPIO(path, Configuration.isGSatOnly()));
+		return executeAllSteps(new DLGPIO(path, Configuration.isSaturationOnly()));
 
 	}
 
@@ -142,17 +142,17 @@ public class App {
 
 		System.out.println("Executing from OWL files");
 
-		return executeAllSteps(new OWLIO(path, query, Configuration.isGSatOnly()));
+		return executeAllSteps(new OWLIO(path, query, Configuration.isSaturationOnly()));
 
 	}
 
 	/**
-	 * Runs all the steps needed in order to get the Guarded Saturation, the full
+	 * Runs all the steps needed in order to get the saturation, the full
 	 * grounding and the answers to all the queries
 	 * 
 	 * @param executionSteps the specific executor (implementing `ExecutionSteps`)
 	 *                       to use for the basic operations
-	 * @return the results of the Guarded Saturation and, possibly, also of the full
+	 * @return the results of the saturation and, possibly, also of the full
 	 *         gounding (if the specific option is enabled)
 	 */
 	private static ExecutionOutput executeAllSteps(ExecutionSteps executionSteps) {
@@ -172,22 +172,32 @@ public class App {
 
 		try {
 
-			executionOutput.setGuardedSaturation(GSat.getInstance().runGSat(rules));
+            if (Configuration.getSaturationAlg().equals("gsat")) {
+
+                System.out.println("Full TGD saturation algorithm: GSat");
+                executionOutput.setFullTGDSaturation(GSat.getInstance().runGSat(rules));
+            } else if (Configuration.getSaturationAlg().equals("simple_sat")) {
+
+                System.out.println("Full TGD saturation algorithm: Simple Sat");
+                executionOutput.setFullTGDSaturation(SimpleSat.getInstance().run(rules));
+            } else {
+                throw new IllegalStateException("The saturation algorithm (saturation_alg) " + Configuration.getSaturationAlg() + " is not supported.");
+            }
 
 			logger.info("Rewriting completed!");
 			System.out
-					.println("Guarded saturation: (" + executionOutput.getGuardedSaturation().size() + " dependecies)");
+					.println("Full TGD saturation: (" + executionOutput.getFullTGDSaturation().size() + " dependecies)");
 			System.out.println("=========================================");
-			executionOutput.getGuardedSaturation().forEach(System.out::println);
+			executionOutput.getFullTGDSaturation().forEach(System.out::println);
 			System.out.println("=========================================");
 
 		} catch (Exception e) {
-			System.err.println("Guarded Saturation algorithm failed. The system will now terminate.");
+			System.err.println("Full TGD saturation algorithm failed. The system will now terminate.");
 			logger.severe(e.getLocalizedMessage());
 			System.exit(1);
 		}
 
-		if (!Configuration.isGSatOnly()) {
+		if (!Configuration.isSaturationOnly()) {
 
 			logger.info("Converting facts to Datalog");
 
@@ -214,7 +224,7 @@ public class App {
 
 			try {
 
-				IO.writeDatalogRules(executionOutput.getGuardedSaturation(), baseOutputPath + "datalog.rul");
+				IO.writeDatalogRules(executionOutput.getFullTGDSaturation(), baseOutputPath + "datalog.rul");
 
 				if (Configuration.isFullGrounding()) {
 

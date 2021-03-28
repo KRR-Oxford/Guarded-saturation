@@ -32,15 +32,15 @@ import uk.ac.ox.cs.pdq.fol.Variable;
 public class DLGPIO implements ExecutionSteps {
 
     protected String path;
-    protected boolean gSatOnly;
+    protected boolean saturationOnly;
     protected HashSet<Atom> atoms;
     protected HashSet<AtomSet> atomSets;
     protected HashSet<Rule> rules;
     protected HashSet<Query> queries;
 
-    public DLGPIO(String path, boolean gSatOnly) {
+    public DLGPIO(String path, boolean saturationOnly) {
         this.path = path;
-        this.gSatOnly = gSatOnly;
+        this.saturationOnly = saturationOnly;
     }
 
     @Override
@@ -60,10 +60,10 @@ public class DLGPIO implements ExecutionSteps {
 
         while (parser.hasNext()) {
             Object o = parser.next();
-            if (o instanceof Atom && !gSatOnly) {
+            if (o instanceof Atom && !saturationOnly) {
                 App.logger.fine("Atom: " + ((Atom) o));
                 atoms.add((Atom) o);
-            } else if (o instanceof AtomSet && !gSatOnly) {
+            } else if (o instanceof AtomSet && !saturationOnly) {
                 App.logger.fine("Atom Set: " + (AtomSet) o);
                 atomSets.add((AtomSet) o);
             } else if (o instanceof Rule) {
