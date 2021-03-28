@@ -29,6 +29,9 @@ public class ChaseBenchTest {
                 App.logger.addHandler(handlerObj);
                 App.logger.setLevel(Level.WARNING);
                 App.logger.setUseParentHandlers(false);
+
+                // force the saturation algo to be gsat
+                Configuration.setSaturationAlg("gsat");
         }
 
         private void fromChaseBench(String baseTest, String basePath, String fact_querySize, int output_val,
@@ -37,7 +40,7 @@ public class ChaseBenchTest {
                 ExecutionOutput executeChaseBenchScenario = App.executeChaseBenchScenario(baseTest, basePath,
                                 fact_querySize);
 
-                if (!Configuration.isGSatOnly()) {
+                if (!Configuration.isSaturationOnly()) {
                         assertEquals(output_val, executeChaseBenchScenario.getSolverOutput().getOutput().length());
                         assertEquals(errors_val, executeChaseBenchScenario.getSolverOutput().getErrors().length());
                         assertEquals(lines_val, executeChaseBenchScenario.getSolverOutput().getNumberOfLinesOutput());

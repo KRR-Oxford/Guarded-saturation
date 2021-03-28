@@ -85,6 +85,9 @@ public class GSatTest {
 		App.logger.addHandler(handlerObj);
 		App.logger.setLevel(Level.WARNING);
 		App.logger.setUseParentHandlers(false);
+
+        // force the saturation algo to be gsat
+        Configuration.setSaturationAlg("gsat");
 	}
 
 	@Test

@@ -4,27 +4,27 @@ import java.util.Collection;
 
 public class ExecutionOutput {
 
-    protected Collection<GTGD> guardedSaturation;
+    protected Collection<? extends TGD> fullTGDSaturation;
 
     protected SolverOutput solverOutput;
 
-    public ExecutionOutput(Collection<GTGD> guardedSaturation, SolverOutput solverOutput) {
-        setGuardedSaturation(guardedSaturation);
+    public ExecutionOutput(Collection<TGD> fullTGDSaturation, SolverOutput solverOutput) {
+        setFullTGDSaturation(fullTGDSaturation);
         setSolverOutput(solverOutput);
     }
 
     @Override
     public String toString() {
-        return "ExecutionOutput {\nGuarded Saturation:\n" + guardedSaturation + "\nSolverOutput:\n" + solverOutput
+        return "ExecutionOutput {\nGuarded Saturation:\n" + fullTGDSaturation + "\nSolverOutput:\n" + solverOutput
                 + "\n}\n";
     }
 
-    public Collection<GTGD> getGuardedSaturation() {
-        return guardedSaturation;
+    public Collection<? extends TGD> getFullTGDSaturation() {
+        return fullTGDSaturation;
     }
 
-    public void setGuardedSaturation(Collection<GTGD> guardedSaturation) {
-        this.guardedSaturation = guardedSaturation;
+    public void setFullTGDSaturation(Collection<? extends TGD> fullTGDSaturation) {
+        this.fullTGDSaturation = fullTGDSaturation;
     }
 
     public SolverOutput getSolverOutput() {

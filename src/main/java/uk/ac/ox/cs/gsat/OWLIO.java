@@ -17,12 +17,12 @@ public class OWLIO extends DLGPIO {
 
     private String query;
 
-    public OWLIO(String path, boolean gSatOnly) {
-        this(path, "", gSatOnly);
+    public OWLIO(String path, boolean saturationOnly) {
+        this(path, "", saturationOnly);
     }
 
-    public OWLIO(String path, String query, boolean gSatOnly) {
-        super(path, gSatOnly);
+    public OWLIO(String path, String query, boolean saturationOnly) {
+        super(path, saturationOnly);
         this.query = query;
     }
 

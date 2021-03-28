@@ -86,6 +86,9 @@ public class LogicTest {
 		App.logger.addHandler(handlerObj);
 		App.logger.setLevel(Level.WARNING);
 		App.logger.setUseParentHandlers(false);
+
+        // force the saturation algo to be gsat
+        Configuration.setSaturationAlg("gsat");
 	}
 
 	@Test
@@ -298,10 +301,9 @@ public class LogicTest {
 		SimpleSat sgsat = SimpleSat.getInstance();
 		// Variables
 
-		// R(x1, x2) -> ∃ y1, y2. S(x1, x2, y1, y2) & T(x1, x2, y2)
-		// S(x1,x2,x3,x4) -> U(x4)
-		// T(z1, z2, z3) -> P(z1)
-
+		// A(x1) -> ∃ x2. R(x1, x2)
+		// R(x1, x2) -> U(x2)
+		// R(x1, x2), U(x2) -> P(x1)
 		Atom Ax1 = Atom.create(Predicate.create("A", 1), x1);
 		Atom Rx1x2 = Atom.create(Predicate.create("R", 2), x1, x2);
 		Atom Ux2 = Atom.create(Predicate.create("U", 1), x2);
