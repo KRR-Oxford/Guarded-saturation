@@ -115,15 +115,34 @@ public class Configuration {
 
     }
 
-    public static boolean isGSatOnly() {
+    public static boolean isSaturationOnly() {
 
         Configuration.initialize();
 
         if (Configuration.prop == null)
             return true;
 
-        return Boolean.parseBoolean(Configuration.prop.getProperty("gsat_only"));
+        return Boolean.parseBoolean(Configuration.prop.getProperty("saturation_only"));
 
+    }
+
+    public static String getSaturationAlg() {
+
+        Configuration.initialize();
+
+        if (Configuration.prop == null)
+            return "gsat";
+
+        String value = Configuration.prop.getProperty("saturation_alg");
+        return (value != null) ? value : "gsat";
+    }
+
+    public static void setSaturationAlg(String value) {
+
+        Configuration.initialize();
+
+        if (Configuration.prop != null)
+            Configuration.prop.setProperty("saturation_alg", value);
     }
 
     public static boolean isDebugMode() {
