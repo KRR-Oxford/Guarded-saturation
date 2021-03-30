@@ -4,7 +4,7 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
-import uk.ac.ox.cs.gsat.GTGD;
+import uk.ac.ox.cs.gsat.TGD;
 import uk.ac.ox.cs.pdq.fol.Atom;
 
 /**
@@ -12,15 +12,15 @@ import uk.ac.ox.cs.pdq.fol.Atom;
  * of the formulas in S with that atom either in the head or in the body
  * (including the same variable names).
  */
-public abstract class AtomFilter implements FormulaFilter {
-    protected Map<Atom, Collection<GTGD>> bodyMap = new HashMap<>(), headMap = new HashMap<>();
-    protected Collection<GTGD> all = new HashSet<>();
+public abstract class AtomFilter<Q extends TGD> implements FormulaFilter<Q> {
+    protected Map<Atom, Collection<Q>> bodyMap = new HashMap<>(), headMap = new HashMap<>();
+    protected Collection<Q> all = new HashSet<>();
 
-    public Collection<GTGD> getAll() {
+    public Collection<Q> getAll() {
         return all;
     }
 
-    public void add(GTGD formula) {
+    public void add(Q formula) {
         all.add(formula);
         for (Atom atom : formula.getBodyAtoms()) {
             if (!bodyMap.containsKey(atom)) {
@@ -36,7 +36,7 @@ public abstract class AtomFilter implements FormulaFilter {
         }
     }
 
-    public void remove(GTGD formula) {
+    public void remove(Q formula) {
         all.remove(formula);
         for (Atom atom : formula.getBodyAtoms()) {
             bodyMap.get(atom).remove(formula);

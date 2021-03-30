@@ -2,14 +2,14 @@ package uk.ac.ox.cs.gsat.subsumers;
 
 import java.util.Collection;
 
-import uk.ac.ox.cs.gsat.GTGD;
+import uk.ac.ox.cs.gsat.TGD;
 
 /**
  * A class to encapsulate subsumption methods for tgds. It stores a set of tgds
  * S that it operates on (initially empty). Also provides statistics for the
  * number of elements subsumed or
  */
-public interface Subsumer {
+public interface Subsumer<Q extends TGD> {
     /**
      * Removes from S any tgds that are subsumed by {@code tgd}. Updates the counts
      * for number of filtered elements if an index is used. Increments number of
@@ -17,7 +17,7 @@ public interface Subsumer {
      * 
      * @return a collection of the removed tgds.
      */
-    public Collection<GTGD> subsumesAny(GTGD tgd);
+    public Collection<Q> subsumesAny(Q tgd);
 
     /**
      * Should not modify S. Updates the counts for number of filtered elements if an
@@ -26,12 +26,12 @@ public interface Subsumer {
      * 
      * @return whether {@code tgd} is subsumed by something in S.
      */
-    public boolean subsumed(GTGD tgd);
+    public boolean subsumed(Q tgd);
 
     /**
      * Adds {@code tgd} to S
      */
-    public void add(GTGD tgd);
+    public void add(Q tgd);
 
     /**
      * This does not need to be efficient. It is intended to be called at most once
@@ -39,7 +39,7 @@ public interface Subsumer {
      * 
      * @return S
      */
-    public Collection<GTGD> getAll();
+    public Collection<Q> getAll();
 
     /**
      * 

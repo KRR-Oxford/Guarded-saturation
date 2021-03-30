@@ -4,7 +4,7 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
-import uk.ac.ox.cs.gsat.GTGD;
+import uk.ac.ox.cs.gsat.TGD;
 import uk.ac.ox.cs.pdq.fol.Atom;
 import uk.ac.ox.cs.pdq.fol.Predicate;
 
@@ -12,15 +12,15 @@ import uk.ac.ox.cs.pdq.fol.Predicate;
  * Extension of the FormulaFilter class that for each atom contains a collection
  * of the formulas in S with that predicate either in the head or in the body.
  */
-public abstract class PredicateFilter implements FormulaFilter {
-    protected Map<Predicate, Collection<GTGD>> bodyMap = new HashMap<>(), headMap = new HashMap<>();
-    protected Collection<GTGD> all = new HashSet<>();
+public abstract class PredicateFilter<Q extends TGD> implements FormulaFilter<Q> {
+    protected Map<Predicate, Collection<Q>> bodyMap = new HashMap<>(), headMap = new HashMap<>();
+    protected Collection<Q> all = new HashSet<>();
 
-    public Collection<GTGD> getAll() {
+    public Collection<Q> getAll() {
         return all;
     }
 
-    public void add(GTGD formula) {
+    public void add(Q formula) {
         all.add(formula);
         for (Atom atom : formula.getBodyAtoms()) {
             if (!bodyMap.containsKey(atom.getPredicate())) {
@@ -36,7 +36,7 @@ public abstract class PredicateFilter implements FormulaFilter {
         }
     }
 
-    public void remove(GTGD formula) {
+    public void remove(Q formula) {
         all.remove(formula);
         for (Atom atom : formula.getBodyAtoms()) {
             bodyMap.get(atom.getPredicate()).remove(formula);

@@ -3,40 +3,40 @@ package uk.ac.ox.cs.gsat.filters;
 import java.util.Collection;
 import java.util.HashSet;
 
-import uk.ac.ox.cs.gsat.GTGD;
+import uk.ac.ox.cs.gsat.TGD;
 
 /**
  * A FormulaFilter that simply returns the whole set S. Equivalent to not having
  * any indexing method.
  */
-public class IdentityFormulaFilter implements FormulaFilter {
-    HashSet<GTGD> formulas = new HashSet<>();
+public class IdentityFormulaFilter<Q extends TGD> implements FormulaFilter<Q> {
+    HashSet<Q> formulas = new HashSet<>();
 
-    public Collection<GTGD> getAll() {
+    public Collection<Q> getAll() {
         return formulas;
     }
 
-    public void addAll(Collection<GTGD> newFormulas) {
+    public void addAll(Collection<Q> newFormulas) {
         formulas.addAll(newFormulas);
     }
 
-    public void add(GTGD newFormula) {
+    public void add(Q newFormula) {
         formulas.add(newFormula);
     }
 
-    public void removeAll(Collection<GTGD> newFormulas) {
+    public void removeAll(Collection<Q> newFormulas) {
         formulas.removeAll(newFormulas);
     }
 
-    public void remove(GTGD newFormula) {
+    public void remove(Q newFormula) {
         formulas.remove(newFormula);
     }
 
-    public Iterable<GTGD> getSubsumedCandidates(GTGD formula) {
+    public Iterable<Q> getSubsumedCandidates(Q formula) {
         return formulas;
     }
 
-    public Iterable<GTGD> getSubsumingCandidates(GTGD formula) {
+    public Iterable<Q> getSubsumingCandidates(Q formula) {
         return formulas;
     }
 }
