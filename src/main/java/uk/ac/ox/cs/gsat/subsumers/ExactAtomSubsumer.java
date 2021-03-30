@@ -8,7 +8,7 @@ import java.util.Stack;
 import java.util.TreeMap;
 import java.util.TreeSet;
 
-import uk.ac.ox.cs.gsat.GTGD;
+import uk.ac.ox.cs.gsat.TGD;
 import uk.ac.ox.cs.pdq.fol.Atom;
 
 /**
@@ -18,14 +18,14 @@ import uk.ac.ox.cs.pdq.fol.Atom;
  * Similar to the SimpleSubsumer class with a good index, but the indexing is
  * built in.
  */
-public class ExactAtomSubsumer implements Subsumer {
+public class ExactAtomSubsumer<Q extends TGD> implements Subsumer<Q> {
     private class Node {
         boolean isBody = true;
         // maps hash of next clause to the next node in the trie
         TreeMap<Integer, Node> nextBody = new TreeMap<>();
         TreeMap<Integer, Node> nextHead = new TreeMap<>();
         // Formulas that end up at this node
-        GTGD currentFormula = null;
+        Q currentFormula = null;
     }
 
     Node root = new Node();
@@ -46,7 +46,7 @@ public class ExactAtomSubsumer implements Subsumer {
         return hashes.stream().mapToInt(Integer::intValue).toArray();
     }
 
-    private void checkHashes(GTGD formula) {
+    private void checkHashes(Q formula) {
         if (formula.getBodyHashes() == null)
             formula.setBodyHashes(computeHashes(formula.getBodyAtoms(), bodyAtomIndeces));
         if (formula.getHeadHashes() == null)
@@ -64,8 +64,8 @@ public class ExactAtomSubsumer implements Subsumer {
     }
 
     @Override
-    public Collection<GTGD> subsumesAny(GTGD formula) {
-        HashSet<GTGD> answer = new HashSet<>();
+    public Collection<Q> subsumesAny(Q formula) {
+        HashSet<Q> answer = new HashSet<>();
         Stack<IntNodePair> traversing = new Stack<>();
         // TODO: implement this in a less hacky manner
         Stack<IntNodePair> reversedTraversal = new Stack<>();
@@ -143,7 +143,7 @@ public class ExactAtomSubsumer implements Subsumer {
     }
 
     @Override
-    public boolean subsumed(GTGD formula) {
+    public boolean subsumed(Q formula) {
         checkHashes(formula);
         int[] bodyHashes = formula.getBodyHashes();
         int[] headHashes = formula.getHeadHashes();
@@ -194,7 +194,7 @@ public class ExactAtomSubsumer implements Subsumer {
     }
 
     @Override
-    public void add(GTGD formula) {
+    public void add(Q formula) {
         checkHashes(formula);
         if (formula.getHeadAtoms().length == 0)
             return;
@@ -217,9 +217,9 @@ public class ExactAtomSubsumer implements Subsumer {
     }
 
     @Override
-    public Collection<GTGD> getAll() {
+    public Collection<Q> getAll() {
         Stack<Node> traversing = new Stack<>();
-        HashSet<GTGD> answer = new HashSet<>();
+        HashSet<Q> answer = new HashSet<>();
         traversing.push(root);
         while (!traversing.empty()) {
             Node top = traversing.pop();

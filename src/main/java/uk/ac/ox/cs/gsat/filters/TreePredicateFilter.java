@@ -9,7 +9,7 @@ import java.util.Stack;
 import java.util.TreeMap;
 import java.util.TreeSet;
 
-import uk.ac.ox.cs.gsat.GTGD;
+import uk.ac.ox.cs.gsat.TGD;
 import uk.ac.ox.cs.pdq.fol.Atom;
 import uk.ac.ox.cs.pdq.fol.Predicate;
 
@@ -17,7 +17,7 @@ import uk.ac.ox.cs.pdq.fol.Predicate;
  * Implements a tree based index that filters out subsumption candidates based
  * on sets of predicates.
  */
-public class TreePredicateFilter implements FormulaFilter {
+public class TreePredicateFilter<Q extends TGD> implements FormulaFilter<Q> {
 
     private class Node {
         boolean isBody = true;
@@ -25,13 +25,13 @@ public class TreePredicateFilter implements FormulaFilter {
         TreeMap<Integer, Node> nextBody = new TreeMap<>();
         TreeMap<Integer, Node> nextHead = new TreeMap<>();
         // Formulas that end up at this node
-        HashSet<GTGD> formulas = new HashSet<>();
+        HashSet<Q> formulas = new HashSet<>();
     }
 
     Node root = new Node();
 
-    private class SubsumedCandidatesIterable implements Iterable<GTGD> {
-        private class SubsumedCandidatesIterator implements Iterator<GTGD> {
+    private class SubsumedCandidatesIterable implements Iterable<Q> {
+        private class SubsumedCandidatesIterator implements Iterator<Q> {
             private class IntNodePair {
                 int index;
                 Node node;
@@ -43,7 +43,7 @@ public class TreePredicateFilter implements FormulaFilter {
             }
 
             private Stack<IntNodePair> traversing = new Stack<>();
-            private Iterator<GTGD> next = null;
+            private Iterator<Q> next = null;
 
             private int[] bodyHashes, headHashes;
 
@@ -101,27 +101,27 @@ public class TreePredicateFilter implements FormulaFilter {
             }
 
             @Override
-            public GTGD next() {
-                GTGD answer = next.next();
+            public Q next() {
+                Q answer = next.next();
                 return answer;
             }
         }
 
-        private final GTGD formula;
+        private final Q formula;
 
-        public SubsumedCandidatesIterable(GTGD formula) {
+        public SubsumedCandidatesIterable(Q formula) {
             this.formula = formula;
         }
 
         @Override
-        public Iterator<GTGD> iterator() {
+        public Iterator<Q> iterator() {
             return new SubsumedCandidatesIterator(formula.getBodyHashes(), formula.getHeadHashes());
         }
 
     }
 
-    private class SubsumingCandidatesIterable implements Iterable<GTGD> {
-        private class SubsumingCandidatesIterator implements Iterator<GTGD> {
+    private class SubsumingCandidatesIterable implements Iterable<Q> {
+        private class SubsumingCandidatesIterator implements Iterator<Q> {
             private class IntNodePair {
                 int index;
                 Node node;
@@ -133,7 +133,7 @@ public class TreePredicateFilter implements FormulaFilter {
             }
 
             private Stack<IntNodePair> traversing = new Stack<>();
-            private Iterator<GTGD> next = null;
+            private Iterator<Q> next = null;
 
             private int[] bodyHashes, headHashes;
 
@@ -196,29 +196,29 @@ public class TreePredicateFilter implements FormulaFilter {
             }
 
             @Override
-            public GTGD next() {
-                GTGD answer = next.next();
+            public Q next() {
+                Q answer = next.next();
                 return answer;
             }
         }
 
-        private final GTGD formula;
+        private final Q formula;
 
-        public SubsumingCandidatesIterable(GTGD formula) {
+        public SubsumingCandidatesIterable(Q formula) {
             this.formula = formula;
         }
 
         @Override
-        public Iterator<GTGD> iterator() {
+        public Iterator<Q> iterator() {
             return new SubsumingCandidatesIterator(formula.getBodyHashes(), formula.getHeadHashes());
         }
 
     }
 
-    private class AllIterable implements Iterable<GTGD> {
-        private class AllIterator implements Iterator<GTGD> {
+    private class AllIterable implements Iterable<Q> {
+        private class AllIterator implements Iterator<Q> {
             private Stack<Node> traversing = new Stack<>();
-            private Iterator<GTGD> next = null;
+            private Iterator<Q> next = null;
 
             public AllIterator() {
                 traversing.push(root);
@@ -242,27 +242,27 @@ public class TreePredicateFilter implements FormulaFilter {
             }
 
             @Override
-            public GTGD next() {
+            public Q next() {
                 hasNext();
-                GTGD answer = next.next();
+                Q answer = next.next();
                 return answer;
             }
         }
 
         @Override
-        public Iterator<GTGD> iterator() {
+        public Iterator<Q> iterator() {
             return new AllIterator();
         }
 
     }
 
-    public Collection<GTGD> getAll() {
-        HashSet<GTGD> answer = new HashSet<>();
+    public Collection<Q> getAll() {
+        HashSet<Q> answer = new HashSet<>();
         (new AllIterable()).forEach(answer::add);
         return answer;
     }
 
-    public void add(GTGD formula) {
+    public void add(Q formula) {
         checkHashes(formula);
         if (formula.getHeadAtoms().length == 0)
             return;
@@ -294,7 +294,7 @@ public class TreePredicateFilter implements FormulaFilter {
         }
     }
 
-    public void remove(GTGD formula) {
+    public void remove(Q formula) {
         checkHashes(formula);
         Stack<IntNodePair> reversedTraversal = new Stack<>();
         Node current = root;
@@ -348,19 +348,19 @@ public class TreePredicateFilter implements FormulaFilter {
         return hashes.stream().mapToInt(Integer::intValue).toArray();
     }
 
-    private void checkHashes(GTGD formula) {
+    private void checkHashes(Q formula) {
         if (formula.getBodyHashes() == null)
             formula.setBodyHashes(computeHashes(formula.getBodyAtoms(), bodyAtomIndeces));
         if (formula.getHeadHashes() == null)
             formula.setHeadHashes(computeHashes(formula.getHeadAtoms(), headAtomIndeces));
     }
 
-    public Iterable<GTGD> getSubsumedCandidates(GTGD formula) {
+    public Iterable<Q> getSubsumedCandidates(Q formula) {
         checkHashes(formula);
         return new SubsumedCandidatesIterable(formula);
     }
 
-    public Iterable<GTGD> getSubsumingCandidates(GTGD formula) {
+    public Iterable<Q> getSubsumingCandidates(Q formula) {
         checkHashes(formula);
         return new SubsumingCandidatesIterable(formula);
     }
