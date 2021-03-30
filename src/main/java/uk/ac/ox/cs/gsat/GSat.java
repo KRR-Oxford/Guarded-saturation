@@ -137,30 +137,30 @@ public class GSat {
         String subsumptionMethod = Configuration.getSubsumptionMethod();
         App.logger.info("Subsumption method : " + subsumptionMethod);
 
-        Subsumer fullTGDsSubsumer;
-        Subsumer nonFullTGDsSubsumer;
+        Subsumer<GTGD> fullTGDsSubsumer;
+        Subsumer<GTGD> nonFullTGDsSubsumer;
 
         if (subsumptionMethod.equals("tree_atom")) {
-            fullTGDsSubsumer = new ExactAtomSubsumer();
-            nonFullTGDsSubsumer = new ExactAtomSubsumer();
+            fullTGDsSubsumer = new ExactAtomSubsumer<GTGD>();
+            nonFullTGDsSubsumer = new ExactAtomSubsumer<GTGD>();
         } else {
-            FormulaFilter fullTGDsFilter;
-            FormulaFilter nonFullTGDsFilter;
+            FormulaFilter<GTGD> fullTGDsFilter;
+            FormulaFilter<GTGD> nonFullTGDsFilter;
             if (subsumptionMethod.equals("min_predicate")) {
-                fullTGDsFilter = new MinPredicateFilter();
-                nonFullTGDsFilter = new MinPredicateFilter();
+                fullTGDsFilter = new MinPredicateFilter<GTGD>();
+                nonFullTGDsFilter = new MinPredicateFilter<GTGD>();
             } else if (subsumptionMethod.equals("min_atom")) {
-                fullTGDsFilter = new MinAtomFilter();
-                nonFullTGDsFilter = new MinAtomFilter();
+                fullTGDsFilter = new MinAtomFilter<GTGD>();
+                nonFullTGDsFilter = new MinAtomFilter<GTGD>();
             } else if (subsumptionMethod.equals("tree_predicate")) {
-                fullTGDsFilter = new TreePredicateFilter();
-                nonFullTGDsFilter = new TreePredicateFilter();
+                fullTGDsFilter = new TreePredicateFilter<GTGD>();
+                nonFullTGDsFilter = new TreePredicateFilter<GTGD>();
             } else {
-                fullTGDsFilter = new IdentityFormulaFilter();
-                nonFullTGDsFilter = new IdentityFormulaFilter();
+                fullTGDsFilter = new IdentityFormulaFilter<GTGD>();
+                nonFullTGDsFilter = new IdentityFormulaFilter<GTGD>();
             }
-            fullTGDsSubsumer = new SimpleSubsumer(fullTGDsFilter);
-            nonFullTGDsSubsumer = new SimpleSubsumer(nonFullTGDsFilter);
+            fullTGDsSubsumer = new SimpleSubsumer<GTGD>(fullTGDsFilter);
+            nonFullTGDsSubsumer = new SimpleSubsumer<GTGD>(nonFullTGDsFilter);
         }
         for (GTGD tgd : selectedTGDs)
             for (GTGD hnf : tgd.computeHNF()) {
@@ -310,11 +310,11 @@ public class GSat {
     }
 
     private void addNewTGD(GTGD newTGD, Collection<GTGD> newFullTGDs, Collection<GTGD> newNonFullTGDs,
-            Subsumer fullTGDsSubsumer, Subsumer nonFullTGDsSubsumer, Map<Predicate, Set<GTGD>> fullTGDsMap,
+            Subsumer<GTGD> fullTGDsSubsumer, Subsumer<GTGD> nonFullTGDsSubsumer, Map<Predicate, Set<GTGD>> fullTGDsMap,
             Map<Predicate, Set<GTGD>> nonFullTGDsMap, Set<GTGD> fullTGDsSet, Set<GTGD> nonFullTGDsSet) {
         final Collection<GTGD> newTGDs;
         final Map<Predicate, Set<GTGD>> TGDsMap;
-        final Subsumer TGDsSubsumer;
+        final Subsumer<GTGD> TGDsSubsumer;
         final Set<GTGD> TGDsSet;
         if (Logic.isFull(newTGD)) {
             newTGDs = newFullTGDs;
@@ -364,12 +364,12 @@ public class GSat {
     // same as normal addNewTGD, except it uses 2 subsumers, and asserts that they
     // return the same results
     private void addNewTGD(GTGD newTGD, Collection<GTGD> newFullTGDs, Collection<GTGD> newNonFullTGDs,
-            Subsumer fullTGDsSubsumer, Subsumer nonFullTGDsSubsumer, Subsumer fullTGDsSubsumer2,
-            Subsumer nonFullTGDsSubsumer2, Map<Predicate, Set<GTGD>> fullTGDsMap,
+            Subsumer<GTGD> fullTGDsSubsumer, Subsumer<GTGD> nonFullTGDsSubsumer, Subsumer<GTGD> fullTGDsSubsumer2,
+            Subsumer<GTGD> nonFullTGDsSubsumer2, Map<Predicate, Set<GTGD>> fullTGDsMap,
             Map<Predicate, Set<GTGD>> nonFullTGDsMap) {
         final Collection<GTGD> newTGDs;
         final Map<Predicate, Set<GTGD>> TGDsMap;
-        final Subsumer TGDsSubsumer, TGDsSubsumer2;
+        final Subsumer<GTGD> TGDsSubsumer, TGDsSubsumer2;
         if (Logic.isFull(newTGD)) {
             newTGDs = newFullTGDs;
             TGDsMap = fullTGDsMap;

@@ -3,7 +3,7 @@ package uk.ac.ox.cs.gsat.subsumers;
 import java.util.Collection;
 import java.util.HashSet;
 
-import uk.ac.ox.cs.gsat.GTGD;
+import uk.ac.ox.cs.gsat.TGD;
 import uk.ac.ox.cs.gsat.filters.FormulaFilter;
 
 /**
@@ -11,23 +11,23 @@ import uk.ac.ox.cs.gsat.filters.FormulaFilter;
  * then identifies tgd a as subsumed by tgd b if b.head is contained in a.head,
  * and a.body is contained in b.body (without any unification).
  */
-public class SimpleSubsumer implements Subsumer {
+public class SimpleSubsumer<Q extends TGD> implements Subsumer<Q> {
 
-    final FormulaFilter filter;
+    final FormulaFilter<Q> filter;
     private long num_filter_discarded = 0, num_subsumed = 0;
 
-    public SimpleSubsumer(FormulaFilter filter) {
+    public SimpleSubsumer(FormulaFilter<Q> filter) {
         this.filter = filter;
     }
 
     @Override
-    public Collection<GTGD> subsumesAny(GTGD newTGD) {
-        Collection<GTGD> subsumed = new HashSet<>();
+    public Collection<Q> subsumesAny(Q newTGD) {
+        Collection<Q> subsumed = new HashSet<>();
 
         var bodyN = newTGD.getBodySet();
         var headN = newTGD.getHeadSet();
 
-        for (GTGD tgd : filter.getSubsumedCandidates(newTGD)) {
+        for (Q tgd : filter.getSubsumedCandidates(newTGD)) {
             var body = tgd.getBodySet();
             var head = tgd.getHeadSet();
 
@@ -49,11 +49,11 @@ public class SimpleSubsumer implements Subsumer {
     }
 
     @Override
-    public boolean subsumed(GTGD newTGD) {
+    public boolean subsumed(Q newTGD) {
         var bodyN = newTGD.getBodySet();
         var headN = newTGD.getHeadSet();
 
-        for (GTGD tgd : filter.getSubsumingCandidates(newTGD)) {
+        for (Q tgd : filter.getSubsumingCandidates(newTGD)) {
             var body = tgd.getBodySet();
             var head = tgd.getHeadSet();
 
@@ -73,11 +73,11 @@ public class SimpleSubsumer implements Subsumer {
         return false;
     }
 
-    public void add(GTGD newTGD) {
+    public void add(Q newTGD) {
         filter.add(newTGD);
     }
 
-    public Collection<GTGD> getAll() {
+    public Collection<Q> getAll() {
         return filter.getAll();
     }
 
