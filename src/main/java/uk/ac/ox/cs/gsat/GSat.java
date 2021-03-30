@@ -134,34 +134,11 @@ public class GSat {
         Map<Predicate, Set<GTGD>> fullTGDsMap = new HashMap<>();
         Set<GTGD> fullTGDsSet = new HashSet<>();
         Set<GTGD> nonFullTGDsSet = new HashSet<>();
-        String subsumptionMethod = Configuration.getSubsumptionMethod();
-        App.logger.info("Subsumption method : " + subsumptionMethod);
 
-        Subsumer<GTGD> fullTGDsSubsumer;
-        Subsumer<GTGD> nonFullTGDsSubsumer;
+        App.logger.info("Subsumption method : " + Configuration.getSubsumptionMethod());
+        Subsumer<GTGD> fullTGDsSubsumer = createSubsumer();
+        Subsumer<GTGD> nonFullTGDsSubsumer = createSubsumer();
 
-        if (subsumptionMethod.equals("tree_atom")) {
-            fullTGDsSubsumer = new ExactAtomSubsumer<GTGD>();
-            nonFullTGDsSubsumer = new ExactAtomSubsumer<GTGD>();
-        } else {
-            FormulaFilter<GTGD> fullTGDsFilter;
-            FormulaFilter<GTGD> nonFullTGDsFilter;
-            if (subsumptionMethod.equals("min_predicate")) {
-                fullTGDsFilter = new MinPredicateFilter<GTGD>();
-                nonFullTGDsFilter = new MinPredicateFilter<GTGD>();
-            } else if (subsumptionMethod.equals("min_atom")) {
-                fullTGDsFilter = new MinAtomFilter<GTGD>();
-                nonFullTGDsFilter = new MinAtomFilter<GTGD>();
-            } else if (subsumptionMethod.equals("tree_predicate")) {
-                fullTGDsFilter = new TreePredicateFilter<GTGD>();
-                nonFullTGDsFilter = new TreePredicateFilter<GTGD>();
-            } else {
-                fullTGDsFilter = new IdentityFormulaFilter<GTGD>();
-                nonFullTGDsFilter = new IdentityFormulaFilter<GTGD>();
-            }
-            fullTGDsSubsumer = new SimpleSubsumer<GTGD>(fullTGDsFilter);
-            nonFullTGDsSubsumer = new SimpleSubsumer<GTGD>(nonFullTGDsFilter);
-        }
         for (GTGD tgd : selectedTGDs)
             for (GTGD hnf : tgd.computeHNF()) {
 				GTGD currentGTGD = hnf.computeVNF(eVariable, uVariable);
@@ -952,4 +929,26 @@ public class GSat {
 
     }
 
+    static <Q extends TGD> Subsumer<Q> createSubsumer() {
+
+        String subsumptionMethod = Configuration.getSubsumptionMethod();
+        Subsumer<Q> subsumer;
+
+        if (subsumptionMethod.equals("tree_atom")) {
+            subsumer = new ExactAtomSubsumer<Q>();
+        } else {
+            FormulaFilter<Q> filter;
+            if (subsumptionMethod.equals("min_predicate")) {
+                filter = new MinPredicateFilter<Q>();
+            } else if (subsumptionMethod.equals("min_atom")) {
+                filter = new MinAtomFilter<Q>();
+            } else if (subsumptionMethod.equals("tree_predicate")) {
+                filter = new TreePredicateFilter<Q>();
+            } else {
+                filter = new IdentityFormulaFilter<Q>();
+            }
+            subsumer = new SimpleSubsumer<Q>(filter);
+        }
+		return subsumer;
+    }
 }

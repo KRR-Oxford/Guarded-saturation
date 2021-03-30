@@ -332,7 +332,7 @@ public class LogicTest {
 
 		// R(x1, x2) -> ∃ y1, y2. S(x1, x2, y1, y2) & T(x1, x2, y2)
 		// S(x1,x2,x3,x4) -> U(x4)
-		// T(z1, z2, z3) -> P(z1)
+		// T(z1, z2, z3), U(z3) -> P(z1)
 
 		Atom Rx1x2 = Atom.create(Predicate.create("R", 2), x1, x2);
 		Atom Sx1x2y1y2 = Atom.create(Predicate.create("S", 4), x1, x2, y1, y2);
