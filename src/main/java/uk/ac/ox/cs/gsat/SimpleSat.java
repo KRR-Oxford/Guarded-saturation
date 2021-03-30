@@ -10,6 +10,7 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
 
+import uk.ac.ox.cs.gsat.subsumers.Subsumer;
 import uk.ac.ox.cs.pdq.fol.Atom;
 import uk.ac.ox.cs.pdq.fol.Dependency;
 import uk.ac.ox.cs.pdq.fol.Term;
@@ -58,7 +59,8 @@ public class SimpleSat {
                 + String.format(Locale.UK, "%.3f", (float) discarded / allDependencies.size() * 100) + "%");
 
         // compute the set of full and non-full tgds in normal forms
-        Set<TGD> fullTGDs = new HashSet<>();
+        Subsumer<TGD> fullTGDSubsumer = GSat.createSubsumer();
+        Collection<TGD> fullTGDs = new ArrayList<>();
         List<TGD> nonfullTGDs = new ArrayList<>();
         int width = 0;
 
@@ -66,8 +68,10 @@ public class SimpleSat {
             for (TGD hnf : tgd.computeHNF()) {
 				TGD currentTGD = hnf.computeVNF(eVariable, uVariable);
                 width = Math.max(currentTGD.getWidth(), width);
-                if (Logic.isFull(currentTGD)) {
+                if (Logic.isFull(currentTGD) && !fullTGDSubsumer.subsumed(tgd)) {
                     fullTGDs.add(currentTGD);
+                    fullTGDSubsumer.subsumesAny(tgd);
+                    fullTGDSubsumer.add(tgd);
                 } else {
                     nonfullTGDs.add(currentTGD);
                 }
@@ -77,33 +81,38 @@ public class SimpleSat {
         App.logger.info("SimpleGSat width : " + width);
 
         Collection<TGD> resultingFullTDGs = new ArrayList<>(fullTGDs);
-
         do {
 
             List<TGD> currentFullTDGs = new ArrayList<>(resultingFullTDGs);
 
             resultingFullTDGs.clear();
+            resultingFullTDGs.addAll(applyComposition(fullTGDs, fullTGDSubsumer, currentFullTDGs, width));
+            resultingFullTDGs.addAll(applyComposition(currentFullTDGs, fullTGDSubsumer, fullTGDs, width));
+            resultingFullTDGs.addAll(applyOriginal(nonfullTGDs, fullTGDs, fullTGDSubsumer));
 
-			resultingFullTDGs.addAll(applyComposition(fullTGDs, currentFullTDGs, width));
-			resultingFullTDGs.addAll(applyComposition(currentFullTDGs, fullTGDs, width));
-            resultingFullTDGs.addAll(applyOriginal(nonfullTGDs, fullTGDs));
 
-			System.out.println("step result" + resultingFullTDGs);
 
-		} while (fullTGDs.addAll(resultingFullTDGs));
+        } while (fullTGDs.addAll(resultingFullTDGs));
 
         return fullTGDs;
     }
 
 
-    /**
+	/**
+     * @param fullTGDSubsumer
      * @return all the ORIGINAL compositions between a collection of non full TGDs and a collection of full TGDs
      */    
-    private Collection<TGD> applyOriginal(Collection<TGD> nonfullTGDs, Collection<TGD> fullTGDs) {
-        Collection<TGD> resultingFullTGDs = new HashSet<>();
+    private Collection<TGD> applyOriginal(Collection<TGD> nonfullTGDs, Collection<TGD> fullTGDs, Subsumer<TGD> fullTGDSubsumer) {
+        Collection<TGD> resultingFullTGDs = new ArrayList<>();
         for (TGD nftgdbis : nonfullTGDs) {
             for (TGD ftgd : fullTGDs) {
-                resultingFullTGDs.addAll(originalNew(nftgdbis, ftgd));
+                for (TGD o : originalNew(nftgdbis, ftgd)) {
+                    if (!fullTGDSubsumer.subsumed(o)) {
+                        resultingFullTGDs.add(o);
+                        fullTGDSubsumer.subsumesAny(o);
+                        fullTGDSubsumer.add(o);
+                    }
+                }
             }
         }
         return resultingFullTGDs;
@@ -247,16 +256,23 @@ public class SimpleSat {
     
     /**
      * @param s1 - a set of full TGDs
+     * @param fullTGDSubsumer
      * @param s2 - a set of full TGDs
      * @return all the possible on tgds infered by applying COMPOSITION on t1 in s1 and t2 in s2
      *         with respect to the width
      */	
-	public Collection<TGD> applyComposition(Collection<TGD> s1, Collection<TGD> s2, int width) {
-		Collection<TGD> resultingFullTGDs = new HashSet<>();
+	public Collection<TGD> applyComposition(Collection<TGD> s1, Subsumer<TGD> fullTGDSubsumer, Collection<TGD> s2, int width) {
+		Collection<TGD> resultingFullTGDs = new ArrayList<>();
 	    for (TGD t1bis : s1) {
 	        TGD t1 = renameTgd(t1bis);
 	        for (TGD t2 : s2) {
-	            resultingFullTGDs.addAll(compose(t1, t2, width));
+                for (TGD o : compose(t1, t2, width)) {
+                    if (!fullTGDSubsumer.subsumed(o)) {
+                        resultingFullTGDs.add(o);
+                        fullTGDSubsumer.subsumesAny(o);
+                        fullTGDSubsumer.add(o);
+                    }
+                }
 	        }
 	    }
 		return resultingFullTGDs;
