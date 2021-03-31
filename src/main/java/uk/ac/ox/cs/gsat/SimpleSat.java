@@ -86,8 +86,8 @@ public class SimpleSat {
             List<TGD> currentFullTDGs = new ArrayList<>(resultingFullTDGs);
 
             resultingFullTDGs.clear();
-            resultingFullTDGs.addAll(applyComposition(fullTGDs, fullTGDSubsumer, currentFullTDGs, width));
-            resultingFullTDGs.addAll(applyComposition(currentFullTDGs, fullTGDSubsumer, fullTGDs, width));
+            resultingFullTDGs.addAll(applyComposition(fullTGDs, fullTGDSubsumer, currentFullTDGs, width, true));
+            resultingFullTDGs.addAll(applyComposition(fullTGDs, fullTGDSubsumer, currentFullTDGs, width, false));
             resultingFullTDGs.addAll(applyOriginal(nonfullTGDs, fullTGDs, fullTGDSubsumer));
 
 
@@ -98,18 +98,23 @@ public class SimpleSat {
     }
 
 
-	/**
+    /**
+     * Warning : it has side effects on fullTGDSubsumer and on fullTGDs
+     * @param nonfullTGDs
+     * @param fullTGDs
      * @param fullTGDSubsumer
      * @return all the ORIGINAL compositions between a collection of non full TGDs and a collection of full TGDs
      */    
     private Collection<TGD> applyOriginal(Collection<TGD> nonfullTGDs, Collection<TGD> fullTGDs, Subsumer<TGD> fullTGDSubsumer) {
         Collection<TGD> resultingFullTGDs = new ArrayList<>();
+        Collection<TGD> fullTGDsCopy = new ArrayList<>(fullTGDs);
+
         for (TGD nftgdbis : nonfullTGDs) {
-            for (TGD ftgd : fullTGDs) {
+            for (TGD ftgd : fullTGDsCopy) {
                 for (TGD o : originalNew(nftgdbis, ftgd)) {
                     if (!fullTGDSubsumer.subsumed(o)) {
                         resultingFullTGDs.add(o);
-                        fullTGDSubsumer.subsumesAny(o);
+                        fullTGDs.removeAll(fullTGDSubsumer.subsumesAny(o));
                         fullTGDSubsumer.add(o);
                     }
                 }
@@ -255,21 +260,28 @@ public class SimpleSat {
     }
     
     /**
-     * @param s1 - a set of full TGDs
+     * Warning : it has side effects on fullTGDSubsumer and on fullTGDs
+     *
+     * @param fullTGDs - a set of full TGDs
      * @param fullTGDSubsumer
-     * @param s2 - a set of full TGDs
-     * @return all the possible on tgds infered by applying COMPOSITION on t1 in s1 and t2 in s2
-     *         with respect to the width
+     * @param otherFullTGDs - a set of full TGDs
+     * @param reversed - a boolean
+     * @return all the possible on tgds infered by applying COMPOSITION on t1 in fullTDGs and t2 in otherFullTGDs
+     *         with respect to the width except if they are subsumed 
+     *         or the other way around, if reversed is true
      */	
-	public Collection<TGD> applyComposition(Collection<TGD> s1, Subsumer<TGD> fullTGDSubsumer, Collection<TGD> s2, int width) {
+	public Collection<TGD> applyComposition(Collection<TGD> fullTGDs, Subsumer<TGD> fullTGDSubsumer, Collection<TGD> otherFullTGDs, int width, boolean reversed) {
 		Collection<TGD> resultingFullTGDs = new ArrayList<>();
+        Collection<TGD> s1 = (!reversed) ? new ArrayList<>(fullTGDs): otherFullTGDs;
+        Collection<TGD> s2 = (!reversed) ? otherFullTGDs : new ArrayList<>(fullTGDs);
+
 	    for (TGD t1bis : s1) {
 	        TGD t1 = renameTgd(t1bis);
 	        for (TGD t2 : s2) {
                 for (TGD o : compose(t1, t2, width)) {
                     if (!fullTGDSubsumer.subsumed(o)) {
                         resultingFullTGDs.add(o);
-                        fullTGDSubsumer.subsumesAny(o);
+                        fullTGDs.removeAll(fullTGDSubsumer.subsumesAny(o));
                         fullTGDSubsumer.add(o);
                     }
                 }
