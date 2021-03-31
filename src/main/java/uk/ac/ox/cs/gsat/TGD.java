@@ -1,9 +1,12 @@
 package uk.ac.ox.cs.gsat;
 
+import java.util.Arrays;
 import java.util.Collection;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedList;
+import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
@@ -43,7 +46,6 @@ public class TGD extends uk.ac.ox.cs.pdq.fol.TGD {
 	}
 
 	public TGD(Set<Atom> body, Set<Atom> head) {
-
 		this(body.toArray(new Atom[body.size()]), head.toArray(new Atom[head.size()]));
 
 	}
@@ -120,15 +122,33 @@ public class TGD extends uk.ac.ox.cs.pdq.fol.TGD {
 		return Math.max(bwidth, hwidth);
 	}
 
+
 	/**
 	 *
-	 * Returns the Variable Normal Form (VNF) 
+	 * Returns the Variable Normal Form (VNF)
 	 *
 	 * @param eVariable existential variable prefix
 	 * @param uVariable universal variable prefix
 	 * @return Variable Normal Form of tgd
-	 */
-	public TGD computeVNF(String eVariable, String uVariable) {
+     */
+    public TGD computeVNF(String eVariable, String uVariable) {
+        if (Configuration.isSortedVNF()) {
+            return this.computeVNFAfterSortingByPredicates(eVariable, uVariable);
+        } else {
+            return this.computeVNFWithoutSorting(eVariable, uVariable);
+        }
+    }
+
+	/**
+     *
+     * Returns the Variable Normal Form (VNF) 
+     * renaming the variables without ordering them
+     *
+     * @param eVariable existential variable prefix
+     * @param uVariable universal variable prefix
+     * @return Variable Normal Form of tgd
+     */
+	private TGD computeVNFWithoutSorting(String eVariable, String uVariable) {
 
 		Variable[] uVariables = this.getUniversal();
 		Variable[] eVariables = this.getExistential();
@@ -136,9 +156,10 @@ public class TGD extends uk.ac.ox.cs.pdq.fol.TGD {
 		Map<Term, Term> substitution = new HashMap<>();
 		int counter = 1;
 		for (Variable v : uVariables)
-			substitution.put(v, Variable.create(uVariable + counter++));
+            substitution.put(v, Variable.create(uVariable + counter++));
+
 		counter = 1;
-		for (Variable v : eVariables)
+        for (Variable v : eVariables)
 			substitution.put(v, Variable.create(eVariable + counter++));
 
 		App.logger.fine("VNF substitution:\n" + substitution);
@@ -148,6 +169,59 @@ public class TGD extends uk.ac.ox.cs.pdq.fol.TGD {
 		return applySubstitution;
 
 	}
+
+    /**
+     *
+     * Returns  Variable Normal Form (VNF) 
+     * renaming the variables by sorting them
+     * according the predicate name and the position of the atoms they belong
+     * starting by considering only head atoms and then body atoms 
+     *
+     * @param eVariable existential variable prefix
+     * @param uVariable universal variable prefix
+     * @return Variable Normal Form of tgd
+     */
+	private TGD computeVNFAfterSortingByPredicates(String eVariable, String uVariable) {
+
+		Set<Variable> eVariables = Set.of(this.getExistential());
+
+		Map<Term, Term> substitution = new HashMap<>();
+        int ecounter = 1;
+        int ucounter = 1;
+        List<Atom> headAtoms = Arrays.asList(this.getHeadAtoms());
+        headAtoms.sort(new AtomComparator());
+        for(Atom a : headAtoms) {
+            for (Variable v : a.getVariables()) {
+                if (eVariables.contains(v))
+                    substitution.put(v, Variable.create(eVariable + ecounter++));
+                else
+                    substitution.put(v, Variable.create(uVariable + ucounter++));
+            }
+        }
+
+        List<Atom> bodyAtoms = Arrays.asList(this.getBodyAtoms());
+        bodyAtoms.sort(new AtomComparator());
+        for(Atom a : bodyAtoms) {
+            for (Variable v : a.getVariables()) {
+                if (!substitution.containsKey(v))
+                    substitution.put(v, Variable.create(uVariable + ucounter++));
+            }
+        }
+
+		App.logger.fine("VNF substitution:\n" + substitution);
+
+		TGD applySubstitution = (TGD) Logic.applySubstitution(this, substitution);
+		App.logger.fine("VNF: " + this + "===>>>" + applySubstitution);
+		return applySubstitution;
+
+	}
+
+    public class AtomComparator implements Comparator<Atom> {
+        @Override
+        public int compare(Atom x, Atom y) {
+            return x.getPredicate().getName().compareTo(y.getPredicate().getName());
+        }
+    }
 
 	/**
 	 *
