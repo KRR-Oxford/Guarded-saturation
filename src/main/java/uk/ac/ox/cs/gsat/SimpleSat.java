@@ -46,6 +46,7 @@ public class SimpleSat {
      */
     public Collection<TGD> run(Collection<Dependency> allDependencies) {
 
+        final long startTime = System.nanoTime();
         int discarded = 0;
 
         Collection<TGD> selectedTGDs = new HashSet<>();
@@ -55,7 +56,7 @@ public class SimpleSat {
             else
                 discarded++;
 
-        App.logger.info("GSat discarded rules : " + discarded + "/" + allDependencies.size() + " = "
+        App.logger.info("Simple Sat discarded rules : " + discarded + "/" + allDependencies.size() + " = "
                 + String.format(Locale.UK, "%.3f", (float) discarded / allDependencies.size() * 100) + "%");
 
         // compute the set of full and non-full tgds in normal forms
@@ -78,7 +79,7 @@ public class SimpleSat {
             }
         }
 
-        App.logger.info("SimpleGSat width : " + width);
+        App.logger.info("Simple Sat width : " + width);
 
         Collection<TGD> resultingFullTDGs = new ArrayList<>(fullTGDs);
         do {
@@ -93,6 +94,15 @@ public class SimpleSat {
 
 
         } while (fullTGDs.addAll(resultingFullTDGs));
+
+
+        long totalTime = System.nanoTime() - startTime;
+        App.logger.info("Simple Sat total time : " + String.format(Locale.UK, "%.0f", totalTime / 1E6) + " ms = "
+                + String.format(Locale.UK, "%.2f", totalTime / 1E9) + " s");
+        App.logger.info("Subsumed elements : "
+                + (fullTGDSubsumer.getNumberSubsumed() + fullTGDSubsumer.getNumberSubsumed()));
+        App.logger.info("Filter discarded elements : "
+                + (fullTGDSubsumer.getFilterDiscarded() + fullTGDSubsumer.getFilterDiscarded()));
 
         return fullTGDs;
     }
