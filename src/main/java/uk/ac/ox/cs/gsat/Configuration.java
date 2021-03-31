@@ -180,4 +180,16 @@ public class Configuration {
 
     }
 
+    /**
+     * Set the behaviour of computeVNF in {@link TGD}
+     */
+    public static boolean isSortedVNF() {
+        Configuration.initialize();
+
+        if (Configuration.prop == null || !Configuration.prop.containsKey("sorted_vnf"))
+            return true;
+
+        return Boolean.parseBoolean(Configuration.prop.getProperty("sorted_vnf"));
+    }
+
 }
