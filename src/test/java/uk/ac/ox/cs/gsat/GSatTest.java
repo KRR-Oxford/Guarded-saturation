@@ -208,7 +208,7 @@ public class GSatTest {
 		GTGD tgd = new GTGD(Set.of(B_x2x1x3), Set.of(H1_x1z1y1y2, H2_y1y2));
 		System.out.println("Original TGD: " + tgd);
 
-		Collection<TGD> tgdsVNFs = Arrays.asList(tgd.computeVNF(gsat.eVariable, gsat.uVariable));
+		Collection<TGD> tgdsVNFs = Arrays.asList(tgd.computeVNFWithoutSorting(gsat.eVariable, gsat.uVariable));
 		System.out.println("TGDs in VNFs: " + tgdsVNFs);
 
 		// ∀ u1,u2,u3 B(u1,u2,u3) → ∃ e1,e2,e3 H1(u2,e1,e2,e3) & H2(e2,e3)
@@ -230,7 +230,7 @@ public class GSatTest {
 		GTGD tgd = new GTGD(Set.of(B_x2x1x3), Set.of(H1_x1z1y1y2, H2_y1y2));
 		System.out.println("Original TGD: " + tgd);
 
-		TGD tgdVNF = tgd.computeVNF(gsat.eVariable, gsat.uVariable);
+		TGD tgdVNF = tgd.computeVNFWithoutSorting(gsat.eVariable, gsat.uVariable);
 		System.out.println("TGD in VNF: " + tgdVNF);
 
 		// ∀ u1,u2,u3 B(u1,u2,u3) → ∃ e1,e2,e3 H1(u2,e1,e2,e3) & H2(e2,e3)
