@@ -148,7 +148,7 @@ public class TGD extends uk.ac.ox.cs.pdq.fol.TGD {
      * @param uVariable universal variable prefix
      * @return Variable Normal Form of tgd
      */
-	private TGD computeVNFWithoutSorting(String eVariable, String uVariable) {
+    TGD computeVNFWithoutSorting(String eVariable, String uVariable) {
 
 		Variable[] uVariables = this.getUniversal();
 		Variable[] eVariables = this.getExistential();
@@ -181,7 +181,7 @@ public class TGD extends uk.ac.ox.cs.pdq.fol.TGD {
      * @param uVariable universal variable prefix
      * @return Variable Normal Form of tgd
      */
-	private TGD computeVNFAfterSortingByPredicates(String eVariable, String uVariable) {
+    TGD computeVNFAfterSortingByPredicates(String eVariable, String uVariable) {
 
 		Set<Variable> eVariables = Set.of(this.getExistential());
 
@@ -192,9 +192,9 @@ public class TGD extends uk.ac.ox.cs.pdq.fol.TGD {
         headAtoms.sort(new AtomComparator());
         for(Atom a : headAtoms) {
             for (Variable v : a.getVariables()) {
-                if (eVariables.contains(v))
+                if (eVariables.contains(v) && !substitution.containsKey(v))
                     substitution.put(v, Variable.create(eVariable + ecounter++));
-                else
+                else if (!substitution.containsKey(v))
                     substitution.put(v, Variable.create(uVariable + ucounter++));
             }
         }
