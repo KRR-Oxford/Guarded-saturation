@@ -192,4 +192,18 @@ public class Configuration {
         return Boolean.parseBoolean(Configuration.prop.getProperty("sorted_vnf"));
     }
 
+    /** 
+     * Set if Simple sat filters the full TGDs it generates 
+     * such that their body always contains at least a predicate 
+     * appearing in a non full TGDs head
+     */
+    public static boolean isSimpleSatPredicateFilterEnabled() {
+        Configuration.initialize();
+
+        if (Configuration.prop == null || !Configuration.prop.containsKey("simple_sat_predicate_filter"))
+            return true;
+
+        return Boolean.parseBoolean(Configuration.prop.getProperty("simple_sat_predicate_filter"));
+    }
+
 }
