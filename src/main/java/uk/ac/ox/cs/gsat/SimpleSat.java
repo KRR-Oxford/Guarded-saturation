@@ -13,6 +13,7 @@ import java.util.Set;
 import uk.ac.ox.cs.gsat.subsumers.Subsumer;
 import uk.ac.ox.cs.pdq.fol.Atom;
 import uk.ac.ox.cs.pdq.fol.Dependency;
+import uk.ac.ox.cs.pdq.fol.Predicate;
 import uk.ac.ox.cs.pdq.fol.Term;
 import uk.ac.ox.cs.pdq.fol.Variable;
 
@@ -63,6 +64,7 @@ public class SimpleSat {
         Subsumer<TGD> fullTGDSubsumer = GSat.createSubsumer();
         Collection<TGD> fullTGDs = new ArrayList<>();
         List<TGD> nonfullTGDs = new ArrayList<>();
+        Collection<Predicate> nfTGDHeadPredicate = new HashSet<>();
         int width = 0;
 
         for (TGD tgd : selectedTGDs) {
@@ -75,13 +77,16 @@ public class SimpleSat {
                     fullTGDSubsumer.add(tgd);
                 } else {
                     nonfullTGDs.add(currentTGD);
+                    for (Atom a : currentTGD.getHeadAtoms()) {
+                        nfTGDHeadPredicate.add(a.getPredicate());
+                    }
                 }
             }
         }
 
         App.logger.info("Simple Sat width : " + width);
 
-        Collection<TGD> resultingFullTDGs = new ArrayList<>(fullTGDs);
+        Collection<TGD> resultingFullTDGs = new ArrayList<>(filterFullTGDByBodyPredicate(fullTGDs, nfTGDHeadPredicate));
         do {
 
             List<TGD> currentFullTDGs = new ArrayList<>(resultingFullTDGs);
@@ -89,6 +94,8 @@ public class SimpleSat {
             resultingFullTDGs.clear();
             resultingFullTDGs.addAll(applyComposition(fullTGDs, fullTGDSubsumer, currentFullTDGs, width, true));
             resultingFullTDGs.addAll(applyComposition(fullTGDs, fullTGDSubsumer, currentFullTDGs, width, false));
+            // filter the composition results 
+            resultingFullTDGs = filterFullTGDByBodyPredicate(resultingFullTDGs, nfTGDHeadPredicate);
             resultingFullTDGs.addAll(applyOriginal(nonfullTGDs, fullTGDs, fullTGDSubsumer));
 
 
@@ -107,6 +114,30 @@ public class SimpleSat {
         return fullTGDs;
     }
 
+    /**
+     * @param fullTGDs - a collection of full TGDs
+     * @param predicates - a collection of predicates
+     * @return the maximal subset of fullTGDs such that the tgds it contains have a body containing at least an atom with a predicate in predicates
+     */
+    private Collection<TGD> filterFullTGDByBodyPredicate(Collection<TGD> fullTGDs, Collection<Predicate> predicates) {
+
+        if (!Configuration.isSimpleSatPredicateFilterEnabled()) {
+            return fullTGDs;
+        }
+
+        Collection<TGD> resultingFullTGDs = new ArrayList<>();
+        for (TGD tgd : fullTGDs) {
+            if (bodyContainsAny(tgd, predicates)) {
+                resultingFullTGDs.add(tgd);
+            }
+        }
+
+        return resultingFullTGDs;
+    }
+
+    private boolean bodyContainsAny(TGD tgd, Collection<Predicate> predicates) {
+    	return tgd.getBodySet().stream().anyMatch(a -> predicates.contains(a.getPredicate()));
+    }
 
     /**
      * Warning : it has side effects on fullTGDSubsumer and on fullTGDs
