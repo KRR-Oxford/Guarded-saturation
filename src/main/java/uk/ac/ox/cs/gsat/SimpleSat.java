@@ -62,7 +62,7 @@ public class SimpleSat {
 
         // compute the set of full and non-full tgds in normal forms
         Subsumer<TGD> fullTGDSubsumer = GSat.createSubsumer();
-        Collection<TGD> fullTGDs = new ArrayList<>();
+        Collection<TGD> fullTGDs = new HashSet<>();
         List<TGD> nonfullTGDs = new ArrayList<>();
         Collection<Predicate> nfTGDHeadPredicate = new HashSet<>();
         int width = 0;
