@@ -150,13 +150,15 @@ public class SimpleSat {
         Collection<TGD> resultingFullTGDs = new ArrayList<>();
         Collection<TGD> fullTGDsCopy = new ArrayList<>(fullTGDs);
 
-        for (TGD nftgdbis : nonfullTGDs) {
+        for (TGD nftgd : nonfullTGDs) {
             for (TGD ftgd : fullTGDsCopy) {
-                for (TGD o : originalNew(nftgdbis, ftgd)) {
+                for (TGD o : originalNew(nftgd, ftgd)) {
                     if (!fullTGDSubsumer.subsumed(o)) {
                         resultingFullTGDs.add(o);
-                        fullTGDs.removeAll(fullTGDSubsumer.subsumesAny(o));
+                        Collection<TGD> subsumedTgds = fullTGDSubsumer.subsumesAny(o);
+                        fullTGDs.removeAll(subsumedTgds);
                         fullTGDSubsumer.add(o);
+
                     }
                 }
             }
@@ -319,13 +321,19 @@ public class SimpleSat {
 	    for (TGD t1bis : s1) {
 	        TGD t1 = renameTgd(t1bis);
 	        for (TGD t2 : s2) {
+                boolean subsumed = false;
                 for (TGD o : compose(t1, t2, width)) {
                     if (!fullTGDSubsumer.subsumed(o)) {
                         resultingFullTGDs.add(o);
-                        fullTGDs.removeAll(fullTGDSubsumer.subsumesAny(o));
+                        Collection<TGD> subsumedTgds = fullTGDSubsumer.subsumesAny(o);
+                        fullTGDs.removeAll(subsumedTgds);
+                        subsumed = subsumed || subsumedTgds.contains(t1);
                         fullTGDSubsumer.add(o);
                     }
                 }
+
+                if (subsumed)
+                    break;
 	        }
 	    }
 		return resultingFullTGDs;
