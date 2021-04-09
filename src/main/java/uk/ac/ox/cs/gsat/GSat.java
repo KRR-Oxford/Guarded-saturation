@@ -151,12 +151,18 @@ public class GSat {
                 }
             }
 
-        App.logger.fine("# initial TGDs: " + fullTGDsSet.size() + " , " + newNonFullTGDs.size());
+        // copying the input full TGD set of comparison
+        Collection<GTGD> inputFullTGDs = new HashSet<>(fullTGDsSet);
 
+        App.logger.info("# initial TGDs: " + fullTGDsSet.size() + " , " + newNonFullTGDs.size());
         int counter = 100;
+        int newFullCount = 0;
+        int newNonFullCount = 0;
         while (!newFullTGDs.isEmpty() || !newNonFullTGDs.isEmpty()) {
 
             App.logger.fine("# new TGDs: " + newFullTGDs.size() + " , " + newNonFullTGDs.size());
+            newFullCount += newFullTGDs.size();
+            newNonFullCount += newNonFullTGDs.size();
 
             if (DEBUG_MODE)
                 if (counter == 100) {
@@ -238,8 +244,15 @@ public class GSat {
                 + (fullTGDsSubsumer.getNumberSubsumed() + nonFullTGDsSubsumer.getNumberSubsumed()));
         App.logger.info("Filter discarded elements : "
                 + (fullTGDsSubsumer.getFilterDiscarded() + nonFullTGDsSubsumer.getFilterDiscarded()));
-        return fullTGDsSubsumer.getAll();
+        App.logger.info("Derived full/non full TGDs: "+ newFullCount + " , " + newNonFullCount);
 
+        Collection<GTGD> output = fullTGDsSubsumer.getAll();
+
+        Collection<GTGD> outputCopy = new ArrayList<>(output);
+        outputCopy.removeAll(inputFullTGDs);
+        App.logger.info("ouptput full TGDs not contained in the input: " + outputCopy.size());
+
+        return output;
     }
 
     private Set<GTGD> getFullTGDsToEvolve(Map<Predicate, Set<GTGD>> fullTGDsMap, GTGD currentTGD) {

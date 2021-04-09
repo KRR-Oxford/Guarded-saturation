@@ -84,22 +84,35 @@ public class SimpleSat {
             }
         }
 
+        App.logger.info("# initial TGDs: " + fullTGDs.size() + " , " + nonfullTGDs.size());
         App.logger.info("Simple Sat width : " + width);
 
         Collection<TGD> resultingFullTDGs = new ArrayList<>(filterFullTGDByBodyPredicate(fullTGDs, nfTGDHeadPredicate));
+        int newFullCount = 0;
+        int step = 1;
         do {
 
             List<TGD> currentFullTDGs = new ArrayList<>(resultingFullTDGs);
 
             resultingFullTDGs.clear();
+            int res = resultingFullTDGs.size();
             resultingFullTDGs.addAll(applyComposition(fullTGDs, fullTGDSubsumer, currentFullTDGs, width, true));
             resultingFullTDGs.addAll(applyComposition(fullTGDs, fullTGDSubsumer, currentFullTDGs, width, false));
+
             // filter the composition results 
             resultingFullTDGs = filterFullTGDByBodyPredicate(resultingFullTDGs, nfTGDHeadPredicate);
+            res = resultingFullTDGs.size() - res;
+            App.logger.fine("step " + step + " COMPOSITION results " + res);
+
             resultingFullTDGs.addAll(applyOriginal(nonfullTGDs, fullTGDs, fullTGDSubsumer));
+            res = resultingFullTDGs.size() -res;
+			App.logger.fine("step "+ step +" ORIGINAL results " + res);
 
 
+            App.logger.fine("step "+ step +" full TGDs " + (fullTGDs.size() + resultingFullTDGs.size()));
 
+            newFullCount += resultingFullTDGs.size();
+            step++;
         } while (fullTGDs.addAll(resultingFullTDGs));
 
 
@@ -110,6 +123,7 @@ public class SimpleSat {
                 + (fullTGDSubsumer.getNumberSubsumed() + fullTGDSubsumer.getNumberSubsumed()));
         App.logger.info("Filter discarded elements : "
                 + (fullTGDSubsumer.getFilterDiscarded() + fullTGDSubsumer.getFilterDiscarded()));
+        App.logger.info("Derived full/non full TGDs: " + newFullCount + " , " + 0);
 
         return fullTGDs;
     }
