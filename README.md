@@ -167,6 +167,13 @@ mvn javadoc:javadoc
 
 <!-- Contributing: Larger projects often have sections on contributing to their project, in which contribution instructions are outlined. Sometimes, this is a separate file. If you have specific contribution preferences, explain them so that other developers know how to best contribute to your work. To learn more about how to help others contribute, check out the guide for setting guidelines for repository contributors. -->
 
+## Experiments
+
+Experiments are available in a submodule, which may be large. You can initialize the experiments folder using:
+```sh
+git submodule init
+```
+
 ## Credits
 
 **[Information Systems Group](https://www.cs.ox.ac.uk/isg) - [Department of Computer Science](http://www.cs.ox.ac.uk) - [University of Oxford](www.ox.ac.uk)**
