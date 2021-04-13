@@ -19,6 +19,8 @@ import uk.ac.ox.cs.pdq.fol.Variable;
 
 public class SimpleSat {
 
+    private static TGDFactory<TGD> FACTORY = TGDFactory.getTGDInstance();
+
     // New variable name for Universally Quantified Variables
     public String uVariable = "GSat_u";
     // New variable name for Existentially Quantified Variables
@@ -68,8 +70,8 @@ public class SimpleSat {
         int width = 0;
 
         for (TGD tgd : selectedTGDs) {
-            for (TGD hnf : tgd.computeHNF()) {
-				TGD currentTGD = hnf.computeVNF(eVariable, uVariable);
+            for (TGD hnf : FACTORY.computeHNF(tgd)) {
+				TGD currentTGD = FACTORY.computeVNF(hnf, eVariable, uVariable);
                 width = Math.max(currentTGD.getWidth(), width);
                 if (Logic.isFull(currentTGD) && !fullTGDSubsumer.subsumed(tgd)) {
                     fullTGDs.add(currentTGD);
@@ -197,7 +199,8 @@ public class SimpleSat {
         // if the ftgd is guarded it is sufficient to all unify the guard
         Collection<Atom> bodyAtomsToUnify;
         if (ftgd.isGuarded()) {
-            bodyAtomsToUnify = List.of(GTGD.fromTGD(ftgd).getGuard());
+            ftgd = new GTGD(ftgd.getBodySet(), ftgd.getHeadSet());
+            bodyAtomsToUnify = List.of(((GTGD) ftgd).getGuard());
         } else {
             bodyAtomsToUnify = Arrays.asList(ftgd.getBodyAtoms());
         }
@@ -310,7 +313,7 @@ public class SimpleSat {
     	}
     
     	if(!new_head.isEmpty()) {
-    		return new TGD(body, new_head).computeVNF(eVariable, uVariable);
+    		return FACTORY.computeVNF(new TGD(body, new_head), eVariable, uVariable);
     	} else {
     		return null;
     	}
@@ -378,11 +381,10 @@ public class SimpleSat {
                         // if the composition contains more universal variables
                         // than the width, we need to form partitions of the variables having $width parts.
                         for (Map<Term, Term> unifier : getPartitionUnifiers(variables, width)) {
-							resultingFullTGDs.add(((TGD) Logic.applySubstitution(composition, unifier))
-									.computeVNF(eVariable, uVariable));
+							resultingFullTGDs.add(FACTORY.computeVNF(((TGD) Logic.applySubstitution(composition, unifier)), eVariable, uVariable));
                         }
                     } else {
-                        resultingFullTGDs.add(composition.computeVNF(eVariable, uVariable));
+                        resultingFullTGDs.add(FACTORY.computeVNF(composition, eVariable, uVariable));
                     }
                 }
             }
