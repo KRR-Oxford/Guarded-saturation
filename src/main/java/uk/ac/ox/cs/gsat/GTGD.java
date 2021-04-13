@@ -47,22 +47,4 @@ public class GTGD extends TGD {
     public Atom getGuard() {
         return guard;
     }
-
-	@Override
-	public GTGD computeVNF(String eVariable, String uVariable) {
-		return fromTGD(super.computeVNF(eVariable, uVariable));
-	}
-
-	@Override
-	public Collection<GTGD> computeHNF() {
-		return fromTGD(super.computeHNF());
-	}
-	
-    public static GTGD fromTGD(TGD tgd) {
-        return new GTGD(tgd.getBodySet(), tgd.getHeadSet());
-    }
-
-    public static Collection<GTGD> fromTGD(Collection<? extends TGD> tgds) {
-        return tgds.stream().map(tgd -> fromTGD(tgd)).collect(Collectors.toSet());
-    }
 }

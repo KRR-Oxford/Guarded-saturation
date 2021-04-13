@@ -150,12 +150,12 @@ public class GSatTest {
 	@Test
 	public void HNFTest() {
 		System.out.println("HNF tests");
-
+        TGDFactory<GTGD> factory = TGDFactory.getGTGDInstance();
 		// 1. Split non-full and full parts
 		// ∀ x1,x2 B(x1,x2) → ∃ y1 H1(x1,y1) ∧ H2(x2)
 		Set<Atom> body = Set.of(B_x1x2);
 		GTGD tgd = new GTGD(body, Set.of(H1_x1y1, H2_x2));
-		Collection<GTGD> result = tgd.computeHNF();
+		Collection<GTGD> result = factory.computeHNF(tgd);
 
 		// ∀ x1,x2 B(x1,x2) → ∃ y1 H1(x1,y1)
 		GTGD tgdExpected1 = new GTGD(body, Set.of(H1_x1y1));
@@ -171,14 +171,14 @@ public class GSatTest {
 		// ∀ x1,x2 B(x1,x2) & H2(x2) → H2(x2) & B(x1,x2)
 		body = Set.of(B_x1x2, H2_x2);
 		tgd = new GTGD(body, Set.of(H2_x2, B_x1x2));
-		result = tgd.computeHNF();
+		result = factory.computeHNF(tgd);
 		expected = new HashSet<>();
 		checkHNFTest(tgd, expected, result);
 
 		// 3. Remove head atoms that occur in the body: only create non-full rule
 		// ∀ x1,x2 B(x1,x2) & H2(x2) → \exists y. H1(x1,y1) & H2(x2) & B(x1,x2)
 		tgd = new GTGD(body, Set.of(H1_x1y1, H2_x2, B_x1x2));
-		result = tgd.computeHNF();
+		result = factory.computeHNF(tgd);
 		expected = new HashSet<>();
 		expected.add(new GTGD(body, Set.of(H1_x1y1)));
 		checkHNFTest(tgd, expected, result);
@@ -186,7 +186,7 @@ public class GSatTest {
 		// 4. Rule containing bottom in the head. Remove all head atoms.
 		// ∀ x1,x2 B(x1,x2) → ∃ y1 H1(x1,y1) ∧ H2(x2) & ⊥
 		tgd = new GTGD(body, Set.of(H1_x1y1, H2_x2, GTGD.Bottom));
-		result = tgd.computeHNF();
+		result = factory.computeHNF(tgd);
 		expected = new HashSet<>();
 		expected.add(new GTGD(body, Set.of(GTGD.Bottom)));
 		checkHNFTest(tgd, expected, result);
@@ -203,12 +203,12 @@ public class GSatTest {
 	@Test
 	public void VNFsTest() {
 		GSat gsat = GSat.getInstance();
-
+        TGDFactory<GTGD> factory = TGDFactory.getGTGDInstance();
 		// ∀ x2,x1,x3 B(x2,x1,x3) → ∃ z1,y1,y2 H1(x1,z1,y1,y2) & H2(y1,y2)
 		GTGD tgd = new GTGD(Set.of(B_x2x1x3), Set.of(H1_x1z1y1y2, H2_y1y2));
 		System.out.println("Original TGD: " + tgd);
 
-		Collection<TGD> tgdsVNFs = Arrays.asList(tgd.computeVNFWithoutSorting(gsat.eVariable, gsat.uVariable));
+		Collection<TGD> tgdsVNFs = Arrays.asList(factory.computeVNFWithoutSorting(tgd, gsat.eVariable, gsat.uVariable));
 		System.out.println("TGDs in VNFs: " + tgdsVNFs);
 
 		// ∀ u1,u2,u3 B(u1,u2,u3) → ∃ e1,e2,e3 H1(u2,e1,e2,e3) & H2(e2,e3)
@@ -225,12 +225,12 @@ public class GSatTest {
 	@Test
 	public void VNFTest() {
         GSat gsat = GSat.getInstance();
-
+        TGDFactory<GTGD> factory = TGDFactory.getGTGDInstance();
 		// ∀ x2,x1,x3 B(x2,x1,x3) → ∃ z1,y1,y2 H1(x1,z1,y1,y2) & H2(y1,y2)
 		GTGD tgd = new GTGD(Set.of(B_x2x1x3), Set.of(H1_x1z1y1y2, H2_y1y2));
 		System.out.println("Original TGD: " + tgd);
 
-		TGD tgdVNF = tgd.computeVNFWithoutSorting(gsat.eVariable, gsat.uVariable);
+		TGD tgdVNF = factory.computeVNFWithoutSorting(tgd, gsat.eVariable, gsat.uVariable);
 		System.out.println("TGD in VNF: " + tgdVNF);
 
 		// ∀ u1,u2,u3 B(u1,u2,u3) → ∃ e1,e2,e3 H1(u2,e1,e2,e3) & H2(e2,e3)
