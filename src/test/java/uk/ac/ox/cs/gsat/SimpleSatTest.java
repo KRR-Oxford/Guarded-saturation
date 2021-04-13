@@ -1,5 +1,7 @@
 package uk.ac.ox.cs.gsat;
 
+import static org.junit.Assert.assertTrue;
+
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Set;
@@ -7,7 +9,7 @@ import java.util.logging.ConsoleHandler;
 import java.util.logging.Handler;
 import java.util.logging.Level;
 
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.BeforeAll;
 
 import uk.ac.ox.cs.pdq.fol.Atom;
@@ -27,6 +29,8 @@ public class SimpleSatTest {
     private static final Variable z2 = Variable.create("z2");
     private static final Variable z3 = Variable.create("z3");
 
+    private static final TGDFactory<TGD> FACTORY = TGDFactory.getTGDInstance();
+
     @BeforeAll
     static void initAll() {
         Handler handlerObj = new ConsoleHandler();
@@ -36,42 +40,91 @@ public class SimpleSatTest {
         App.logger.setUseParentHandlers(false);
     }
 
-        @Test
-    public void defaultTest() {
+	@Test
+	public void simpleTest() {
 
-        SimpleSat sgsat = SimpleSat.getInstance();
-        // Variables
+		SimpleSat sgsat = SimpleSat.getInstance();
+		// Variables
 
-        // R(x1, x2) -> ∃ y1, y2. S(x1, x2, y1, y2) & T(x1, x2, y2)
-        // S(x1,x2,x3,x4) -> U(x4)
-        // T(z1, z2, z3) -> P(z1)
+		// A(x1) -> ∃ x2. R(x1, x2)
+		// R(x1, x2) -> U(x2)
+		// R(x1, x2), U(x2) -> P(x1)
+		Atom Ax1 = Atom.create(Predicate.create("A", 1), x1);
+		Atom Rx1x2 = Atom.create(Predicate.create("R", 2), x1, x2);
+		Atom Ux2 = Atom.create(Predicate.create("U", 1), x2);
+		Atom Px1 = Atom.create(Predicate.create("P", 1), x1);
+		GTGD nonFull = new GTGD(Set.of(Ax1), Set.of(Rx1x2));
+		GTGD full = new GTGD(Set.of(Rx1x2), Set.of(Ux2));
+		GTGD full1 = new GTGD(Set.of(Rx1x2, Ux2), Set.of(Px1));
 
-        Atom Rx1x2 = Atom.create(Predicate.create("R", 2), x1, x2);
-        Atom Sx1x2y1y2 = Atom.create(Predicate.create("S", 4), x1, x2, y1, y2);
-        Atom Tx1x2y2 = Atom.create(Predicate.create("T", 3), x1, x2, y2);
-        GTGD nonFull = new GTGD(Set.of(Rx1x2), Set.of(Sx1x2y1y2, Tx1x2y2));
-        Atom Sx1x2x3x4 = Atom.create(Predicate.create("S", 4), x1, x2,x3,x4);
-        Atom Ux4 = Atom.create(Predicate.create("U", 1), x4);
-        GTGD full = new GTGD(Set.of(Sx1x2x3x4), Set.of(Ux4));
-        Atom Tz1z2z3 = Atom.create(Predicate.create("T", 3), z1, z2, z3);
-        Atom Uz3 = Atom.create(Predicate.create("U", 1), z3);
-        Atom Pz1 = Atom.create(Predicate.create("P", 1), z1);
-        GTGD full1 = new GTGD(Set.of(Tz1z2z3, Uz3), Set.of(Pz1));
+        TGD expected = new TGD(Set.of(Ax1), Set.of(Px1));
 
-        Collection<Dependency> input = new ArrayList<>();
-        input.add(nonFull);
-        input.add(full);
-        input.add(full1);
+		Collection<Dependency> input = new ArrayList<>();
+		input.add(nonFull);
+		input.add(full);
+		input.add(full1);
 
-        Collection<TGD> result = sgsat.run(input);
+		Collection<TGD> result = sgsat.run(input);
 
-        for(TGD tgd : result)
-            System.out.println(tgd);
+        assertTrue(result.contains(FACTORY.computeVNF(full, sgsat.eVariable, sgsat.uVariable)));
+        assertTrue(result.contains(FACTORY.computeVNF(full1, sgsat.eVariable, sgsat.uVariable)));
+        assertTrue(result.contains(FACTORY.computeVNF(expected, sgsat.eVariable, sgsat.uVariable)));
+        checkWidth(input, result);
+	}
 
-        // Collection<TGDGSat> expected = new HashSet<>();
-        // Atom Ty1 = Atom.create(Predicate.create("T", 1), y1);
-        // expected.add(new TGDGSat(Set.of(Px1, Sx1), Set.of(Rx1y1, Sy1, Ty1)));
+	@Test
+	public void thesisTest() {
 
-        // checkEvolveNewTest(nonFull, full, expected, evolved);
+		SimpleSat sgsat = SimpleSat.getInstance();
+		// Variables
+
+		// R(x1, x2) -> ∃ y1, y2. S(x1, x2, y1, y2) & T(x1, x2, y2)
+		// S(x1,x2,x3,x4) -> U(x4)
+		// T(z1, z2, z3), U(z3) -> P(z1)
+
+		Atom Rx1x2 = Atom.create(Predicate.create("R", 2), x1, x2);
+		Atom Sx1x2y1y2 = Atom.create(Predicate.create("S", 4), x1, x2, y1, y2);
+		Atom Tx1x2y2 = Atom.create(Predicate.create("T", 3), x1, x2, y2);
+		GTGD nonFull = new GTGD(Set.of(Rx1x2), Set.of(Sx1x2y1y2, Tx1x2y2));
+		Atom Sx1x2x3x4 = Atom.create(Predicate.create("S", 4), x1, x2, x3, x4);
+		Atom Ux4 = Atom.create(Predicate.create("U", 1), x4);
+		GTGD full = new GTGD(Set.of(Sx1x2x3x4), Set.of(Ux4));
+		Atom Tz1z2z3 = Atom.create(Predicate.create("T", 3), z1, z2, z3);
+		Atom Uz3 = Atom.create(Predicate.create("U", 1), z3);
+		Atom Pz1 = Atom.create(Predicate.create("P", 1), z1);
+		GTGD full1 = new GTGD(Set.of(Tz1z2z3, Uz3), Set.of(Pz1));
+
+        Atom Px1 = Atom.create(Predicate.create("P", 1), x1);
+        TGD expected = new TGD(Set.of(Rx1x2), Set.of(Px1));
+        
+		Collection<Dependency> input = new ArrayList<>();
+		input.add(nonFull);
+		input.add(full);
+		input.add(full1);
+
+		Collection<TGD> result = sgsat.run(input);
+
+		// for (TGD tgd : result)
+		// 	System.out.println(tgd);
+
+        assertTrue(result.contains(FACTORY.computeVNF(full, sgsat.eVariable, sgsat.uVariable)));
+        assertTrue(result.contains(FACTORY.computeVNF(full1, sgsat.eVariable, sgsat.uVariable)));
+        assertTrue(result.contains(FACTORY.computeVNF(expected, sgsat.eVariable, sgsat.uVariable)));
+        checkWidth(input, result);
+	}
+
+
+    private int getWidth(Collection<? extends Dependency> tgds) {
+        int width = 0;
+
+        for(Dependency tgd : tgds)
+            if (tgd instanceof TGD)
+                width = Math.max(((TGD) tgd).getWidth(), width);
+
+        return width;
+    }
+
+    private void checkWidth(Collection<Dependency> input, Collection<TGD> output) {
+        assertTrue(getWidth(output)<= getWidth(input));
     }
 }
