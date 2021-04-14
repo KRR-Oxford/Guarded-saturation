@@ -10,6 +10,8 @@ import java.util.Map;
 import java.util.Set;
 
 import uk.ac.ox.cs.pdq.fol.Atom;
+import uk.ac.ox.cs.pdq.fol.Function;
+import uk.ac.ox.cs.pdq.fol.FunctionTerm;
 import uk.ac.ox.cs.pdq.fol.Term;
 import uk.ac.ox.cs.pdq.fol.Variable;
 
@@ -17,6 +19,10 @@ public class TGDFactory<Q extends TGD> {
 
     private static final TGDFactory<TGD> TGDINSTANCE = new TGDFactory<TGD>(new TGDConstructor());
     private static final TGDFactory<GTGD> GTGDINSTANCE = new TGDFactory<GTGD>(new GTGDConstructor());
+
+    private static final String SKOLEM_PREFIX = "f";
+    private static int skolemIndex = 0;
+
 	private Constructor<Q> constructor;
 
     private TGDFactory(Constructor<Q> constructor) {
@@ -171,6 +177,38 @@ public class TGDFactory<Q extends TGD> {
         return result;
     }
 
+    /**
+     * skolemize a TGD 
+     * @param tgd - TGD assumed without skolem term
+     */
+    public Q computeSkolemized(Q tgd) {
+
+        Set<Variable> eVariables = Set.of(tgd.getExistential());
+
+        Set<Variable> frontierVariables = new HashSet<>();
+
+        for(Atom a : tgd.getAtoms())
+            for (Variable v : a.getVariables())
+                if (!eVariables.contains(v))
+                    frontierVariables.add(v);
+
+        int skolemArity = frontierVariables.size();
+        Variable[] fVariables = new Variable[skolemArity];
+        int i = 0;
+        for(Variable v: frontierVariables)
+            fVariables[i++]= v;
+
+        Map<Term, Term> substitution = new HashMap<>();
+        for (Variable eVariable : eVariables) {
+            String functionName = SKOLEM_PREFIX + skolemIndex++;
+            Function function = new Function(functionName, skolemArity);
+            Term skolemTerm = FunctionTerm.create(function, fVariables);
+            substitution.put(eVariable, skolemTerm);
+        }
+
+        return (Q) Logic.applySubstitution(tgd, substitution);
+    }
+    
     private static interface Constructor<T extends TGD> {
         T create(Set<Atom> bodyAtoms, Set<Atom> headAtoms);
     }
