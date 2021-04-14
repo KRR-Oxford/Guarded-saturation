@@ -4,11 +4,8 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-import java.util.ArrayList;
-import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Set;
 import java.util.logging.ConsoleHandler;
 import java.util.logging.Handler;
 import java.util.logging.Level;
@@ -17,7 +14,8 @@ import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
 import uk.ac.ox.cs.pdq.fol.Atom;
-import uk.ac.ox.cs.pdq.fol.Dependency;
+import uk.ac.ox.cs.pdq.fol.Function;
+import uk.ac.ox.cs.pdq.fol.FunctionTerm;
 import uk.ac.ox.cs.pdq.fol.Predicate;
 import uk.ac.ox.cs.pdq.fol.TGD;
 import uk.ac.ox.cs.pdq.fol.Term;
@@ -275,6 +273,60 @@ public class LogicTest {
 		checkMGUTest(expected, Logic.getMGU(Rz, Rx));
 
 	}
+    @Test
+    public void MGUSkolemTest() {
+
+		Variable x1 = Variable.create("x1");
+		Variable y1 = Variable.create("y1");
+		Variable z1 = Variable.create("z1");
+		Variable z2 = Variable.create("z2");
+
+        FunctionTerm fx1 = FunctionTerm.create(new Function("f", 1), x1);
+        FunctionTerm fy1 = FunctionTerm.create(new Function("f", 1), y1);
+        FunctionTerm gy1 = FunctionTerm.create(new Function("g", 1), y1);
+
+        // 1.
+        Atom A1 = Atom.create(Predicate.create("R", 2), fy1, y1);
+        Atom B1 = Atom.create(Predicate.create("R", 2), x1, x1);
+        checkMGUTest(null, Logic.getMGU(A1, B1));
+
+        // 2.
+        Atom A2 = Atom.create(Predicate.create("R", 2), fy1, y1);
+        Atom B2 = Atom.create(Predicate.create("R", 2), fx1, x1);
+        Map<Term, Term> expected2 = new HashMap<>();
+        expected2.put(y1, x1);
+        checkMGUTest(expected2, Logic.getMGU(A2, B2));
+
+        // 3.
+        Atom A3 = Atom.create(Predicate.create("R", 2), fx1, fy1);
+        Atom B3 = Atom.create(Predicate.create("R", 2), z1, z1);
+        Map<Term, Term> expected3 = new HashMap<>();
+        expected3.put(z1, fx1);
+        expected3.put(y1, x1);
+        checkMGUTest(expected3, Logic.getMGU(A3, B3));
+
+        // 4.
+        Atom A4 = Atom.create(Predicate.create("R", 3), y1, x1, y1);
+        Atom B4 = Atom.create(Predicate.create("R", 3), fx1, z1, z1);
+        Map<Term, Term> expected4 = null;
+        checkMGUTest(expected4, Logic.getMGU(A4, B4));
+
+        // 5.
+        Atom A5 = Atom.create(Predicate.create("R", 1), gy1);
+        Atom B5 = Atom.create(Predicate.create("R", 1), fx1);
+        Map<Term, Term> expected5 = null;
+        checkMGUTest(expected5, Logic.getMGU(A5, B5));
+
+        // 6.
+        Atom A6 = Atom.create(Predicate.create("R", 3), fx1, fy1, z1);
+        Atom B6 = Atom.create(Predicate.create("R", 3), z1, z2, z2);
+        Map<Term, Term> expected6 = new HashMap<>();
+        expected6.put(z1, fx1);
+        expected6.put(z2, fy1);
+        expected6.put(x1, y1);
+        checkMGUTest(expected6, Logic.getMGU(A6, B6));
+
+    }
 
 	private void checkMGUTest(Map<Term, Term> expected, Map<Term, Term> result) {
 		System.out.print("Returned MGU: ");
@@ -283,15 +335,5 @@ public class LogicTest {
 		System.out.println(expected + "\n");
 		assertEquals(expected, result, "Computed wrong MGU.");
 	}
-
-	private static final Variable x1 = Variable.create("x1");
-	private static final Variable x2 = Variable.create("x2");
-	private static final Variable x3 = Variable.create("x3");
-	private static final Variable x4 = Variable.create("x4");
-	private static final Variable y1 = Variable.create("y1");
-	private static final Variable y2 = Variable.create("y2");
-	private static final Variable z1 = Variable.create("z1");
-	private static final Variable z2 = Variable.create("z2");
-	private static final Variable z3 = Variable.create("z3");
 
 }
