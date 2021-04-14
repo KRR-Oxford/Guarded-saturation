@@ -22,6 +22,7 @@ import uk.ac.ox.cs.pdq.fol.Conjunction;
 import uk.ac.ox.cs.pdq.fol.ConjunctiveQuery;
 import uk.ac.ox.cs.pdq.fol.Disjunction;
 import uk.ac.ox.cs.pdq.fol.Formula;
+import uk.ac.ox.cs.pdq.fol.FunctionTerm;
 import uk.ac.ox.cs.pdq.fol.Implication;
 import uk.ac.ox.cs.pdq.fol.Term;
 import uk.ac.ox.cs.pdq.fol.Variable;
@@ -255,33 +256,10 @@ public class Logic {
 		else
 			sigma = new HashMap<>();
 
-		for (int i = 0; i < s.getTerms().length; i++) {
-			Term s_term = getSubstitute(s.getTerm(i), sigma);
-			Term t_term = getSubstitute(t.getTerm(i), sigma);
-			if (!s_term.equals(t_term)) {
-				if (s_term.isVariable() || t_term.isVariable()) {
+        sigma = getMGU(s.getTerms(), t.getTerms(), sigma);
 
-					if (s_term.isVariable())
-						if (sigma.containsKey(s_term) || sigma.containsKey(t_term)) // note that they are different
-							return null;
-						else {
-							sigma.put(s_term, t_term);
-							// s = (Atom) applySubstitution(s, Map.of(s_term, t_term));
-							// t = (Atom) applySubstitution(t, Map.of(s_term, t_term));
-						}
-
-					else if (sigma.containsKey(t_term) || sigma.containsKey(s_term))
-						return null;
-					else {
-						sigma.put(t_term, s_term);
-						// s = (Atom) applySubstitution(s, Map.of(t_term, s_term));
-						// t = (Atom) applySubstitution(t, Map.of(t_term, s_term));
-					}
-
-				} else // both of them are constants and not equal
-					return null;
-			}
-		}
+        if (sigma == null)
+            return sigma;
 
 		for (Entry<Term, Term> entry : sigma.entrySet())
 			// we don't care about the actual value, we just want for everything to point to
@@ -291,6 +269,69 @@ public class Logic {
 		return sigma;
 	}
 
+
+    public static Map<Term, Term> getMGU(Term[] s, Term[] t, Map<Term, Term> sigma) {
+
+		for (int i = 0; i < s.length; i++) {
+            // first we get the representative of the term class
+            // to which belongs the current term
+            // according to the current unifier sigma
+			Term s_term = getSubstitute(s[i], sigma);
+            Term t_term = getSubstitute(t[i], sigma);
+
+
+            // System.out.println("s: " + s[i] + "("+ s[i].isVariable() +") --> " + s_term);
+            // System.out.println("t: " + t[i] + " --> " + t_term);
+            // System.out.println("sigma: " + sigma);
+
+            // // if the term already belong to the same class of term
+            // there is nothing to do
+			if (s_term.equals(t_term))
+                continue;
+
+            // if the representative are both skolem term
+            if (s_term instanceof FunctionTerm && t_term instanceof FunctionTerm) {
+                FunctionTerm s_sko = (FunctionTerm) s_term;
+                FunctionTerm t_sko = (FunctionTerm) t_term;
+
+                // if the function symbol are different, then there is a clash
+                if (!s_sko.getFunction().equals(t_sko.getFunction()))
+                    return null;
+
+                // else we unify the terms in arguments and continue
+                sigma = getMGU(s_sko.getTerms(), t_sko.getTerms(), sigma);
+                // System.out.println("fsig: " + sigma);
+                if (sigma != null)
+                    continue;
+                else
+                    return null;
+            }
+
+            // if none of the terms are variables, there is a clash
+            if (!s_term.isVariable() && !t_term.isVariable()) {
+                return null;
+            }
+
+            // in case, we unify a variable with a skolem term
+            // we check that the variable is not contain into one of the class
+            // of the variables beloging to the skolem term.
+            if (s_term instanceof FunctionTerm || t_term instanceof FunctionTerm) {
+                FunctionTerm sko = (s_term instanceof FunctionTerm) ? (FunctionTerm) s_term : (FunctionTerm) t_term;
+                Term var = (s_term.isVariable()) ? s_term : t_term;
+
+                for (Variable v : sko.getVariables()) 
+                    if (getSubstitute(v, sigma).equals(var))
+                        return null;
+            }
+
+            if (s_term.isVariable())
+                sigma.put(s_term, t_term);
+            else 
+                sigma.put(t_term, s_term);
+		}
+
+        return sigma;
+    }
 
     public static GTGD applyMGU(GTGD tgd, Map<Term, Term> mgu) {
 
