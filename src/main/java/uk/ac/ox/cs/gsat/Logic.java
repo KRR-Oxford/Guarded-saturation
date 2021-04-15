@@ -82,25 +82,27 @@ public class Logic {
 			for (int atomIndex = 0; atomIndex < bodyAtoms.length; ++atomIndex)
 				bodyAtomsF.add((Atom) applySubstitution(bodyAtoms[atomIndex], substitution));
 			return new TGD(bodyAtomsF, headAtomsF);
-		} else if (formula instanceof Atom) {
-			Term[] nterms = new Term[((Atom) formula).getNumberOfTerms()];
-			for (int termIndex = 0; termIndex < nterms.length; ++termIndex) {
-				Term term = ((Atom) formula).getTerm(termIndex);
-				// System.out.println(term);
-				// System.out.println(term.isVariable());
-				// System.out.println(substitution.containsKey(term));
-				// System.out.println(substitution.get(term));
-				// FIXME we assume UNA also between variables and constants
-				// if (term.isVariable() && substitution.containsKey(term))
-				if (substitution.containsKey(term))
-					nterms[termIndex] = substitution.get(term);
-				else
-					nterms[termIndex] = term;
-			}
-			return Atom.create(((Atom) formula).getPredicate(), nterms);
-		}
-		throw new RuntimeException("Unsupported formula type: " + formula);
-	}
+        } else if (formula instanceof Atom) {
+            Term[] nterms = applySubstitution(((Atom) formula).getTerms(), substitution);
+            return Atom.create(((Atom) formula).getPredicate(), nterms);
+        }
+        throw new RuntimeException("Unsupported formula type: " + formula);
+    }
+
+    public static Term[] applySubstitution(Term[] terms, Map<Term, Term> substitution) {
+        Term[] nterms = new Term[terms.length];
+        for (int termIndex = 0; termIndex < nterms.length; ++termIndex) {
+            Term term = terms[termIndex];
+            if (term instanceof FunctionTerm)
+                nterms[termIndex] = FunctionTerm.create(((FunctionTerm) term).getFunction(), applySubstitution(((FunctionTerm) term).getTerms(), substitution));
+            else if (substitution.containsKey(term))
+                nterms[termIndex] = substitution.get(term);
+            else
+                nterms[termIndex] = term;
+        }
+
+        return nterms;
+    }
 
 	static boolean containsAny(Atom atom, Variable[] eVariables) {
 		for (Variable v : eVariables)
