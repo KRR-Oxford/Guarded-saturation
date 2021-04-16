@@ -67,7 +67,7 @@ public class IRISPMTest {
 			Collection<ConjunctiveQuery> allQueries, int guardedSaturationSize, int[] queryLenghts) {
 		System.out.println("Initial rules:");
 		allTGDs.forEach(System.out::println);
-		Collection<GTGD> guardedSaturation = GSat.getInstance().runGSat(allTGDs);
+		Collection<GTGD> guardedSaturation = GSat.getInstance().run(allTGDs);
 
 		System.out.println("Guarded saturation:");
 		guardedSaturation.forEach(System.out::println);

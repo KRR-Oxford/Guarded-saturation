@@ -175,7 +175,7 @@ public class App {
             if (Configuration.getSaturationAlg().equals("gsat")) {
 
                 System.out.println("Full TGD saturation algorithm: GSat");
-                executionOutput.setFullTGDSaturation(GSat.getInstance().runGSat(rules));
+                executionOutput.setFullTGDSaturation(GSat.getInstance().run(rules));
             } else if (Configuration.getSaturationAlg().equals("simple_sat")) {
 
                 System.out.println("Full TGD saturation algorithm: Simple Sat");
