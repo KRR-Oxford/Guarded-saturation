@@ -140,17 +140,8 @@ public class GSat {
         Subsumer<GTGD> fullTGDsSubsumer = createSubsumer();
         Subsumer<GTGD> nonFullTGDsSubsumer = createSubsumer();
 
-        for (GTGD tgd : selectedTGDs)
-            for (GTGD hnf : FACTORY.computeHNF(tgd)) {
-				GTGD currentGTGD = FACTORY.computeVNF(hnf, eVariable, uVariable);
-                if (Logic.isFull(currentGTGD)) {
-                    addFullTGD(currentGTGD, fullTGDsMap, fullTGDsSet);
-                    fullTGDsSubsumer.add(currentGTGD);
-                } else {
-                    nonFullTGDsSubsumer.add(currentGTGD);
-                    newNonFullTGDs.add(currentGTGD);
-                }
-            }
+        // initialization of the structure
+        initialization(selectedTGDs, fullTGDsSet, newNonFullTGDs, fullTGDsMap, fullTGDsSubsumer, nonFullTGDsSubsumer);
 
         // copying the input full TGD set of comparison
         Collection<GTGD> inputFullTGDs = new HashSet<>(fullTGDsSet);
@@ -228,8 +219,11 @@ public class GSat {
 
             }
             for (GTGD newTGD : toAdd) {
-                addNewTGD(newTGD, newFullTGDs, newNonFullTGDs, fullTGDsSubsumer, nonFullTGDsSubsumer, fullTGDsMap,
-                        nonFullTGDsMap, fullTGDsSet, nonFullTGDsSet);
+                if (Logic.isFull(newTGD)) 
+                    addNewTGD(newTGD, true, newFullTGDs, fullTGDsSubsumer, fullTGDsMap, fullTGDsSet);
+                else
+                    addNewTGD(newTGD, false, newNonFullTGDs, nonFullTGDsSubsumer,
+                        nonFullTGDsMap, nonFullTGDsSet);
 
             }
 
@@ -254,6 +248,22 @@ public class GSat {
         App.logger.info("ouptput full TGDs not contained in the input: " + outputCopy.size());
 
         return output;
+    }
+
+    protected void initialization(Collection<GTGD> selectedTGDs, Set<GTGD> fullTGDsSet, Collection<GTGD> newNonFullTGDs,
+            Map<Predicate, Set<GTGD>> fullTGDsMap, Subsumer<GTGD> fullTGDsSubsumer,
+            Subsumer<GTGD> nonFullTGDsSubsumer) {
+        for (GTGD tgd : selectedTGDs)
+            for (GTGD hnf : FACTORY.computeHNF(tgd)) {
+                GTGD currentGTGD = FACTORY.computeVNF(hnf, eVariable, uVariable);
+                if (Logic.isFull(currentGTGD)) {
+                    addFullTGD(currentGTGD, fullTGDsMap, fullTGDsSet);
+                    fullTGDsSubsumer.add(currentGTGD);
+                } else {
+                    nonFullTGDsSubsumer.add(currentGTGD);
+                    newNonFullTGDs.add(currentGTGD);
+                }
+            }
     }
 
     private Set<GTGD> getFullTGDsToEvolve(Map<Predicate, Set<GTGD>> fullTGDsMap, GTGD currentTGD) {
@@ -300,25 +310,9 @@ public class GSat {
 
     }
 
-    private void addNewTGD(GTGD newTGD, Collection<GTGD> newFullTGDs, Collection<GTGD> newNonFullTGDs,
-            Subsumer<GTGD> fullTGDsSubsumer, Subsumer<GTGD> nonFullTGDsSubsumer, Map<Predicate, Set<GTGD>> fullTGDsMap,
-            Map<Predicate, Set<GTGD>> nonFullTGDsMap, Set<GTGD> fullTGDsSet, Set<GTGD> nonFullTGDsSet) {
-        final Collection<GTGD> newTGDs;
-        final Map<Predicate, Set<GTGD>> TGDsMap;
-        final Subsumer<GTGD> TGDsSubsumer;
-        final Set<GTGD> TGDsSet;
-        if (Logic.isFull(newTGD)) {
-            newTGDs = newFullTGDs;
-            TGDsMap = fullTGDsMap;
-            TGDsSubsumer = fullTGDsSubsumer;
-            TGDsSet = fullTGDsSet;
-        } else {
-            newTGDs = newNonFullTGDs;
-            TGDsMap = nonFullTGDsMap;
-            TGDsSubsumer = nonFullTGDsSubsumer;
-            TGDsSet = nonFullTGDsSet;
-        }
-
+    private void addNewTGD(GTGD newTGD, boolean asFullTGD, Collection<GTGD> newTGDs,
+                                  Subsumer<GTGD> TGDsSubsumer, Map<Predicate, Set<GTGD>> TGDsMap,
+                                  Set<GTGD> TGDsSet) {
         if (Configuration.getOptimizationValue() >= 1) {
 
             if (TGDsSubsumer.subsumed(newTGD))
@@ -327,20 +321,19 @@ public class GSat {
             Collection<GTGD> sub = TGDsSubsumer.subsumesAny(newTGD);
             TGDsSet.removeAll(sub);
             newTGDs.removeAll(sub);
-            if (Logic.isFull(newTGD)) {
-                sub.forEach(tgd -> {
+            for (GTGD tgd : sub) {
+                if (asFullTGD) {
                     Set<GTGD> set = TGDsMap.get(tgd.getGuard().getPredicate());
                     if (set != null)
                         set.remove(tgd);
-                });
-            } else
-                for (GTGD tgd : sub) {
+                } else {
                     for (Atom atom : tgd.getHeadSet()) {
                         Set<GTGD> set = TGDsMap.get(atom.getPredicate());
                         if (set != null)
                             set.remove(tgd);
                     }
                 }
+            }
 
             TGDsMap.values().removeIf(v -> v.isEmpty());
         }
