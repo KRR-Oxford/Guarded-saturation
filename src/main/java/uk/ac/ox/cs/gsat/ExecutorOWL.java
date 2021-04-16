@@ -196,7 +196,7 @@ public class ExecutorOWL {
 	private static Collection<GTGD> runGSat(String input_file) throws Exception {
 		OWLIO owlio = new OWLIO(input_file, true);
 		Collection<Dependency> rules = owlio.getRules();
-		Collection<GTGD> runGSat = GSat.getInstance().runGSat(rules);
+		Collection<GTGD> runGSat = GSat.getInstance().run(rules);
 		return runGSat;
 	}
 

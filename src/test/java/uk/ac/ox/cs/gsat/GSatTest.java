@@ -110,7 +110,7 @@ public class GSatTest {
 		initial.add(t3);
 		initial.add(t4);
 
-		Collection<GTGD> result = gsat.runGSat(initial);
+		Collection<GTGD> result = gsat.run(initial);
 		// ∀ u1,u2,u3 T(u1,u2,u3) → P(u1) ∧ V(u1,u2)
 		// ∀ u1 R(u1) ∧ S(u1) → P(u1) // SUBSUMED BY THE ONE BELOW!
 		// ∀ u1 R(u1) → P(u1)
@@ -132,7 +132,7 @@ public class GSatTest {
 		initial.add(t2);
 		initial.add(t3);
 
-		result = gsat.runGSat(initial);
+		result = gsat.run(initial);
 
 		// ∀ u1,u2,u3 T(u1,u2,u3) ∧ U(u3) → P(u1)
 		// ∀ u1,u2,u3,u4 S(u1,u2,u3,u4) → U(u4)
