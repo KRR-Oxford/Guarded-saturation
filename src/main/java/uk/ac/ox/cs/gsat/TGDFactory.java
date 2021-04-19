@@ -1,5 +1,6 @@
 package uk.ac.ox.cs.gsat;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Comparator;
@@ -12,6 +13,7 @@ import java.util.Set;
 import uk.ac.ox.cs.pdq.fol.Atom;
 import uk.ac.ox.cs.pdq.fol.Function;
 import uk.ac.ox.cs.pdq.fol.FunctionTerm;
+import uk.ac.ox.cs.pdq.fol.Predicate;
 import uk.ac.ox.cs.pdq.fol.Term;
 import uk.ac.ox.cs.pdq.fol.Variable;
 
@@ -23,7 +25,11 @@ public class TGDFactory<Q extends TGD> {
     private static final String SKOLEM_PREFIX = "f";
     private static int skolemIndex = 0;
 
-	private Constructor<Q> constructor;
+    private static final String SHNF_SYMBOL = "_S";
+    private static int SHNFIndex = 0;
+
+
+    private Constructor<Q> constructor;
 
     private TGDFactory(Constructor<Q> constructor) {
         this.constructor = constructor;
@@ -178,7 +184,7 @@ public class TGDFactory<Q extends TGD> {
     }
 
     /**
-     * skolemize a TGD 
+     * skolemize a TGD
      * @param tgd - TGD assumed without skolem term
      */
     public Q computeSkolemized(Q tgd) {
@@ -208,24 +214,56 @@ public class TGDFactory<Q extends TGD> {
 
         return (Q) Logic.applySubstitution(tgd, substitution);
     }
-    
+
+    /**
+     * compute the SHNF of a TGD
+     * @param tgd
+     */
+    public Collection<Q> computeSHNF(Q tgd) {
+
+        if (tgd.getHeadAtoms().length == 1)
+            return List.of(tgd);
+
+        Collection<Q> result = new ArrayList<>();
+
+        Collection<Variable> hvariables = new HashSet<>();
+        for (Atom a : tgd.getHeadAtoms())
+            for (Variable v : a.getVariables())
+                hvariables.add(v);
+
+        // we create a head atom capturing all the variable of the head
+        Predicate hPredicate = Predicate.create(SHNF_SYMBOL + (SHNFIndex++), hvariables.size());
+        Variable[] hatomVariables = new ArrayList<Variable>(hvariables).toArray( new Variable[hvariables.size()]);
+        Atom hAtom = Atom.create(hPredicate, hatomVariables);
+        Set<Atom> hAtomSet = Set.of(hAtom);
+
+        // we add to the result the original TGD where the head is replaced by hAtom
+        result.add(constructor.create(tgd.getBodySet(), hAtomSet));
+
+        // for all the head atom we add to the result a single head TGD
+        for (Atom headAtom : tgd.getHeadAtoms())
+            result.add(constructor.create(hAtomSet, Set.of(headAtom)));
+
+        return result;
+    }
+
     private static interface Constructor<T extends TGD> {
         T create(Set<Atom> bodyAtoms, Set<Atom> headAtoms);
     }
 
     private static class TGDConstructor implements Constructor<TGD> {
 
-		@Override
-		public TGD create(Set<Atom> bodyAtoms, Set<Atom> headAtoms) {
-			return new TGD(bodyAtoms, headAtoms);
-		}
+        @Override
+        public TGD create(Set<Atom> bodyAtoms, Set<Atom> headAtoms) {
+            return new TGD(bodyAtoms, headAtoms);
+        }
     }
 
     private static class GTGDConstructor implements Constructor<GTGD> {
 
-		@Override
-		public GTGD create(Set<Atom> bodyAtoms, Set<Atom> headAtoms) {
-			return new GTGD(bodyAtoms, headAtoms);
-		}
+        @Override
+        public GTGD create(Set<Atom> bodyAtoms, Set<Atom> headAtoms) {
+            return new GTGD(bodyAtoms, headAtoms);
+        }
     }
 }

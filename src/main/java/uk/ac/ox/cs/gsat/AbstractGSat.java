@@ -134,8 +134,6 @@ public abstract class AbstractGSat {
         while (!newFullTGDs.isEmpty() || !newNonFullTGDs.isEmpty()) {
 
             App.logger.fine("# new TGDs: " + newFullTGDs.size() + " , " + newNonFullTGDs.size());
-            newFullCount += newFullTGDs.size();
-            newNonFullCount += newNonFullTGDs.size();
 
             if (DEBUG_MODE)
                 if (counter == 100) {
@@ -201,12 +199,17 @@ public abstract class AbstractGSat {
 
             }
             for (GTGD newTGD : toAdd) {
-                if (isFull(newTGD))
-                    addNewTGD(newTGD, true, newFullTGDs, fullTGDsSubsumer, fullTGDsMap, fullTGDsSet);
+                if (isFull(newTGD)) {
+                    newFullCount++;
 
-                if (isNonFull(newTGD))
+                    addNewTGD(newTGD, true, newFullTGDs, fullTGDsSubsumer, fullTGDsMap, fullTGDsSet);
+                }
+
+                if (isNonFull(newTGD)) {
+                    newNonFullCount ++;
                     addNewTGD(newTGD, false, newNonFullTGDs, nonFullTGDsSubsumer,
                         nonFullTGDsMap, nonFullTGDsSet);
+                }
 
             }
 
@@ -224,7 +227,7 @@ public abstract class AbstractGSat {
                 + (fullTGDsSubsumer.getFilterDiscarded() + nonFullTGDsSubsumer.getFilterDiscarded()));
         App.logger.info("Derived full/non full TGDs: "+ newFullCount + " , " + newNonFullCount);
 
-        Collection<GTGD> output = fullTGDsSubsumer.getAll();
+        Collection<GTGD> output = getOutput(fullTGDsSubsumer.getAll());
 
         Collection<GTGD> outputCopy = new ArrayList<>(output);
         outputCopy.removeAll(inputFullTGDs);
@@ -237,6 +240,11 @@ public abstract class AbstractGSat {
                                            Collection<GTGD> newNonFullTGDs, Map<Predicate, Set<GTGD>> fullTGDsMap,
                                            Subsumer<GTGD> fullTGDsSubsumer, Subsumer<GTGD> nonFullTGDsSubsumer);
 
+    /**
+     * select the ouput from the final right side TGDs
+     */
+    protected abstract Collection<GTGD> getOutput(Collection<GTGD> rightSideTgds);
+    
     /**
      * Returns true iff the tgd should be added to the fullTGD set
      */

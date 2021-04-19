@@ -54,6 +54,11 @@ public class GSat extends AbstractGSat {
             }
     }
 
+    @Override
+    protected Collection<GTGD> getOutput(Collection<GTGD> rightSideTgds) {
+        return rightSideTgds;
+    }
+
     /**
      *
      * @param nftgd non-full TGD (guarded)
