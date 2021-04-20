@@ -11,23 +11,29 @@ import java.util.Map.Entry;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-import uk.ac.ox.cs.gsat.subsumers.Subsumer;
 import uk.ac.ox.cs.pdq.fol.Atom;
 import uk.ac.ox.cs.pdq.fol.Predicate;
 import uk.ac.ox.cs.pdq.fol.Term;
 import uk.ac.ox.cs.pdq.fol.Variable;
 
 /**
- * GSat
+ * Guarded Saturation (GSat)
+ * The input guarded TGDs are first translated 
+ * into Head Normal Formal.
+ * The evolve function takes as inputs: 
+ * - left: a non full TGD
+ * - right: a full TGD
  */
-public class GSat extends AbstractGSat {
+public class GSat extends EvolveBasedSat {
 
+    private static final String NAME = "GSat";
     private static final GSat INSTANCE = new GSat();
 
     /**
      * Private construtor, we want this class to be a Singleton
      */
     private GSat() {
+        super(NAME);
     }
 
     /**
@@ -38,25 +44,20 @@ public class GSat extends AbstractGSat {
         return INSTANCE;
     }
 
-    protected void initialization(Collection<GTGD> selectedTGDs, Set<GTGD> fullTGDsSet, Collection<GTGD> newNonFullTGDs,
-            Map<Predicate, Set<GTGD>> fullTGDsMap, Subsumer<GTGD> fullTGDsSubsumer,
-            Subsumer<GTGD> nonFullTGDsSubsumer) {
-        for (GTGD tgd : selectedTGDs)
-            for (GTGD hnf : FACTORY.computeHNF(tgd)) {
-                GTGD currentGTGD = FACTORY.computeVNF(hnf, eVariable, uVariable);
-                if (Logic.isFull(currentGTGD)) {
-                    addFullTGD(currentGTGD, fullTGDsMap, fullTGDsSet);
-                    fullTGDsSubsumer.add(currentGTGD);
-                } else {
-                    nonFullTGDsSubsumer.add(currentGTGD);
-                    newNonFullTGDs.add(currentGTGD);
-                }
-            }
-    }
-
     @Override
-    protected Collection<GTGD> getOutput(Collection<GTGD> rightSideTgds) {
-        return rightSideTgds;
+    protected Collection<GTGD> transformInputTGDs(Collection<GTGD> inputTGDs) {
+        Collection<GTGD> result = new ArrayList<>();
+
+        for(GTGD tgd : inputTGDs)
+            for (GTGD hnf : FACTORY.computeHNF(tgd))
+                result.add(FACTORY.computeVNF(hnf, eVariable, uVariable));
+
+        return result;
+    }
+    
+    @Override
+    protected Collection<GTGD> getOutput(Collection<GTGD> fullTGDs) {
+        return fullTGDs;
     }
 
     /**
@@ -285,12 +286,12 @@ public class GSat extends AbstractGSat {
     }
 
 	@Override
-	protected boolean isFull(GTGD newTGD) {
+	protected boolean isRightTGD(GTGD newTGD) {
 		return Logic.isFull(newTGD);
 	}
 
 	@Override
-	protected boolean isNonFull(GTGD newTGD) {
+	protected boolean isLeftTGD(GTGD newTGD) {
 		return !Logic.isFull(newTGD);
 	}
 

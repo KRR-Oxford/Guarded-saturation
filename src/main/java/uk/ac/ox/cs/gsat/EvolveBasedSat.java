@@ -27,19 +27,31 @@ import uk.ac.ox.cs.pdq.fol.Term;
 import uk.ac.ox.cs.pdq.fol.Variable;
 
 /**
- * Abstract Gsat
+ * Abstract saturation based on a evolve function. The evolve function takes two
+ * TGDs as input, the first will be called the left TGD and the second the right
+ * TGD applying evolve on them requires to find an unifier of some atoms from
+ * the head of the left TGD and some of the body of the right TGD and it returns
+ * some TGDs
+ *
+ * During the saturation process, we categorise the input and generated TGDs
+ * into TGDs used as left or/and right input of the evolve function. This
+ * categorization is handled by the methods isLeftTGD and isRightTGD
+ *
+ * The saturation process aims to compute the closure of these two (left and
+ * right) sets of TGDs under the evolve inference.
  */
-public abstract class AbstractGSat {
+public abstract class EvolveBasedSat {
 
     protected static final TGDFactory<GTGD> FACTORY = TGDFactory.getGTGDInstance();
-    protected boolean DEBUG_MODE = Configuration.isDebugMode();
+    protected final boolean DEBUG_MODE = Configuration.isDebugMode();
+    protected final String saturationName;
 
     // New variable name for Universally Quantified Variables
-    public String uVariable = "GSat_u";
+    public String uVariable;
     // New variable name for Existentially Quantified Variables
-    public String eVariable = "GSat_e";
+    public String eVariable;
     // New variable name for evolveRename
-    public String zVariable = "GSat_z";
+    public String zVariable;
 
     protected static Comparator<? super GTGD> comparator = (tgd1, tgd2) -> {
 
@@ -63,16 +75,23 @@ public abstract class AbstractGSat {
 
     };
 
+    protected EvolveBasedSat(String saturationName) {
+        this.saturationName = saturationName;
+        this.uVariable = saturationName + "_u";
+        this.eVariable = saturationName + "_e";
+        this.zVariable = saturationName + "_z";
+    }
+
     /**
      *
      * Main method to run the Guarded Saturation algorithm
      *
-     * @param allDependencies the Guarded TGDs to process
+     * @param allDependencies the Guarded TGDs without function term to process
      * @return the Guarded Saturation of allDependencies
      */
     public Collection<GTGD> run(Collection<Dependency> allDependencies) {
 
-        System.out.println("Running GSat...");
+        System.out.println(String.format("Running %s...", this.saturationName));
         final long startTime = System.nanoTime();
 
         int discarded = 0;
@@ -84,81 +103,85 @@ public abstract class AbstractGSat {
             else
                 discarded++;
 
-        App.logger.info("GSat discarded rules : " + discarded + "/" + allDependencies.size() + " = "
+        App.logger.info(this.saturationName + " discarded rules : " + discarded + "/" + allDependencies.size() + " = "
                 + String.format(Locale.UK, "%.3f", (float) discarded / allDependencies.size() * 100) + "%");
 
         if (DEBUG_MODE)
-            System.out.println("GSat discarded rules : " + discarded + "/" + allDependencies.size() + " = "
-                    + String.format(Locale.UK, "%.3f", (float) discarded / allDependencies.size() * 100) + "%");
+            System.out.println(this.saturationName + " discarded rules : " + discarded + "/" + allDependencies.size()
+                    + " = " + String.format(Locale.UK, "%.3f", (float) discarded / allDependencies.size() * 100) + "%");
 
+        // we change the fesh variables prefixes we will use until
+        // they do not appear into the selected TGDs
         while (checkRenameVariablesInTGDs(selectedTGDs)) {
             uVariable += "0";
             eVariable += "0";
             zVariable += "0";
         }
 
-        Collection<GTGD> newFullTGDs = new HashSet<>();
-        Collection<GTGD> newNonFullTGDs = new HashSet<>();
+        Collection<GTGD> newRightTGDs = new HashSet<>();
+        Collection<GTGD> newLeftTGDs = new HashSet<>();
 
         if (Configuration.getOptimizationValue() >= 5) {
 
-            newFullTGDs = new Stack<>();
-            newNonFullTGDs = new Stack<>();
+            newRightTGDs = new Stack<>();
+            newLeftTGDs = new Stack<>();
 
         } else if (Configuration.getOptimizationValue() >= 2) {
 
-            newFullTGDs = new TreeSet<>(comparator);
-            newNonFullTGDs = new TreeSet<>(comparator);
+            newRightTGDs = new TreeSet<>(comparator);
+            newLeftTGDs = new TreeSet<>(comparator);
 
         }
 
-        Map<Predicate, Set<GTGD>> nonFullTGDsMap = new HashMap<>();
-        Map<Predicate, Set<GTGD>> fullTGDsMap = new HashMap<>();
-        Set<GTGD> fullTGDsSet = new HashSet<>();
-        Set<GTGD> nonFullTGDsSet = new HashSet<>();
+        Map<Predicate, Set<GTGD>> leftTGDsMap = new HashMap<>();
+        Map<Predicate, Set<GTGD>> rightTGDsMap = new HashMap<>();
+        Set<GTGD> rightTGDsSet = new HashSet<>();
+        Set<GTGD> leftTGDsSet = new HashSet<>();
 
         App.logger.info("Subsumption method : " + Configuration.getSubsumptionMethod());
-        Subsumer<GTGD> fullTGDsSubsumer = createSubsumer();
-        Subsumer<GTGD> nonFullTGDsSubsumer = createSubsumer();
+        Subsumer<GTGD> rightTGDsSubsumer = createSubsumer();
+        Subsumer<GTGD> leftTGDsSubsumer = createSubsumer();
 
-        // initialization of the structure
-        initialization(selectedTGDs, fullTGDsSet, newNonFullTGDs, fullTGDsMap, fullTGDsSubsumer, nonFullTGDsSubsumer);
+        // initialization of the structures
+        initialization(selectedTGDs, rightTGDsSet, newLeftTGDs, rightTGDsMap, rightTGDsSubsumer, leftTGDsSubsumer);
 
-        // copying the input full TGD set of comparison
-        Collection<GTGD> inputFullTGDs = new HashSet<>(fullTGDsSet);
+        // copying the initial left TGD set for later comparison
+        Collection<GTGD> initialRightTGDs = new HashSet<>(rightTGDsSet);
 
-        App.logger.info("# initial TGDs: " + fullTGDsSet.size() + " , " + newNonFullTGDs.size());
+        App.logger.info("# initial TGDs: " + rightTGDsSet.size() + " , " + newLeftTGDs.size());
         int counter = 100;
-        int newFullCount = 0;
-        int newNonFullCount = 0;
-        while (!newFullTGDs.isEmpty() || !newNonFullTGDs.isEmpty()) {
+        int newRightCount = 0;
+        int newLeftCount = 0;
+        while (!newRightTGDs.isEmpty() || !newLeftTGDs.isEmpty()) {
 
-            App.logger.fine("# new TGDs: " + newFullTGDs.size() + " , " + newNonFullTGDs.size());
+            App.logger.fine("# new TGDs: " + newRightTGDs.size() + " , " + newLeftTGDs.size());
 
             if (DEBUG_MODE)
                 if (counter == 100) {
                     counter = 1;
-                    System.out.println("nonFullTGDs\t" + nonFullTGDsSet.size() + "\t\tfullTGDs\t" + fullTGDsSet.size()
-                            + "\t\t\tnewNonFullTGDs\t" + newNonFullTGDs.size() + "\t\tnewFullTGDs\t"
-                            + newFullTGDs.size());
+                    System.out.println("nonFullTGDs\t" + leftTGDsSet.size() + "\t\tfullTGDs\t" + rightTGDsSet.size()
+                            + "\t\t\tnewNonFullTGDs\t" + newLeftTGDs.size() + "\t\tnewFullTGDs\t"
+                            + newRightTGDs.size());
                 } else
                     counter++;
 
             Collection<GTGD> toAdd = new ArrayList<>();
 
-            if (!newNonFullTGDs.isEmpty()) {
+            // if there is a new left TGD, we evolve it with all the processed right TGDs
+            // else there is a new right TGD to evolve with all the processed left TGDs
+            if (!newLeftTGDs.isEmpty()) {
 
-                Iterator<GTGD> iterator = newNonFullTGDs.iterator();
+                Iterator<GTGD> iterator = newLeftTGDs.iterator();
                 GTGD currentTGD = iterator.next();
                 iterator.remove();
                 App.logger.fine("current TGD: " + currentTGD);
 
-                boolean added = addNonFullTGD(currentTGD, nonFullTGDsMap, nonFullTGDsSet);
+                boolean added = addLeftTGD(currentTGD, leftTGDsMap, leftTGDsSet);
                 if (added)
-                    for (GTGD ftgd : getFullTGDsToEvolve(fullTGDsMap, currentTGD)) {
+                    for (GTGD rightTGD : getRightTGDsToEvolveWith(currentTGD, rightTGDsMap)) {
                         if (Configuration.getOptimizationValue() >= 3) {
                             boolean subsumed = false;
-                            for (GTGD newTGD : evolveNew(currentTGD, ftgd)) {
+                            for (GTGD newTGD : evolveNew(currentTGD, rightTGD)) {
                                 if (!currentTGD.equals(newTGD)) {
                                     toAdd.add(newTGD);
                                     subsumed = subsumed || subsumed(currentTGD, newTGD);
@@ -167,25 +190,25 @@ public abstract class AbstractGSat {
                             if (subsumed)
                                 break;
                         } else
-                            for (GTGD newTGD : evolveNew(currentTGD, ftgd))
+                            for (GTGD newTGD : evolveNew(currentTGD, rightTGD))
                                 toAdd.add(newTGD);
                     }
 
             } else {
 
-                Iterator<GTGD> iterator = newFullTGDs.iterator();
+                Iterator<GTGD> iterator = newRightTGDs.iterator();
                 GTGD currentTGD = iterator.next();
                 iterator.remove();
                 App.logger.fine("current TGD: " + currentTGD);
 
-                boolean added = addFullTGD(currentTGD, fullTGDsMap, fullTGDsSet);
+                boolean added = addRightTGD(currentTGD, rightTGDsMap, rightTGDsSet);
 
-                Set<GTGD> set = getNonFullTGDsToEvolve(nonFullTGDsMap, currentTGD);
-                if (added && set != null)
-                    for (GTGD nftgd : set)
+                Set<GTGD> leftTGDsToEvolve = getLeftTGDsToEvolveWith(currentTGD, leftTGDsMap);
+                if (added && leftTGDsToEvolve != null)
+                    for (GTGD leftTGD : leftTGDsToEvolve)
                         if (Configuration.getOptimizationValue() >= 3) {
                             boolean subsumed = false;
-                            for (GTGD newTGD : evolveNew(nftgd, currentTGD)) {
+                            for (GTGD newTGD : evolveNew(leftTGD, currentTGD)) {
                                 if (!currentTGD.equals(newTGD)) {
                                     toAdd.add(newTGD);
                                     subsumed = subsumed || subsumed(currentTGD, newTGD);
@@ -194,23 +217,23 @@ public abstract class AbstractGSat {
                             if (subsumed)
                                 break;
                         } else
-                            for (GTGD newTGD : evolveNew(nftgd, currentTGD))
+                            for (GTGD newTGD : evolveNew(leftTGD, currentTGD))
                                 toAdd.add(newTGD);
 
             }
+
+            // we update the structures with the TGDs to add
             for (GTGD newTGD : toAdd) {
-                if (isFull(newTGD)) {
-                    newFullCount++;
 
-                    addNewTGD(newTGD, true, newFullTGDs, fullTGDsSubsumer, fullTGDsMap, fullTGDsSet);
+                if (isRightTGD(newTGD)) {
+                    newRightCount++;
+                    addNewTGD(newTGD, true, newRightTGDs, rightTGDsSubsumer, rightTGDsMap, rightTGDsSet);
                 }
 
-                if (isNonFull(newTGD)) {
-                    newNonFullCount ++;
-                    addNewTGD(newTGD, false, newNonFullTGDs, nonFullTGDsSubsumer,
-                        nonFullTGDsMap, nonFullTGDsSet);
+                if (isLeftTGD(newTGD)) {
+                    newLeftCount++;
+                    addNewTGD(newTGD, false, newLeftTGDs, leftTGDsSubsumer, leftTGDsMap, leftTGDsSet);
                 }
-
             }
 
         }
@@ -222,50 +245,77 @@ public abstract class AbstractGSat {
         App.logger.info("GSat total time : " + String.format(Locale.UK, "%.0f", totalTime / 1E6) + " ms = "
                 + String.format(Locale.UK, "%.2f", totalTime / 1E9) + " s");
         App.logger.info("Subsumed elements : "
-                + (fullTGDsSubsumer.getNumberSubsumed() + nonFullTGDsSubsumer.getNumberSubsumed()));
+                + (rightTGDsSubsumer.getNumberSubsumed() + leftTGDsSubsumer.getNumberSubsumed()));
         App.logger.info("Filter discarded elements : "
-                + (fullTGDsSubsumer.getFilterDiscarded() + nonFullTGDsSubsumer.getFilterDiscarded()));
-        App.logger.info("Derived full/non full TGDs: "+ newFullCount + " , " + newNonFullCount);
+                + (rightTGDsSubsumer.getFilterDiscarded() + leftTGDsSubsumer.getFilterDiscarded()));
+        App.logger.info("Derived full/non full TGDs: " + newRightCount + " , " + newLeftCount);
 
-        Collection<GTGD> output = getOutput(fullTGDsSubsumer.getAll());
+        Collection<GTGD> output = getOutput(rightTGDsSubsumer.getAll());
 
         Collection<GTGD> outputCopy = new ArrayList<>(output);
-        outputCopy.removeAll(inputFullTGDs);
+        outputCopy.removeAll(initialRightTGDs);
         App.logger.info("ouptput full TGDs not contained in the input: " + outputCopy.size());
 
         return output;
     }
 
-	protected abstract void initialization(Collection<GTGD> selectedTGDs, Set<GTGD> fullTGDsSet,
-                                           Collection<GTGD> newNonFullTGDs, Map<Predicate, Set<GTGD>> fullTGDsMap,
-                                           Subsumer<GTGD> fullTGDsSubsumer, Subsumer<GTGD> nonFullTGDsSubsumer);
+    protected void initialization(Collection<GTGD> selectedTGDs, Set<GTGD> rightTGDsSet, Collection<GTGD> newLeftTGDs,
+            Map<Predicate, Set<GTGD>> rightTGDsMap, Subsumer<GTGD> rightTGDsSubsumer, Subsumer<GTGD> leftTGDsSubsumer) {
+
+        for (GTGD transformedTGD : transformInputTGDs(selectedTGDs)) {
+
+            if (isRightTGD(transformedTGD)) {
+                addRightTGD(transformedTGD, rightTGDsMap, rightTGDsSet);
+                rightTGDsSubsumer.add(transformedTGD);
+            }
+            if (isLeftTGD(transformedTGD)) {
+                leftTGDsSubsumer.add(transformedTGD);
+                newLeftTGDs.add(transformedTGD);
+            }
+        }
+    }
+
+    /**
+     * Returns the input TGDs transformed into TGDs on which the evolve function
+     * should be applied
+     */
+    protected abstract Collection<GTGD> transformInputTGDs(Collection<GTGD> inputTGDs);
 
     /**
      * select the ouput from the final right side TGDs
      */
-    protected abstract Collection<GTGD> getOutput(Collection<GTGD> rightSideTgds);
-    
-    /**
-     * Returns true iff the tgd should be added to the fullTGD set
-     */
-    protected abstract boolean isFull(GTGD newTGD);
+    protected abstract Collection<GTGD> getOutput(Collection<GTGD> rightTGDs);
 
     /**
-     * Returns true iff the tgd should be added to the nonfullTGD set
+     * Returns true iff the tgd should be considered as a left input TGD for evolve
      */
-    protected abstract boolean isNonFull(GTGD newTGD);
+    protected abstract boolean isLeftTGD(GTGD newTGD);
 
-    protected abstract Collection<Predicate> getUnifiableBodyPredicates(GTGD tgd);
+    /**
+     * Returns true iff the tgd should be considered as a right input TGD for evolve
+     */
+    protected abstract boolean isRightTGD(GTGD newTGD);
 
-    private Set<GTGD> getFullTGDsToEvolve(Map<Predicate, Set<GTGD>> fullTGDsMap, GTGD currentTGD) {
+    /**
+     * Returns the predicates of the body atoms of the input right TGD that may be
+     * unifiable in evolve
+     */
+    protected abstract Collection<Predicate> getUnifiableBodyPredicates(GTGD rightTGD);
+
+    /**
+     * Apply the evolve function
+     */
+    protected abstract Collection<GTGD> evolveNew(GTGD leftTGD, GTGD rightTGD);
+
+    private Set<GTGD> getRightTGDsToEvolveWith(GTGD leftTGD, Map<Predicate, Set<GTGD>> rightTGDsMap) {
 
         Set<GTGD> result = new HashSet<>();
 
         if (Configuration.getOptimizationValue() >= 4)
             result = new TreeSet<>(comparator);
 
-        for (Atom atom : currentTGD.getHeadSet()) {
-            Set<GTGD> set = fullTGDsMap.get(atom.getPredicate());
+        for (Atom atom : leftTGD.getHeadSet()) {
+            Set<GTGD> set = rightTGDsMap.get(atom.getPredicate());
             if (set != null)
                 result.addAll(set);
         }
@@ -273,42 +323,39 @@ public abstract class AbstractGSat {
         return result;
     }
 
-    protected Set<GTGD> getNonFullTGDsToEvolve(Map<Predicate, Set<GTGD>> nonFullTGDsMap, GTGD currentTGD) {
+    protected Set<GTGD> getLeftTGDsToEvolveWith(GTGD rightTGD, Map<Predicate, Set<GTGD>> leftTGDsMap) {
         Set<GTGD> result = new HashSet<>();
 
-        for (Predicate p : getUnifiableBodyPredicates(currentTGD)) {
-            if (nonFullTGDsMap.containsKey(p))
-                result.addAll(nonFullTGDsMap.get(p));
+        for (Predicate p : getUnifiableBodyPredicates(rightTGD)) {
+            if (leftTGDsMap.containsKey(p))
+                result.addAll(leftTGDsMap.get(p));
         }
 
         return result;
-	}
-
-    protected boolean addFullTGD(GTGD currentTGD, Map<Predicate, Set<GTGD>> fullTGDsMap, Set<GTGD> fullTGDsSet) {
-
-        for (Predicate p : getUnifiableBodyPredicates(currentTGD))
-            fullTGDsMap.computeIfAbsent(p, k -> new HashSet<GTGD>()).add(currentTGD);
-
-        return fullTGDsSet.add(currentTGD);
     }
 
-    protected boolean addNonFullTGD(GTGD currentTGD, Map<Predicate, Set<GTGD>> nonFullTGDsMap,
-            Set<GTGD> nonFullTGDsSet) {
+    protected boolean addRightTGD(GTGD rightTGD, Map<Predicate, Set<GTGD>> rightTGDsMap, Set<GTGD> rightTGDsSet) {
+
+        for (Predicate p : getUnifiableBodyPredicates(rightTGD))
+            rightTGDsMap.computeIfAbsent(p, k -> new HashSet<GTGD>()).add(rightTGD);
+
+        return rightTGDsSet.add(rightTGD);
+    }
+
+    protected boolean addLeftTGD(GTGD leftTGD, Map<Predicate, Set<GTGD>> leftTGDsMap, Set<GTGD> leftTGDsSet) {
 
         if (Configuration.getOptimizationValue() >= 4)
-            for (Atom atom : currentTGD.getHeadSet())
-                nonFullTGDsMap.computeIfAbsent(atom.getPredicate(), k -> new TreeSet<GTGD>(comparator))
-                        .add(currentTGD);
+            for (Atom atom : leftTGD.getHeadSet())
+                leftTGDsMap.computeIfAbsent(atom.getPredicate(), k -> new TreeSet<GTGD>(comparator)).add(leftTGD);
         else
-            for (Atom atom : currentTGD.getHeadSet())
-                nonFullTGDsMap.computeIfAbsent(atom.getPredicate(), k -> new HashSet<GTGD>()).add(currentTGD);
+            for (Atom atom : leftTGD.getHeadSet())
+                leftTGDsMap.computeIfAbsent(atom.getPredicate(), k -> new HashSet<GTGD>()).add(leftTGD);
 
-        return nonFullTGDsSet.add(currentTGD);
+        return leftTGDsSet.add(leftTGD);
     }
 
-    private void addNewTGD(GTGD newTGD, boolean asFullTGD, Collection<GTGD> newTGDs,
-                                  Subsumer<GTGD> TGDsSubsumer, Map<Predicate, Set<GTGD>> TGDsMap,
-                                  Set<GTGD> TGDsSet) {
+    private void addNewTGD(GTGD newTGD, boolean asRightTGD, Collection<GTGD> newTGDs, Subsumer<GTGD> TGDsSubsumer,
+            Map<Predicate, Set<GTGD>> TGDsMap, Set<GTGD> TGDsSet) {
         if (Configuration.getOptimizationValue() >= 1) {
 
             if (TGDsSubsumer.subsumed(newTGD))
@@ -318,7 +365,7 @@ public abstract class AbstractGSat {
             TGDsSet.removeAll(sub);
             newTGDs.removeAll(sub);
             for (GTGD tgd : sub) {
-                if (asFullTGD) {
+                if (asRightTGD) {
                     for (Predicate p : getUnifiableBodyPredicates(newTGD)) {
                         Set<GTGD> set = TGDsMap.get(p);
                         if (set != null)
@@ -361,8 +408,9 @@ public abstract class AbstractGSat {
     }
 
     static boolean isSupportedRule(Dependency d) {
-        // // Adding only Guarded TGDs
-        return d instanceof uk.ac.ox.cs.pdq.fol.TGD && ((uk.ac.ox.cs.pdq.fol.TGD) d).isGuarded(); // Adding only Guarded TGDs
+        // Adding only Guarded TGDs
+        return d instanceof uk.ac.ox.cs.pdq.fol.TGD && ((uk.ac.ox.cs.pdq.fol.TGD) d).isGuarded(); // Adding only Guarded
+                                                                                                  // TGDs
     }
 
     /**
@@ -402,8 +450,6 @@ public abstract class AbstractGSat {
         return (GTGD) Logic.applySubstitution(ftgd, substitution);
 
     }
-
-    protected abstract Collection<GTGD> evolveNew(GTGD currentTGD, GTGD ftgd);
 
     static <Q extends TGD> Subsumer<Q> createSubsumer() {
 
