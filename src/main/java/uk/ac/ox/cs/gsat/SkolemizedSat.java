@@ -6,17 +6,29 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
-import uk.ac.ox.cs.gsat.subsumers.Subsumer;
 import uk.ac.ox.cs.pdq.fol.Atom;
 import uk.ac.ox.cs.pdq.fol.FunctionTerm;
 import uk.ac.ox.cs.pdq.fol.Predicate;
 import uk.ac.ox.cs.pdq.fol.Term;
 
-public class SkolemizedSat extends AbstractGSat {
+/**
+ * Skolemized Saturation based on evolve
+ * This saturation is inspired by the resolution algorithm
+ * The input guarded TGDs are first translated into 
+ * single head Skolemized TGDs.
+ * 
+ * The evolve function takes as inputs: 
+ * - left: a TGD having an head atom with a function term 
+ * - right: any TGD is either full or contains at least one function term in its body
+ */
 
+public class SkolemizedSat extends EvolveBasedSat {
+
+    private static final String NAME = "SkSat";
     private static final SkolemizedSat INSTANCE = new SkolemizedSat();
 
     private SkolemizedSat() {
+        super(NAME);
     }
 
     public static SkolemizedSat getInstance() {
@@ -24,31 +36,22 @@ public class SkolemizedSat extends AbstractGSat {
     }
 
     @Override
-    protected void initialization(Collection<GTGD> selectedTGDs, Set<GTGD> fullTGDsSet, Collection<GTGD> newNonFullTGDs,
-            Map<Predicate, Set<GTGD>> fullTGDsMap, Subsumer<GTGD> fullTGDsSubsumer,
-            Subsumer<GTGD> nonFullTGDsSubsumer) {
-        for (GTGD tgd : selectedTGDs)
+    protected Collection<GTGD> transformInputTGDs(Collection<GTGD> inputTGDs) {
+        Collection<GTGD> result = new ArrayList<>();
+
+        for(GTGD tgd : inputTGDs)
             for (GTGD shnf : FACTORY.computeSHNF(tgd)) {
                 GTGD currentGTGD = FACTORY.computeSkolemized(shnf);
-                currentGTGD = FACTORY.computeVNF(currentGTGD, eVariable, uVariable);
-
-                if (!isFunctional(currentGTGD)) {
-                    addFullTGD(currentGTGD, fullTGDsMap, fullTGDsSet);
-                    fullTGDsSubsumer.add(currentGTGD);
-                }
-
-                if (isFunctional(currentGTGD)) {
-                    nonFullTGDsSubsumer.add(currentGTGD);
-                    newNonFullTGDs.add(currentGTGD);
-                }
+                result.add(FACTORY.computeVNF(currentGTGD, eVariable, uVariable));
             }
+        return result;
     }
 
     @Override
-    protected Collection<GTGD> getOutput(Collection<GTGD> rightSideTgds) {
+    protected Collection<GTGD> getOutput(Collection<GTGD> rightTGDs) {
         Collection<GTGD> output = new HashSet<>();
 
-        for (GTGD tgd : rightSideTgds)
+        for (GTGD tgd : rightTGDs)
             if (isFullTGD(tgd))
                 output.add(tgd);
 
@@ -71,54 +74,40 @@ public class SkolemizedSat extends AbstractGSat {
     }
 
     @Override
-    protected boolean addFullTGD(GTGD currentTGD, Map<Predicate, Set<GTGD>> fullTGDsMap, Set<GTGD> fullTGDsSet) {
-
-        if (isFullTGD(currentTGD))
-            fullTGDsMap.computeIfAbsent(currentTGD.getGuard().getPredicate(), k -> new HashSet<GTGD>()).add(currentTGD);
-
-        // also need to consider the predicate of the functional atoms of the TGD body
-        for (Atom atom : currentTGD.getBodyAtoms())
-            if (isFunctional(atom.getTerms()))
-                fullTGDsMap.computeIfAbsent(atom.getPredicate(), k -> new HashSet<GTGD>()).add(currentTGD);
-
-        return fullTGDsSet.add(currentTGD);
-    }
-
-    @Override
-    public Collection<GTGD> evolveNew(GTGD nftgd, GTGD ftgd) {
+    public Collection<GTGD> evolveNew(GTGD leftTGD, GTGD rightTGD) {
 
         Collection<GTGD> results = new HashSet<>();
 
-        ftgd = evolveRename(ftgd);
+        rightTGD = evolveRename(rightTGD);
 
         Collection<Atom> selectedBodyAtoms = new ArrayList<>();
 
-        for (Atom a : ftgd.getAtoms())
+        for (Atom a : rightTGD.getAtoms())
             if (isFunctional(a.getTerms()))
                 selectedBodyAtoms.add(a);
 
-        if (isFullTGD(ftgd)) {
-            Atom guard = ftgd.getGuard();
+        if (isFullTGD(rightTGD)) {
+            Atom guard = rightTGD.getGuard();
             selectedBodyAtoms.add(guard);
         }
 
         for (Atom B : selectedBodyAtoms)
-            for (Atom H : nftgd.getHeadAtoms()) {
+            for (Atom H : leftTGD.getHeadAtoms()) {
 
                 Map<Term, Term> mgu = Logic.getMGU(B, H);
 
                 if (mgu != null) {
 
                     Set<Atom> new_body = new HashSet<>();
-                    for (Atom batom : ftgd.getBodySet())
+                    for (Atom batom : rightTGD.getBodySet())
                         if (!batom.equals(B))
                             new_body.add((Atom) Logic.applySubstitution(batom, mgu));
 
-                    for (Atom batom : nftgd.getBodySet())
+                    for (Atom batom : leftTGD.getBodySet())
                         new_body.add((Atom) Logic.applySubstitution(batom, mgu));
 
                     Set<Atom> new_head = new HashSet<>();
-                    for (Atom hatom : ftgd.getHeadSet())
+                    for (Atom hatom : rightTGD.getHeadSet())
                         new_head.add((Atom) Logic.applySubstitution(hatom, mgu));
 
                     GTGD new_tgd = new GTGD(new_body, new_head);
@@ -135,12 +124,12 @@ public class SkolemizedSat extends AbstractGSat {
      * We only remove from the right side of evolve the TGDs having no function term in body but having some in head
      */
     @Override
-    protected boolean isFull(GTGD newTGD) {
+    protected boolean isRightTGD(GTGD newTGD) {
         return !isFunctional(newTGD.getHeadAtoms()) || isFunctional(newTGD.getBodyAtoms());
     }
 
     @Override
-    protected boolean isNonFull(GTGD newTGD) {
+    protected boolean isLeftTGD(GTGD newTGD) {
         return isFunctional(newTGD.getHeadAtoms());
     }
 

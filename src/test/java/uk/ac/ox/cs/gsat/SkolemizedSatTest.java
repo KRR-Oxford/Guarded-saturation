@@ -61,9 +61,9 @@ public class SkolemizedSatTest {
 
 
         HashSet<TGD> expected = new HashSet<TGD>();
-        expected.add(AbstractGSat.FACTORY.computeVNF(full, sksat.eVariable, sksat.uVariable));
-        expected.add(AbstractGSat.FACTORY.computeVNF(full1, sksat.eVariable, sksat.uVariable));
-        expected.add(AbstractGSat.FACTORY.computeVNF(new GTGD(Set.of(Ax1), Set.of(Px1)), sksat.eVariable, sksat.uVariable));
+        expected.add(EvolveBasedSat.FACTORY.computeVNF(full, sksat.eVariable, sksat.uVariable));
+        expected.add(EvolveBasedSat.FACTORY.computeVNF(full1, sksat.eVariable, sksat.uVariable));
+        expected.add(EvolveBasedSat.FACTORY.computeVNF(new GTGD(Set.of(Ax1), Set.of(Px1)), sksat.eVariable, sksat.uVariable));
 
         Collection<Dependency> input = new ArrayList<>();
         input.add(nonFull);
