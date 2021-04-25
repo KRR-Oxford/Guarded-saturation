@@ -6,6 +6,7 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.util.Collection;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Locale;
 import java.util.Set;
@@ -236,7 +237,7 @@ public class OWLSanitiser {
             if (rules.isEmpty()) // useless part of the OWL file
                 return dropAxiom("Useless part of the OWL file, no rules", a, null, null);
 
-            Collection<Dependency> pdqtgDsFromGraalRules = DLGPIO.getPDQTGDsFromGraalRules(rules);
+            Collection<Dependency> pdqtgDsFromGraalRules = DLGPIO.getPDQTGDsFromGraalRules(rules, new HashMap<>());
 
             if (pdqtgDsFromGraalRules.size() != rules.size()) // there is something that we discard
                 return dropAxiom(

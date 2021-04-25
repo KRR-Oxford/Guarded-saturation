@@ -219,4 +219,15 @@ public class Configuration {
         return (value != null) ? Long.parseLong(value) : null;
     }
 
+    /**
+     * are negative constraints included
+     */
+    public static boolean includeNegativeConstraint() {
+        Configuration.initialize();
+
+        if (Configuration.prop == null || !Configuration.prop.containsKey("negative_constraint"))
+            return true;
+
+        return Boolean.parseBoolean(Configuration.prop.getProperty("negative_constraint"));
+    }
 }
