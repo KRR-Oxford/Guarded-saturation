@@ -44,6 +44,7 @@ public abstract class EvolveBasedSat {
 
     protected static final TGDFactory<GTGD> FACTORY = TGDFactory.getGTGDInstance();
     protected final boolean DEBUG_MODE = Configuration.isDebugMode();
+    protected final Long TIME_OUT = Configuration.getTimeout();
     protected final String saturationName;
 
     // New variable name for Universally Quantified Variables
@@ -93,6 +94,7 @@ public abstract class EvolveBasedSat {
 
         System.out.println(String.format("Running %s...", this.saturationName));
         final long startTime = System.nanoTime();
+        boolean timeoutReached = false;
 
         int discarded = 0;
 
@@ -153,6 +155,11 @@ public abstract class EvolveBasedSat {
         int newRightCount = 0;
         int newLeftCount = 0;
         while (!newRightTGDs.isEmpty() || !newLeftTGDs.isEmpty()) {
+
+            if (isTimeout(startTime)) {
+                timeoutReached = true;
+                break;
+            }
 
             App.logger.fine("# new TGDs: " + newRightTGDs.size() + " , " + newLeftTGDs.size());
 
@@ -255,6 +262,9 @@ public abstract class EvolveBasedSat {
         Collection<GTGD> outputCopy = new ArrayList<>(output);
         outputCopy.removeAll(initialRightTGDs);
         App.logger.info("ouptput full TGDs not contained in the input: " + outputCopy.size());
+
+        if (timeoutReached)
+            App.logger.info("!!! TIME OUT !!!");
 
         return output;
     }
@@ -449,6 +459,15 @@ public abstract class EvolveBasedSat {
 
         return (GTGD) Logic.applySubstitution(ftgd, substitution);
 
+    }
+
+    private boolean isTimeout(long startTime) {
+        // from seconds to nano seconds
+        Long timeout = (TIME_OUT != null) ? (long) (1000 * 1000 * 1000 * TIME_OUT) : null;
+
+        if (timeout != null && timeout < (System.nanoTime() - startTime))
+            return true;
+        return false;
     }
 
     static <Q extends TGD> Subsumer<Q> createSubsumer() {

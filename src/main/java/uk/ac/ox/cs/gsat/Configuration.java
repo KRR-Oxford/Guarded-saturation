@@ -206,4 +206,17 @@ public class Configuration {
         return Boolean.parseBoolean(Configuration.prop.getProperty("simple_sat_predicate_filter"));
     }
 
+    /**
+     * Get the timeout in seconds
+     */
+    public static Long getTimeout() {
+        Configuration.initialize();
+
+        if (Configuration.prop == null)
+            return null;
+
+        String value = Configuration.prop.getProperty("timeout");
+        return (value != null) ? Long.parseLong(value) : null;
+    }
+
 }
