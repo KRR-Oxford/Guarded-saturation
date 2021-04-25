@@ -21,6 +21,7 @@ import uk.ac.ox.cs.pdq.fol.Variable;
 
 public class SkolemizedSatTest {
 
+    // Variables
     private static final Variable x1 = Variable.create("x1");
     private static final Variable x2 = Variable.create("x2");
     private static final Variable x3 = Variable.create("x3");
@@ -31,7 +32,30 @@ public class SkolemizedSatTest {
     private static final Variable z2 = Variable.create("z2");
     private static final Variable z3 = Variable.create("z3");
 
-    private static final TGDFactory<TGD> FACTORY = TGDFactory.getTGDInstance();
+    // Atoms
+    private static final Atom Ax1 = Atom.create(Predicate.create("A", 1), x1);
+    private static final Atom Rx1x2 = Atom.create(Predicate.create("R", 2), x1, x2);
+    private static final Atom Ux2 = Atom.create(Predicate.create("U", 1), x2);
+    private static final Atom Px1 = Atom.create(Predicate.create("P", 1), x1);
+	private static final Atom R_x1 = Atom.create(Predicate.create("R", 1), x1);
+	private static final Atom T_x1y1y2 = Atom.create(Predicate.create("T", 3), x1, y1, y2);
+	private static final Atom T_x1x2x3 = Atom.create(Predicate.create("T", 3), x1, x2, x3);
+	private static final Atom U_x1x2y1 = Atom.create(Predicate.create("U", 3), x1, x2, y1);
+	private static final Atom U_x1x2x3 = Atom.create(Predicate.create("U", 3), x1, x2, x3);
+	private static final Atom P_x1 = Atom.create(Predicate.create("P", 1), x1);
+	private static final Atom V_x1x2 = Atom.create(Predicate.create("V", 2), x1, x2);
+	private static final Atom S_x1 = Atom.create(Predicate.create("S", 1), x1);
+	private static final Atom M_x1 = Atom.create(Predicate.create("M", 1), x1);
+	private static final Atom R_x1x2 = Atom.create(Predicate.create("R", 2), x1, x2);
+	private static final Atom S_x1x2y1y2 = Atom.create(Predicate.create("S", 4), x1, x2, y1, y2);
+	private static final Atom T_x1x2y2 = Atom.create(Predicate.create("T", 3), x1, x2, y2);
+	private static final Atom S_x1x2x3x4 = Atom.create(Predicate.create("S", 4), x1, x2, x3, x4);
+	private static final Atom U_x4 = Atom.create(Predicate.create("U", 1), x4);
+	private static final Atom T_z1z2z3 = Atom.create(Predicate.create("T", 3), z1, z2, z3);
+	private static final Atom U_z3 = Atom.create(Predicate.create("U", 1), z3);
+	private static final Atom P_z1 = Atom.create(Predicate.create("P", 1), z1);
+	private static final Atom H1_x1x2y1y2 = Atom.create(Predicate.create("H1", 4), x1, x2, y1, y2);
+
 
     @BeforeAll
     static void initAll() {
@@ -46,33 +70,136 @@ public class SkolemizedSatTest {
     public void simpleTest() {
 
         SkolemizedSat sksat = SkolemizedSat.getInstance();
-        // Variables
 
-        // A(x1) -> ∃ x2. R(x1, x2)
-        // R(x1, x2) -> U(x2)
-        // R(x1, x2), U(x2) -> P(x1)
-        Atom Ax1 = Atom.create(Predicate.create("A", 1), x1);
-        Atom Rx1x2 = Atom.create(Predicate.create("R", 2), x1, x2);
-        Atom Ux2 = Atom.create(Predicate.create("U", 1), x2);
-        Atom Px1 = Atom.create(Predicate.create("P", 1), x1);
+        /**
+         * input TGDs :
+         * - A(x1) -> ∃ x2 R(x1, x2) 
+         * - R(x1, x2) -> U(x2) 
+         * - R(x1, x2), U(x2) -> P(x1)
+         */
         GTGD nonFull = new GTGD(Set.of(Ax1), Set.of(Rx1x2));
         GTGD full = new GTGD(Set.of(Rx1x2), Set.of(Ux2));
         GTGD full1 = new GTGD(Set.of(Rx1x2, Ux2), Set.of(Px1));
-
-
-        HashSet<TGD> expected = new HashSet<TGD>();
-        expected.add(EvolveBasedSat.FACTORY.computeVNF(full, sksat.eVariable, sksat.uVariable));
-        expected.add(EvolveBasedSat.FACTORY.computeVNF(full1, sksat.eVariable, sksat.uVariable));
-        expected.add(EvolveBasedSat.FACTORY.computeVNF(new GTGD(Set.of(Ax1), Set.of(Px1)), sksat.eVariable, sksat.uVariable));
 
         Collection<Dependency> input = new ArrayList<>();
         input.add(nonFull);
         input.add(full);
         input.add(full1);
 
+        /**
+         * expected output TGDs
+         * - the VNF of the input full TGDs
+         * - the VNF of A(x1) -> P(x1)
+         */
+        HashSet<TGD> expected = new HashSet<TGD>();
+        expected.add(EvolveBasedSat.FACTORY.computeVNF(full, sksat.eVariable, sksat.uVariable));
+        expected.add(EvolveBasedSat.FACTORY.computeVNF(full1, sksat.eVariable, sksat.uVariable));
+        expected.add(EvolveBasedSat.FACTORY.computeVNF(new GTGD(Set.of(Ax1), Set.of(Px1)), sksat.eVariable,
+                sksat.uVariable));
+
         Collection<GTGD> result = sksat.run(input);
 
         assertEquals(result, expected);
     }
 
+    /**
+     * Inspired by the example 1 of GSatTest by transforming 
+     * the input TGDs into single head TGDs
+     */    
+    @Test
+    public void example1() {
+    
+        SkolemizedSat sksat = SkolemizedSat.getInstance();
+        /** input TGDs:
+         * - ∀ x1 R(x1) → ∃ y1,y2 T(x1,y1,y2)
+         * - ∀ x1,x2,x3 T(x1,x2,x3) → ∃ y1 U(x1,x2,y1)
+         * - ∀ x1,x2,x3 U(x1,x2,x3) → P(x1)
+         * - ∀ x1,x2,x3 U(x1,x2,x3) → V(x1,x2)
+         * - ∀ x1,x2,x3 T(x1,x2,x3) ∧ V(x1,x2) ∧ S(x1) → M(x1)
+         */
+		GTGD t1 = new GTGD(Set.of( R_x1 ), Set.of( T_x1y1y2 ));
+		GTGD t2 = new GTGD(Set.of( T_x1x2x3 ), Set.of( U_x1x2y1 ));
+		GTGD t3 = new GTGD(Set.of( U_x1x2x3 ), Set.of( P_x1 ));
+        GTGD t3bis = new GTGD(Set.of( U_x1x2x3 ), Set.of( V_x1x2 ));
+		GTGD t4 = new GTGD(Set.of( T_x1x2x3, V_x1x2, S_x1 ), Set.of( M_x1 ));
+
+		Collection<Dependency> initial = new HashSet<>();
+		initial.add(t1);
+		initial.add(t2);
+		initial.add(t3);
+        initial.add(t3bis);
+		initial.add(t4);
+
+        Collection<GTGD> result = sksat.run(initial);
+
+        /** expected output TGDs
+         * ∀ u1,u2,u3 U(u1,u2,u3) → P(u1)
+         * ∀ u1,u2,u3 U(u1,u2,u3) → V(u1,u2)
+         * ∀ u1,u2,u3 T(u1,u2,u3) ∧ V(u1,u2) ∧ S(u1) → M(u1)
+         * ∀ u1,u2,u3 T(u1,u2,u3) → P(u1)
+         * ∀ u1,u2,u3 T(u1,u2,u3) → V(u1,u2)
+         * ∀ u1 R(u1) → P(u1)
+         * ∀ u1 R(u1) ∧ S(u1) → M(u1)
+         */
+
+        HashSet<TGD> expected = new HashSet<TGD>();
+        expected.add(EvolveBasedSat.FACTORY.computeVNF(t3, sksat.eVariable, sksat.uVariable));
+        expected.add(EvolveBasedSat.FACTORY.computeVNF(t3bis, sksat.eVariable, sksat.uVariable));
+        expected.add(EvolveBasedSat.FACTORY.computeVNF(t4, sksat.eVariable, sksat.uVariable));
+        expected.add(EvolveBasedSat.FACTORY.computeVNF(new GTGD(Set.of( T_x1x2x3 ), Set.of( P_x1 )), sksat.eVariable, sksat.uVariable));
+        expected.add(EvolveBasedSat.FACTORY.computeVNF(new GTGD(Set.of( T_x1x2x3 ), Set.of( V_x1x2 )), sksat.eVariable, sksat.uVariable));
+        expected.add(EvolveBasedSat.FACTORY.computeVNF(new GTGD(Set.of( R_x1 ), Set.of( P_x1 )), sksat.eVariable, sksat.uVariable));
+        expected.add(EvolveBasedSat.FACTORY.computeVNF(new GTGD(Set.of( R_x1, S_x1 ), Set.of( M_x1 )), sksat.eVariable, sksat.uVariable));
+
+        assertEquals(expected, result);
+        
+        }
+    /**
+     * Inspired by the example 2 of GSatTest by transforming 
+     * the input TGDs into single head TGDs
+     */    
+    @Test
+    public void example2() {
+        SkolemizedSat sksat = SkolemizedSat.getInstance();
+
+        /**
+         * intput TGDs:
+         * ∀ x1,x2 R(x1,x2) → ∃ y1,y2 H1(x1,x2,y1,y2)
+         * ∀ x1,x2,y1,y2 H1(x1,x2,y1,y2) → S(x1,x2,y1,y2)
+         * ∀ x1,x2,y1,y2 H1(x1,x2,y1,y2) → T(x1,x2,y2)        
+         * ∀ x1,x2,x3,x4 S(x1,x2,x3,x4) → U(x4)
+         * ∀ z1,z2,z3 T(z1,z2,z3) ∧ U(z3) → P(z1)
+        */
+		GTGD t1 = new GTGD(Set.of( R_x1x2 ), Set.of( H1_x1x2y1y2 ));
+        GTGD t1bis = new GTGD(Set.of( H1_x1x2y1y2 ), Set.of( S_x1x2y1y2 ));
+        GTGD t1ter = new GTGD(Set.of( H1_x1x2y1y2 ), Set.of( T_x1x2y2 ));
+		GTGD t2 = new GTGD(Set.of( S_x1x2x3x4 ), Set.of( U_x4 ));
+		GTGD t3 = new GTGD(Set.of( T_z1z2z3, U_z3 ), Set.of( P_z1 ));
+
+		Collection<Dependency> initial = new HashSet<>();
+		initial.add(t1);
+        initial.add(t1bis);
+        initial.add(t1ter);
+		initial.add(t2);
+		initial.add(t3);
+
+		Collection<GTGD> result = sksat.run(initial);
+
+        /**
+         * expected TGDs: 
+         * ∀ u1,u2,u3,u4 H1(u1,u2,u3,u4) → S(u1,u2,u3,u4)
+         * ∀ u1,u2,y1,y2 H1(u1,u2,u3,u4) → T(u1,u2,u4)        
+         * ∀ u1,u2,u3 T(u1,u2,u3) ∧ U(u3) → P(u1)
+         * ∀ u1,u2,u3,u4 S(u1,u2,u3,u4) → U(u4)
+         * ∀ u1,u2 R(u1,u2) → P(u1)
+        */
+        HashSet<TGD> expected = new HashSet<TGD>();
+        expected.add(EvolveBasedSat.FACTORY.computeVNF(t1bis, sksat.eVariable, sksat.uVariable));
+        expected.add(EvolveBasedSat.FACTORY.computeVNF(t1ter, sksat.eVariable, sksat.uVariable));
+        expected.add(EvolveBasedSat.FACTORY.computeVNF(t2, sksat.eVariable, sksat.uVariable));
+        expected.add(EvolveBasedSat.FACTORY.computeVNF(t3, sksat.eVariable, sksat.uVariable));
+        expected.add(EvolveBasedSat.FACTORY.computeVNF(new GTGD(Set.of( R_x1x2 ), Set.of( P_x1 )), sksat.eVariable, sksat.uVariable));
+
+        assertEquals(expected, result);
+    }
 }
