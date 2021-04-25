@@ -5,8 +5,10 @@ import java.io.IOException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Collection;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedList;
+import java.util.Map;
 
 import fr.lirmm.graphik.graal.api.core.Atom;
 import fr.lirmm.graphik.graal.api.core.AtomSet;
@@ -19,6 +21,7 @@ import fr.lirmm.graphik.graal.api.core.Term;
 import fr.lirmm.graphik.graal.api.io.ParseException;
 import fr.lirmm.graphik.graal.api.io.Parser;
 import fr.lirmm.graphik.graal.io.dlp.DlgpParser;
+import fr.lirmm.graphik.util.Prefix;
 import fr.lirmm.graphik.util.stream.CloseableIterator;
 import fr.lirmm.graphik.util.stream.IteratorException;
 import uk.ac.ox.cs.pdq.fol.Dependency;
@@ -31,12 +34,15 @@ import uk.ac.ox.cs.pdq.fol.Variable;
  */
 public class DLGPIO implements ExecutionSteps {
 
+    protected static final boolean NEGATIVE_CONSTRAINT = Configuration.includeNegativeConstraint();
+
     protected String path;
     protected boolean saturationOnly;
     protected HashSet<Atom> atoms;
     protected HashSet<AtomSet> atomSets;
     protected HashSet<Rule> rules;
     protected HashSet<Query> queries;
+	protected Map<String, String> prefixes = new HashMap<>();
 
     public DLGPIO(String path, boolean saturationOnly) {
         this.path = path;
@@ -47,12 +53,13 @@ public class DLGPIO implements ExecutionSteps {
     public Collection<Dependency> getRules() throws Exception {
 
         parseInput(new DlgpParser(new File(path)));
-        return getPDQTGDsFromGraalRules(rules);
+        return getPDQTGDsFromGraalRules(rules, this.prefixes);
 
     }
 
     protected void parseInput(Parser<Object> parser) throws ParseException {
 
+        prefixes = new HashMap<>();
         atoms = new HashSet<>();
         atomSets = new HashSet<>();
         rules = new HashSet<>();
@@ -60,6 +67,12 @@ public class DLGPIO implements ExecutionSteps {
 
         while (parser.hasNext()) {
             Object o = parser.next();
+
+            if (o instanceof Prefix) {
+                Prefix p = (Prefix) o;
+                prefixes.put(p.getPrefixName(), p.getPrefix());
+            }
+            
             if (o instanceof Atom && !saturationOnly) {
                 App.logger.fine("Atom: " + ((Atom) o));
                 atoms.add((Atom) o);
@@ -68,13 +81,15 @@ public class DLGPIO implements ExecutionSteps {
                 atomSets.add((AtomSet) o);
             } else if (o instanceof Rule) {
                 App.logger.fine("Rule: " + ((Rule) o));
-                rules.add((Rule) o);
+                if (!((Rule) o).getHead().iterator().next().getPredicate().equals(Predicate.BOTTOM) || NEGATIVE_CONSTRAINT)
+                    rules.add((Rule) o);
             } else if (o instanceof ConjunctiveQuery) {
                 App.logger.fine("Conjunctive Query: " + ((Query) o));
                 queries.add((Query) o);
             } else if (o instanceof NegativeConstraint) {
                 App.logger.fine("Negative Constraint: " + ((NegativeConstraint) o));
-                rules.add((NegativeConstraint) o);
+                if (NEGATIVE_CONSTRAINT)
+                    rules.add((NegativeConstraint) o);
             }
         }
 
@@ -89,7 +104,7 @@ public class DLGPIO implements ExecutionSteps {
     @Override
     public void writeData(String path) throws IOException {
 
-        Collection<uk.ac.ox.cs.pdq.fol.Atom> pdqAtoms = getPDQAtomsFromGraalAtoms(atoms);
+        Collection<uk.ac.ox.cs.pdq.fol.Atom> pdqAtoms = getPDQAtomsFromGraalAtoms(atoms, new HashMap<>());
         System.out.println("# PDQ Atoms: " + pdqAtoms.size());
 
         IO.writeDatalogFacts(pdqAtoms, path);
@@ -115,13 +130,13 @@ public class DLGPIO implements ExecutionSteps {
 
     }
 
-    public static Collection<Dependency> getPDQTGDsFromGraalRules(Collection<Rule> rules) throws IteratorException {
+    public static Collection<Dependency> getPDQTGDsFromGraalRules(Collection<Rule> rules, Map<String, String> predicateRenaming) throws IteratorException {
 
         Collection<Dependency> tgds = new LinkedList<>();
 
         for (Rule rule : rules) {
-            Collection<uk.ac.ox.cs.pdq.fol.Atom> body = getPDQAtomsFromGraalAtomSet(rule.getBody());
-            Collection<uk.ac.ox.cs.pdq.fol.Atom> head = getPDQAtomsFromGraalAtomSet(rule.getHead());
+            Collection<uk.ac.ox.cs.pdq.fol.Atom> body = getPDQAtomsFromGraalAtomSet(rule.getBody(), predicateRenaming);
+            Collection<uk.ac.ox.cs.pdq.fol.Atom> head = getPDQAtomsFromGraalAtomSet(rule.getHead(), predicateRenaming);
 
             if (!body.isEmpty())
                 if (rule instanceof NegativeConstraint)
@@ -136,19 +151,19 @@ public class DLGPIO implements ExecutionSteps {
 
     }
 
-    public static Collection<uk.ac.ox.cs.pdq.fol.Atom> getPDQAtomsFromGraalAtomSets(Collection<AtomSet> atomSets)
+    public static Collection<uk.ac.ox.cs.pdq.fol.Atom> getPDQAtomsFromGraalAtomSets(Collection<AtomSet> atomSets, Map<String, String> predicateRenaming)
             throws IteratorException {
 
         Collection<uk.ac.ox.cs.pdq.fol.Atom> atoms = new LinkedList<>();
 
         for (AtomSet atomSet : atomSets)
-            atoms.addAll(getPDQAtomsFromGraalAtomSet(atomSet));
+            atoms.addAll(getPDQAtomsFromGraalAtomSet(atomSet, predicateRenaming));
 
         return atoms;
 
     }
 
-    public static Collection<uk.ac.ox.cs.pdq.fol.Atom> getPDQAtomsFromGraalAtomSet(AtomSet atomSet)
+    public static Collection<uk.ac.ox.cs.pdq.fol.Atom> getPDQAtomsFromGraalAtomSet(AtomSet atomSet, Map<String, String> predicateRenaming)
             throws IteratorException {
 
         Collection<uk.ac.ox.cs.pdq.fol.Atom> atoms = new LinkedList<>();
@@ -160,7 +175,7 @@ public class DLGPIO implements ExecutionSteps {
             Atom next = it.next();
 
             uk.ac.ox.cs.pdq.fol.Atom pdqAtomFromGraalAtom = getPDQAtomFromGraalAtom(next.getPredicate(),
-                    next.getTerms());
+                                                                                    next.getTerms(), predicateRenaming);
 
             if (pdqAtomFromGraalAtom != null)
                 atoms.add(pdqAtomFromGraalAtom);
@@ -171,9 +186,9 @@ public class DLGPIO implements ExecutionSteps {
 
     }
 
-    public static uk.ac.ox.cs.pdq.fol.Atom getPDQAtomFromGraalAtom(Predicate predicate, Collection<Term> terms) {
+    public static uk.ac.ox.cs.pdq.fol.Atom getPDQAtomFromGraalAtom(Predicate predicate, Collection<Term> terms, Map<String, String> predicateRenaming) {
 
-        uk.ac.ox.cs.pdq.fol.Predicate pdqPredicateFromGraalPredicate = getPDQPredicateFromGraalPredicate(predicate);
+        uk.ac.ox.cs.pdq.fol.Predicate pdqPredicateFromGraalPredicate = getPDQPredicateFromGraalPredicate(predicate, predicateRenaming);
 
         if (pdqPredicateFromGraalPredicate == null)
             return null;
@@ -182,7 +197,7 @@ public class DLGPIO implements ExecutionSteps {
 
     }
 
-    public static Collection<uk.ac.ox.cs.pdq.fol.Atom> getPDQAtomsFromGraalAtoms(Collection<Atom> atoms)
+    public static Collection<uk.ac.ox.cs.pdq.fol.Atom> getPDQAtomsFromGraalAtoms(Collection<Atom> atoms, Map<String, String> predicateRenaming)
             throws IteratorException {
 
         Collection<uk.ac.ox.cs.pdq.fol.Atom> pdqAtoms = new LinkedList<>();
@@ -190,7 +205,7 @@ public class DLGPIO implements ExecutionSteps {
         for (Atom atom : atoms) {
 
             uk.ac.ox.cs.pdq.fol.Atom pdqAtomFromGraalAtom = getPDQAtomFromGraalAtom(atom.getPredicate(),
-                    atom.getTerms());
+                                                                                    atom.getTerms(), predicateRenaming);
 
             if (pdqAtomFromGraalAtom != null)
                 pdqAtoms.add(pdqAtomFromGraalAtom);
@@ -201,13 +216,18 @@ public class DLGPIO implements ExecutionSteps {
 
     }
 
-    public static uk.ac.ox.cs.pdq.fol.Predicate getPDQPredicateFromGraalPredicate(Predicate predicate) {
+    public static uk.ac.ox.cs.pdq.fol.Predicate getPDQPredicateFromGraalPredicate(Predicate predicate, Map<String, String> predicateRenaming) {
 
         if (predicate.equals(Predicate.TOP) || predicate.equals(Predicate.BOTTOM)
                 || predicate.equals(Predicate.EQUALITY))
             return null;
 
-        return uk.ac.ox.cs.pdq.fol.Predicate.create(predicate.getIdentifier().toString(), predicate.getArity());
+        String name = predicate.getIdentifier().toString();
+
+        for (String replacement : predicateRenaming.keySet())
+            name = name.replaceFirst(predicateRenaming.get(replacement), replacement);
+
+        return uk.ac.ox.cs.pdq.fol.Predicate.create(name, predicate.getArity());
 
     }
 

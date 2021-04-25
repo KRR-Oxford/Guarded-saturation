@@ -34,14 +34,14 @@ public class OWLIO extends DLGPIO {
         if (query != null && !query.equals(""))
             queries.add(new SparqlConjunctiveQueryParser(Files.readString(Path.of(query))).getConjunctiveQuery());
 
-        return getPDQTGDsFromGraalRules(rules);
+        return getPDQTGDsFromGraalRules(rules, this.prefixes);
 
     }
 
     @Override
     public void writeData(String path) throws IOException {
 
-        Collection<uk.ac.ox.cs.pdq.fol.Atom> pdqAtoms = getPDQAtomsFromGraalAtomSets(atomSets);
+        Collection<uk.ac.ox.cs.pdq.fol.Atom> pdqAtoms = getPDQAtomsFromGraalAtomSets(atomSets, this.prefixes);
         System.out.println("# PDQ Atoms: " + pdqAtoms.size());
 
         IO.writeDatalogFacts(pdqAtoms, path);
