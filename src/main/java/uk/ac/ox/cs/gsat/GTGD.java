@@ -38,7 +38,7 @@ public class GTGD extends TGD {
                     currentGuard = atom;
 
         if (currentGuard == null)
-            throw new IllegalArgumentException("GTGD must be guarded!");
+            throw new IllegalArgumentException("GTGD must be guarded! But found " + this);
 
         return currentGuard;
 
