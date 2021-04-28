@@ -93,6 +93,12 @@ public class Logic {
         Term[] nterms = new Term[terms.length];
         for (int termIndex = 0; termIndex < nterms.length; ++termIndex) {
             Term term = terms[termIndex];
+
+            // if the term substitution is a function term,
+            // we need to also apply the substitution to the function term 
+            if (substitution.containsKey(term) && substitution.get(term) instanceof FunctionTerm)
+                term = substitution.get(term);
+
             if (term instanceof FunctionTerm)
                 nterms[termIndex] = FunctionTerm.create(((FunctionTerm) term).getFunction(), applySubstitution(((FunctionTerm) term).getTerms(), substitution));
             else if (substitution.containsKey(term))
