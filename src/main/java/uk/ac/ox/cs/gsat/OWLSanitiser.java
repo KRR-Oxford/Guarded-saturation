@@ -23,6 +23,7 @@ import org.semanticweb.owlapi.apibinding.OWLManager;
 import org.semanticweb.owlapi.formats.OWLXMLDocumentFormat;
 import org.semanticweb.owlapi.model.AxiomType;
 import org.semanticweb.owlapi.model.ClassExpressionType;
+import org.semanticweb.owlapi.model.DataRangeType;
 import org.semanticweb.owlapi.model.OWLAxiom;
 import org.semanticweb.owlapi.model.OWLClassExpression;
 import org.semanticweb.owlapi.model.OWLDataExactCardinality;
@@ -30,6 +31,7 @@ import org.semanticweb.owlapi.model.OWLDataFactory;
 import org.semanticweb.owlapi.model.OWLDataHasValue;
 import org.semanticweb.owlapi.model.OWLDataMaxCardinality;
 import org.semanticweb.owlapi.model.OWLDataPropertyExpression;
+import org.semanticweb.owlapi.model.OWLDataPropertyRangeAxiom;
 import org.semanticweb.owlapi.model.OWLDataRange;
 import org.semanticweb.owlapi.model.OWLDocumentFormat;
 import org.semanticweb.owlapi.model.OWLEquivalentClassesAxiom;
@@ -44,7 +46,9 @@ import org.semanticweb.owlapi.model.OWLObjectIntersectionOf;
 import org.semanticweb.owlapi.model.OWLObjectMaxCardinality;
 import org.semanticweb.owlapi.model.OWLObjectMinCardinality;
 import org.semanticweb.owlapi.model.OWLObjectOneOf;
+import org.semanticweb.owlapi.model.OWLObjectPropertyDomainAxiom;
 import org.semanticweb.owlapi.model.OWLObjectPropertyExpression;
+import org.semanticweb.owlapi.model.OWLObjectPropertyRangeAxiom;
 import org.semanticweb.owlapi.model.OWLObjectSomeValuesFrom;
 import org.semanticweb.owlapi.model.OWLObjectUnionOf;
 import org.semanticweb.owlapi.model.OWLOntology;
@@ -226,10 +230,29 @@ public class OWLSanitiser {
 
             OWLClassExpression head = headVisitor.getSimplication();
             for (OWLClassExpression body : bodyVisitor.getSimplications())
-                result.add(df.getOWLSubClassOfAxiom(body, head));
+                result.addAll(getSimplifySubClassAxiom(body, head, df));
 
         } else {
             result.add(a);
+        }
+
+        return result;
+    }
+
+    private static Collection<OWLAxiom> getSimplifySubClassAxiom(OWLClassExpression subClass, OWLClassExpression superClass, OWLDataFactory df) {
+        Collection<OWLAxiom> result = new ArrayList<>();
+        boolean hasAllValueFrom = false;
+
+        if (superClass.getClassExpressionType().equals(ClassExpressionType.OBJECT_INTERSECTION_OF)) {
+            for (OWLClassExpression c : ((OWLObjectIntersectionOf)superClass).getOperands())
+                hasAllValueFrom = hasAllValueFrom || c.getClassExpressionType().equals(ClassExpressionType.OBJECT_ALL_VALUES_FROM);
+        }
+
+        if (hasAllValueFrom) {
+            for (OWLClassExpression c : ((OWLObjectIntersectionOf)superClass).getOperands())
+                result.add(df.getOWLSubClassOfAxiom(subClass, c));
+        } else {
+            result.add(df.getOWLSubClassOfAxiom(subClass, superClass));
         }
 
         return result;
@@ -249,8 +272,15 @@ public class OWLSanitiser {
                 || a.getAxiomType() == AxiomType.OBJECT_PROPERTY_ASSERTION
                 || a.getAxiomType() == AxiomType.ANNOTATION_ASSERTION || a.getAxiomType() == AxiomType.DECLARATION
                 || a.getAxiomType() == AxiomType.DIFFERENT_INDIVIDUALS
+                || a.getAxiomType() == AxiomType.SAME_INDIVIDUAL
                 || (a.getAxiomType() == AxiomType.SUBCLASS_OF && (((OWLSubClassOfAxiom) a).getSubClass()
-                        .getClassExpressionType() == ClassExpressionType.OBJECT_ONE_OF));
+                        .getClassExpressionType() == ClassExpressionType.OBJECT_ONE_OF))
+                || (a.getAxiomType() == AxiomType.OBJECT_PROPERTY_RANGE && (((OWLObjectPropertyRangeAxiom) a).getRange()
+                        .getClassExpressionType() == ClassExpressionType.OBJECT_ONE_OF))
+                || (a.getAxiomType() == AxiomType.OBJECT_PROPERTY_DOMAIN && (((OWLObjectPropertyDomainAxiom) a).getDomain()
+                        .getClassExpressionType() == ClassExpressionType.OBJECT_ONE_OF))
+            || (a.getAxiomType() == AxiomType.DATA_PROPERTY_RANGE && (((OWLDataPropertyRangeAxiom) a).getRange()
+                                                                      .getDataRangeType() == DataRangeType.DATA_ONE_OF));
     }
 
     private static boolean isFunctionalAxiom(OWLAxiom a) {
