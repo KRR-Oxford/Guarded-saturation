@@ -173,7 +173,6 @@ public class OWLSanitiser {
             System.out.println("Final axioms: " + supportedAxioms.size());
             System.out.println("---------------------------------------------------------");
 
-
         } catch (OWLOntologyCreationException | OWLOntologyStorageException | FileNotFoundException e) {
             e.printStackTrace();
         }
@@ -228,31 +227,13 @@ public class OWLSanitiser {
             ((OWLSubClassOfAxiom) a).getSuperClass().accept(headVisitor);
             ((OWLSubClassOfAxiom) a).getSubClass().accept(bodyVisitor);
 
-            OWLClassExpression head = headVisitor.getSimplication();
+            Set<OWLClassExpression> simplifiedHeads = headVisitor.getSimplication();
             for (OWLClassExpression body : bodyVisitor.getSimplications())
-                result.addAll(getSimplifySubClassAxiom(body, head, df));
+                for (OWLClassExpression head : simplifiedHeads)
+                    result.add(df.getOWLSubClassOfAxiom(body, head));
 
         } else {
             result.add(a);
-        }
-
-        return result;
-    }
-
-    private static Collection<OWLAxiom> getSimplifySubClassAxiom(OWLClassExpression subClass, OWLClassExpression superClass, OWLDataFactory df) {
-        Collection<OWLAxiom> result = new ArrayList<>();
-        boolean hasAllValueFrom = false;
-
-        if (superClass.getClassExpressionType().equals(ClassExpressionType.OBJECT_INTERSECTION_OF)) {
-            for (OWLClassExpression c : ((OWLObjectIntersectionOf)superClass).getOperands())
-                hasAllValueFrom = hasAllValueFrom || c.getClassExpressionType().equals(ClassExpressionType.OBJECT_ALL_VALUES_FROM);
-        }
-
-        if (hasAllValueFrom) {
-            for (OWLClassExpression c : ((OWLObjectIntersectionOf)superClass).getOperands())
-                result.add(df.getOWLSubClassOfAxiom(subClass, c));
-        } else {
-            result.add(df.getOWLSubClassOfAxiom(subClass, superClass));
         }
 
         return result;
@@ -271,16 +252,15 @@ public class OWLSanitiser {
         return a.getAxiomType() == AxiomType.CLASS_ASSERTION || a.getAxiomType() == AxiomType.DATA_PROPERTY_ASSERTION
                 || a.getAxiomType() == AxiomType.OBJECT_PROPERTY_ASSERTION
                 || a.getAxiomType() == AxiomType.ANNOTATION_ASSERTION || a.getAxiomType() == AxiomType.DECLARATION
-                || a.getAxiomType() == AxiomType.DIFFERENT_INDIVIDUALS
-                || a.getAxiomType() == AxiomType.SAME_INDIVIDUAL
+                || a.getAxiomType() == AxiomType.DIFFERENT_INDIVIDUALS || a.getAxiomType() == AxiomType.SAME_INDIVIDUAL
                 || (a.getAxiomType() == AxiomType.SUBCLASS_OF && (((OWLSubClassOfAxiom) a).getSubClass()
                         .getClassExpressionType() == ClassExpressionType.OBJECT_ONE_OF))
                 || (a.getAxiomType() == AxiomType.OBJECT_PROPERTY_RANGE && (((OWLObjectPropertyRangeAxiom) a).getRange()
                         .getClassExpressionType() == ClassExpressionType.OBJECT_ONE_OF))
-                || (a.getAxiomType() == AxiomType.OBJECT_PROPERTY_DOMAIN && (((OWLObjectPropertyDomainAxiom) a).getDomain()
-                        .getClassExpressionType() == ClassExpressionType.OBJECT_ONE_OF))
-            || (a.getAxiomType() == AxiomType.DATA_PROPERTY_RANGE && (((OWLDataPropertyRangeAxiom) a).getRange()
-                                                                      .getDataRangeType() == DataRangeType.DATA_ONE_OF));
+                || (a.getAxiomType() == AxiomType.OBJECT_PROPERTY_DOMAIN && (((OWLObjectPropertyDomainAxiom) a)
+                        .getDomain().getClassExpressionType() == ClassExpressionType.OBJECT_ONE_OF))
+                || (a.getAxiomType() == AxiomType.DATA_PROPERTY_RANGE && (((OWLDataPropertyRangeAxiom) a).getRange()
+                        .getDataRangeType() == DataRangeType.DATA_ONE_OF));
     }
 
     private static boolean isFunctionalAxiom(OWLAxiom a) {
@@ -430,28 +410,6 @@ public class OWLSanitiser {
             return simplifiedOperandsList;
         }
 
-        private List<List<OWLClassExpression>> getProduct(List<List<OWLClassExpression>> simplifiedOperandsList) {
-            List<List<OWLClassExpression>> resultLists = new ArrayList<>();
-            if (simplifiedOperandsList.size() == 0) {
-                resultLists.add(new ArrayList<OWLClassExpression>());
-                return resultLists;
-            } else {
-                List<OWLClassExpression> firstList = simplifiedOperandsList.get(0);
-                List<List<OWLClassExpression>> remainingLists = getProduct(
-                        simplifiedOperandsList.subList(1, simplifiedOperandsList.size()));
-                for (OWLClassExpression condition : firstList) {
-                    for (List<OWLClassExpression> remainingList : remainingLists) {
-                        ArrayList<OWLClassExpression> resultList = new ArrayList<OWLClassExpression>(
-                                1 + remainingList.size());
-                        resultList.add(condition);
-                        resultList.addAll(remainingList);
-                        resultLists.add(resultList);
-                    }
-                }
-            }
-            return resultLists;
-        }
-
         @Override
         public void visit(OWLObjectAllValuesFrom ce) {
             OWLClassExpression f = ce.getFiller();
@@ -496,7 +454,7 @@ public class OWLSanitiser {
 
     private static class SimplifySuperclassVisitor extends OWLClassExpressionVisitorAdapter {
 
-        private final LinkedList<OWLClassExpression> simplifiedClasses = new LinkedList<>();
+        private final LinkedList<Set<OWLClassExpression>> simplifiedClasses = new LinkedList<>();
         private final OWLDataFactory df;
         private final boolean simplifyForKaon2;
 
@@ -505,13 +463,15 @@ public class OWLSanitiser {
             this.simplifyForKaon2 = simplifyForKaon2;
         }
 
-        public OWLClassExpression getSimplication() {
-            return simplifiedClasses.pop();
+        public Set<OWLClassExpression> getSimplication() {
+            Set<OWLClassExpression> result = simplifiedClasses.pop();
+
+            return result;
         }
 
         @Override
         protected void handleDefault(OWLClassExpression c) {
-            this.simplifiedClasses.push(c);
+            this.simplifiedClasses.push(Set.of(c));
         }
 
         @Override
@@ -519,66 +479,98 @@ public class OWLSanitiser {
             OWLPropertyExpression p = ce.getProperty();
 
             if (ce.getCardinality() == 0) {
-                simplifiedClasses.push(ce);
+                simplifiedClasses.push(Set.of(ce));
                 return;
             }
 
             OWLClassExpression f = ce.getFiller();
             f.accept(this);
-            simplifiedClasses
-                    .push(df.getOWLObjectSomeValuesFrom((OWLObjectPropertyExpression) p, this.getSimplication()));
+            Set<OWLClassExpression> result = new HashSet<>();
+            for (OWLClassExpression c : this.getSimplication())
+                result.add(df.getOWLObjectSomeValuesFrom((OWLObjectPropertyExpression) p, c));
+
+            simplifiedClasses.push(result);
         }
 
         @Override
         public void visit(OWLDataExactCardinality ce) {
             if (ce.getCardinality() == 0) {
-                simplifiedClasses.push(ce);
+                simplifiedClasses.push(Set.of(ce));
                 return;
             }
 
             OWLDataRange f = ce.getFiller();
-            simplifiedClasses.push(df.getOWLDataSomeValuesFrom((OWLDataPropertyExpression) ce.getProperty(), f));
+
+            simplifiedClasses
+                    .push(Set.of(df.getOWLDataSomeValuesFrom((OWLDataPropertyExpression) ce.getProperty(), f)));
         }
 
         @Override
         public void visit(OWLObjectComplementOf ce) {
-            simplifiedClasses.push(df.getOWLThing());
+            simplifiedClasses.push(Set.of(df.getOWLThing()));
         }
 
         @Override
         public void visit(OWLObjectMaxCardinality ce) {
             if (ce.getCardinality() > 0) {
-                simplifiedClasses.push(df.getOWLThing());
+                simplifiedClasses.push(Set.of(df.getOWLThing()));
             } else {
-                simplifiedClasses.push(df.getOWLNothing());
+                simplifiedClasses.push(Set.of(df.getOWLNothing()));
             }
         }
 
         @Override
         public void visit(OWLDataMaxCardinality ce) {
             if (ce.getCardinality() > 0) {
-                simplifiedClasses.push(df.getOWLThing());
+                simplifiedClasses.push(Set.of(df.getOWLThing()));
             } else {
-                simplifiedClasses.push(df.getOWLNothing());
+                simplifiedClasses.push(Set.of(df.getOWLNothing()));
             }
         }
 
         @Override
         public void visit(OWLObjectIntersectionOf ce) {
-            HashSet<OWLClassExpression> simplifiedOperands = new HashSet<>();
+            // we need to put allvaluefrom class expression out of intersection
+            // because they will be the source of multiple TGDs as a superclass 
+            List<List<OWLClassExpression>> simplifiedOperandList = new ArrayList<>();
+            List<OWLClassExpression> allValuesFrom = new ArrayList<>();
             for (OWLClassExpression c : ce.getOperands()) {
                 c.accept(this);
-                simplifiedOperands.add(this.getSimplication());
+                List<OWLClassExpression> simplifiedOperands = new ArrayList<>();
+                for (OWLClassExpression sc : this.getSimplication()) {
+                    if (sc.getClassExpressionType().equals(ClassExpressionType.OBJECT_ALL_VALUES_FROM)) {
+                        allValuesFrom.add(sc);
+                    } else
+                        simplifiedOperands.add(sc);
+
+                    if (!simplifiedOperands.isEmpty())
+                        simplifiedOperandList.add(simplifiedOperands);
+                }
             }
 
-            simplifiedClasses.push(df.getOWLObjectIntersectionOf(simplifiedOperands));
+            Set<OWLClassExpression> result = new HashSet<>();
+            for (List<OWLClassExpression> ops : getProduct(simplifiedOperandList))
+                if (ops.size() == 1)
+                    result.add(ops.get(0));
+                else
+                    result.add(df.getOWLObjectIntersectionOf(new HashSet<>(ops)));
+
+            for (OWLClassExpression c : allValuesFrom)
+                result.add(c);
+
+            simplifiedClasses.push(result);
         }
 
         @Override
         public void visit(OWLObjectAllValuesFrom ce) {
             OWLClassExpression f = ce.getFiller();
             f.accept(this);
-            simplifiedClasses.push(df.getOWLObjectAllValuesFrom(ce.getProperty(), this.getSimplication()));
+
+            Set<OWLClassExpression> result = new HashSet<>();
+            for (OWLClassExpression c : this.getSimplication())
+                result.add(df.getOWLObjectAllValuesFrom(ce.getProperty(), c));
+
+            simplifiedClasses.push(result);
         }
 
         @Override
@@ -586,42 +578,73 @@ public class OWLSanitiser {
             OWLClassExpression f = ce.getFiller();
             f.accept(this);
 
-            simplifiedClasses.push(df.getOWLObjectSomeValuesFrom(ce.getProperty(), this.getSimplication()));
+            Set<OWLClassExpression> result = new HashSet<>();
+            for (OWLClassExpression c : this.getSimplication())
+                result.add(df.getOWLObjectSomeValuesFrom(ce.getProperty(), c));
+
+            simplifiedClasses.push(result);
         }
 
         @Override
         public void visit(OWLObjectMinCardinality ce) {
             OWLClassExpression f = ce.getFiller();
             f.accept(this);
-            if (ce.getCardinality() > 0)
-                simplifiedClasses.push(df.getOWLObjectSomeValuesFrom(ce.getProperty(), this.getSimplication()));
-            else
-                simplifiedClasses.push(df.getOWLThing());
+            if (ce.getCardinality() > 0) {
+                Set<OWLClassExpression> result = new HashSet<>();
+                for (OWLClassExpression c : this.getSimplication())
+                    result.add(df.getOWLObjectSomeValuesFrom(ce.getProperty(), c));
+
+                simplifiedClasses.push(result);
+            } else
+                simplifiedClasses.push(Set.of(df.getOWLThing()));
         }
 
         @Override
         public void visit(OWLObjectHasValue ce) {
             if (simplifyForKaon2)
-                simplifiedClasses.push(df.getOWLThing());
+                simplifiedClasses.push(Set.of(df.getOWLThing()));
             else
-                simplifiedClasses.push(ce);
+                simplifiedClasses.push(Set.of(ce));
         }
 
         @Override
         public void visit(OWLDataHasValue ce) {
             if (simplifyForKaon2)
-                simplifiedClasses.push(df.getOWLThing());
+                simplifiedClasses.push(Set.of(df.getOWLThing()));
             else
-                simplifiedClasses.push(ce);
+                simplifiedClasses.push(Set.of(ce));
         }
 
         @Override
         public void visit(OWLObjectOneOf ce) {
             if (simplifyForKaon2)
-                simplifiedClasses.push(df.getOWLThing());
+                simplifiedClasses.push(Set.of(df.getOWLThing()));
             else
-                simplifiedClasses.push(ce);
+                simplifiedClasses.push(Set.of(ce));
         }
 
     }
+
+    private static List<List<OWLClassExpression>> getProduct(List<List<OWLClassExpression>> simplifiedOperandsList) {
+        List<List<OWLClassExpression>> resultLists = new ArrayList<>();
+        if (simplifiedOperandsList.size() == 0) {
+            resultLists.add(new ArrayList<OWLClassExpression>());
+            return resultLists;
+        } else {
+            List<OWLClassExpression> firstList = simplifiedOperandsList.get(0);
+            List<List<OWLClassExpression>> remainingLists = getProduct(
+                    simplifiedOperandsList.subList(1, simplifiedOperandsList.size()));
+            for (OWLClassExpression condition : firstList) {
+                for (List<OWLClassExpression> remainingList : remainingLists) {
+                    ArrayList<OWLClassExpression> resultList = new ArrayList<OWLClassExpression>(
+                            1 + remainingList.size());
+                    resultList.add(condition);
+                    resultList.addAll(remainingList);
+                    resultLists.add(resultList);
+                }
+            }
+        }
+        return resultLists;
+    }
+
 }
