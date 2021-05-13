@@ -18,7 +18,7 @@ import uk.ac.ox.cs.pdq.fol.Term;
  * single head Skolemized TGDs.
  * 
  * The evolve function takes as inputs: 
- * - left: a TGD having an head atom with a function term 
+ * - left: a TGD having an head atom with a function term and a body without any
  * - right: any TGD is either full or contains at least one function term in its body
  */
 
@@ -130,7 +130,7 @@ public class SkolemizedSat extends EvolveBasedSat {
 
     @Override
     protected boolean isLeftTGD(GTGD newTGD) {
-        return isFunctional(newTGD.getHeadAtoms());
+        return isFunctional(newTGD.getHeadAtoms()) && !isFunctional(newTGD.getBodyAtoms());
     }
 
     private boolean isFullTGD(GTGD tgd) {
