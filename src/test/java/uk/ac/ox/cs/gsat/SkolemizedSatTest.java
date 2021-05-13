@@ -102,6 +102,38 @@ public class SkolemizedSatTest {
         assertEquals(result, expected);
     }
 
+    @Test
+    public void twoAtomsUnifiedTest() {
+
+        SkolemizedSat sksat = SkolemizedSat.getInstance();
+
+        /**
+         * input TGDs :
+         * - A(x1) -> ∃ x2 R(x1, x2) , U(x2)
+         * - R(x1, x2), U(x2) -> P(x1)
+         */
+        GTGD nonFull = new GTGD(Set.of(Ax1), Set.of(Rx1x2, Ux2));
+        GTGD full1 = new GTGD(Set.of(Rx1x2, Ux2), Set.of(Px1));
+
+        Collection<Dependency> input = new ArrayList<>();
+        input.add(nonFull);
+        input.add(full1);
+
+        /**
+         * expected output TGDs
+         * - the VNF of the input full TGDs
+         * - the VNF of A(x1) -> P(x1)
+         */
+        HashSet<TGD> expected = new HashSet<TGD>();
+        expected.add(EvolveBasedSat.FACTORY.computeVNF(full1, sksat.eVariable, sksat.uVariable));
+        expected.add(EvolveBasedSat.FACTORY.computeVNF(new GTGD(Set.of(Ax1), Set.of(Px1)), sksat.eVariable,
+                sksat.uVariable));
+
+        Collection<GTGD> result = sksat.run(input);
+
+        assertTrue(result.containsAll(expected));
+    }
+
     /**
      * Inspired by the example 1 of GSatTest by transforming 
      * the input TGDs into single head TGDs
