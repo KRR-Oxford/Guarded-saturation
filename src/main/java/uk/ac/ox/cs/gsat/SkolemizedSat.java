@@ -41,9 +41,9 @@ public class SkolemizedSat extends EvolveBasedSat {
 
         for(GTGD tgd : inputTGDs)
             for (GTGD shnf : FACTORY.computeSHNF(tgd)) {
-                GTGD currentGTGD = FACTORY.computeSkolemized(shnf);
-                result.add(FACTORY.computeVNF(currentGTGD, eVariable, uVariable));
+                result.add(FACTORY.computeVNF(shnf, eVariable, uVariable));
             }
+
         return result;
     }
 
