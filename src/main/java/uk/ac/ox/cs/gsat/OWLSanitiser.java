@@ -24,6 +24,7 @@ import org.semanticweb.owlapi.formats.OWLXMLDocumentFormat;
 import org.semanticweb.owlapi.model.AxiomType;
 import org.semanticweb.owlapi.model.ClassExpressionType;
 import org.semanticweb.owlapi.model.DataRangeType;
+import org.semanticweb.owlapi.model.OWLAnnotationPropertyDomainAxiom;
 import org.semanticweb.owlapi.model.OWLAxiom;
 import org.semanticweb.owlapi.model.OWLClassExpression;
 import org.semanticweb.owlapi.model.OWLDataExactCardinality;
@@ -57,6 +58,7 @@ import org.semanticweb.owlapi.model.OWLOntologyManager;
 import org.semanticweb.owlapi.model.OWLOntologyStorageException;
 import org.semanticweb.owlapi.model.OWLPropertyExpression;
 import org.semanticweb.owlapi.model.OWLSubClassOfAxiom;
+import org.semanticweb.owlapi.model.OWLSubPropertyChainOfAxiom;
 import org.semanticweb.owlapi.util.OWLClassExpressionVisitorAdapter;
 
 import fr.lirmm.graphik.graal.api.core.NegativeConstraint;
@@ -158,6 +160,12 @@ public class OWLSanitiser {
                 }
             }
 
+            // System.out.println("\n---------------------------------------------------------");
+            // System.out.println("\nAxiom");
+            // for (OWLAxiom a : simplifiedAxioms)
+            // System.out.println(a);
+            // System.out.println("\n---------------------------------------------------------");
+
             supportedAxioms.addAll(simplifiedAxioms.stream().filter(a -> !isFactRelated(a) && isSupported(a))
                     .collect(Collectors.toSet()));
 
@@ -190,7 +198,16 @@ public class OWLSanitiser {
             boolean simplifyForKaon2) {
         Collection<OWLAxiom> result = new ArrayList<>();
 
-        if (a.getAxiomType() == AxiomType.EQUIVALENT_CLASSES) {
+        if (a.isAnnotated()) {
+            result.addAll(simplifyAxiom(a.getAxiomWithoutAnnotations(), df, simplifyForKaon2));
+        } else if (a.getAxiomType() == AxiomType.SUB_PROPERTY_CHAIN_OF
+                && ((OWLSubPropertyChainOfAxiom) a).getPropertyChain().size() == 1) {
+            OWLSubPropertyChainOfAxiom axiom = (OWLSubPropertyChainOfAxiom) a;
+            result.addAll(simplifyAxiom(
+                    df.getOWLSubObjectPropertyOfAxiom(axiom.getPropertyChain().get(0), axiom.getSuperProperty()), df,
+                    simplifyForKaon2));
+
+        } else if (a.getAxiomType() == AxiomType.EQUIVALENT_CLASSES) {
             Set<OWLClassExpression> classes = ((OWLEquivalentClassesAxiom) a).getClassExpressions();
 
             for (OWLClassExpression c1 : classes) {
@@ -227,7 +244,7 @@ public class OWLSanitiser {
             ((OWLSubClassOfAxiom) a).getSuperClass().accept(headVisitor);
             ((OWLSubClassOfAxiom) a).getSubClass().accept(bodyVisitor);
 
-            Set<OWLClassExpression> simplifiedHeads = headVisitor.getSimplication();
+            Set<OWLClassExpression> simplifiedHeads = headVisitor.getSimplications();
             for (OWLClassExpression body : bodyVisitor.getSimplications())
                 for (OWLClassExpression head : simplifiedHeads)
                     result.add(df.getOWLSubClassOfAxiom(body, head));
@@ -240,7 +257,15 @@ public class OWLSanitiser {
     }
 
     private static boolean isDescription(OWLAxiom a) {
-        return a.getAxiomType() == AxiomType.DISJOINT_CLASSES;
+        return a.getAxiomType() == AxiomType.DISJOINT_CLASSES
+                || a.getAxiomType() == AxiomType.DISJOINT_OBJECT_PROPERTIES
+                || a.getAxiomType() == AxiomType.DISJOINT_DATA_PROPERTIES;
+    }
+
+    private static boolean isAnnotatedAxiom(OWLAxiom a) {
+        return a.isAnnotationAxiom() || a.isAnnotated() || a.getAxiomType() == AxiomType.ANNOTATION_ASSERTION
+                || a.getAxiomType() == AxiomType.ANNOTATION_PROPERTY_DOMAIN
+                || a.getAxiomType() == AxiomType.ANNOTATION_PROPERTY_RANGE;
     }
 
     private static boolean isTrivialAxiom(OWLAxiom a) {
@@ -369,24 +394,10 @@ public class OWLSanitiser {
         return false;
     }
 
-    private static class RemoveUnionFromSubclassVisitor extends OWLClassExpressionVisitorAdapter {
-
-        private final LinkedList<Set<OWLClassExpression>> simplifiedClasses = new LinkedList<>();
-        private final OWLDataFactory df;
-        private final boolean simplifyForKaon2;
+    private static class RemoveUnionFromSubclassVisitor extends KAON2SimplifyClassVisitor {
 
         public RemoveUnionFromSubclassVisitor(OWLDataFactory df, boolean simplifyForKaon2) {
-            this.df = df;
-            this.simplifyForKaon2 = simplifyForKaon2;
-        }
-
-        public Set<OWLClassExpression> getSimplications() {
-            return simplifiedClasses.pop();
-        }
-
-        @Override
-        protected void handleDefault(OWLClassExpression c) {
-            this.simplifiedClasses.push(Set.of(c));
+            super(df, simplifyForKaon2);
         }
 
         @Override
@@ -411,28 +422,6 @@ public class OWLSanitiser {
         }
 
         @Override
-        public void visit(OWLObjectAllValuesFrom ce) {
-            OWLClassExpression f = ce.getFiller();
-            f.accept(this);
-
-            Set<OWLClassExpression> result = new HashSet<>();
-            for (OWLClassExpression sf : this.getSimplications())
-                result.add(df.getOWLObjectAllValuesFrom(ce.getProperty(), sf));
-            simplifiedClasses.push(result);
-        }
-
-        @Override
-        public void visit(OWLObjectSomeValuesFrom ce) {
-            OWLClassExpression f = ce.getFiller();
-            f.accept(this);
-
-            Set<OWLClassExpression> result = new HashSet<>();
-            for (OWLClassExpression sf : this.getSimplications())
-                result.add(df.getOWLObjectSomeValuesFrom(ce.getProperty(), sf));
-            simplifiedClasses.push(result);
-        }
-
-        @Override
         public void visit(OWLObjectUnionOf ce) {
             List<List<OWLClassExpression>> simplifiedOperandsList = computeSimplifiedOperands(ce);
 
@@ -443,35 +432,12 @@ public class OWLSanitiser {
             simplifiedClasses.push(result);
         }
 
-        @Override
-        public void visit(OWLObjectOneOf ce) {
-            if (simplifyForKaon2)
-                simplifiedClasses.push(Set.of(df.getOWLThing()));
-            else
-                simplifiedClasses.push(Set.of(ce));
-        }
     }
 
-    private static class SimplifySuperclassVisitor extends OWLClassExpressionVisitorAdapter {
-
-        private final LinkedList<Set<OWLClassExpression>> simplifiedClasses = new LinkedList<>();
-        private final OWLDataFactory df;
-        private final boolean simplifyForKaon2;
+    private static class SimplifySuperclassVisitor extends KAON2SimplifyClassVisitor {
 
         public SimplifySuperclassVisitor(OWLDataFactory df, boolean simplifyForKaon2) {
-            this.df = df;
-            this.simplifyForKaon2 = simplifyForKaon2;
-        }
-
-        public Set<OWLClassExpression> getSimplication() {
-            Set<OWLClassExpression> result = simplifiedClasses.pop();
-
-            return result;
-        }
-
-        @Override
-        protected void handleDefault(OWLClassExpression c) {
-            this.simplifiedClasses.push(Set.of(c));
+            super(df, simplifyForKaon2);
         }
 
         @Override
@@ -486,7 +452,7 @@ public class OWLSanitiser {
             OWLClassExpression f = ce.getFiller();
             f.accept(this);
             Set<OWLClassExpression> result = new HashSet<>();
-            for (OWLClassExpression c : this.getSimplication())
+            for (OWLClassExpression c : this.getSimplications())
                 result.add(df.getOWLObjectSomeValuesFrom((OWLObjectPropertyExpression) p, c));
 
             simplifiedClasses.push(result);
@@ -531,13 +497,13 @@ public class OWLSanitiser {
         @Override
         public void visit(OWLObjectIntersectionOf ce) {
             // we need to put allvaluefrom class expression out of intersection
-            // because they will be the source of multiple TGDs as a superclass 
+            // because they will be the source of multiple TGDs as a superclass
             List<List<OWLClassExpression>> simplifiedOperandList = new ArrayList<>();
             List<OWLClassExpression> allValuesFrom = new ArrayList<>();
             for (OWLClassExpression c : ce.getOperands()) {
                 c.accept(this);
                 List<OWLClassExpression> simplifiedOperands = new ArrayList<>();
-                for (OWLClassExpression sc : this.getSimplication()) {
+                for (OWLClassExpression sc : this.getSimplications()) {
                     if (sc.getClassExpressionType().equals(ClassExpressionType.OBJECT_ALL_VALUES_FROM)) {
                         allValuesFrom.add(sc);
                     } else
@@ -562,15 +528,38 @@ public class OWLSanitiser {
         }
 
         @Override
-        public void visit(OWLObjectAllValuesFrom ce) {
+        public void visit(OWLObjectMinCardinality ce) {
             OWLClassExpression f = ce.getFiller();
             f.accept(this);
+            if (ce.getCardinality() > 0) {
+                Set<OWLClassExpression> result = new HashSet<>();
+                for (OWLClassExpression c : this.getSimplications())
+                    result.add(df.getOWLObjectSomeValuesFrom(ce.getProperty(), c));
 
-            Set<OWLClassExpression> result = new HashSet<>();
-            for (OWLClassExpression c : this.getSimplication())
-                result.add(df.getOWLObjectAllValuesFrom(ce.getProperty(), c));
+                simplifiedClasses.push(result);
+            } else
+                simplifiedClasses.push(Set.of(df.getOWLThing()));
+        }
 
-            simplifiedClasses.push(result);
+    }
+
+    private static class KAON2SimplifyClassVisitor extends OWLClassExpressionVisitorAdapter {
+        protected final LinkedList<Set<OWLClassExpression>> simplifiedClasses = new LinkedList<>();
+        protected final OWLDataFactory df;
+        protected final boolean simplifyForKaon2;
+
+        public KAON2SimplifyClassVisitor(OWLDataFactory df, boolean simplifyForKaon2) {
+            this.df = df;
+            this.simplifyForKaon2 = simplifyForKaon2;
+        }
+
+        @Override
+        protected void handleDefault(OWLClassExpression c) {
+            this.simplifiedClasses.push(Set.of(c));
+        }
+
+        public Set<OWLClassExpression> getSimplications() {
+            return simplifiedClasses.pop();
         }
 
         @Override
@@ -579,30 +568,16 @@ public class OWLSanitiser {
             f.accept(this);
 
             Set<OWLClassExpression> result = new HashSet<>();
-            for (OWLClassExpression c : this.getSimplication())
-                result.add(df.getOWLObjectSomeValuesFrom(ce.getProperty(), c));
-
+            for (OWLClassExpression sf : this.getSimplications())
+                result.add(df.getOWLObjectSomeValuesFrom(ce.getProperty(), sf));
             simplifiedClasses.push(result);
         }
 
         @Override
-        public void visit(OWLObjectMinCardinality ce) {
-            OWLClassExpression f = ce.getFiller();
-            f.accept(this);
-            if (ce.getCardinality() > 0) {
-                Set<OWLClassExpression> result = new HashSet<>();
-                for (OWLClassExpression c : this.getSimplication())
-                    result.add(df.getOWLObjectSomeValuesFrom(ce.getProperty(), c));
-
-                simplifiedClasses.push(result);
-            } else
-                simplifiedClasses.push(Set.of(df.getOWLThing()));
-        }
-
-        @Override
         public void visit(OWLObjectHasValue ce) {
+
             if (simplifyForKaon2)
-                simplifiedClasses.push(Set.of(df.getOWLThing()));
+                simplifiedClasses.push(Set.of(df.getOWLObjectSomeValuesFrom(ce.getProperty(), df.getOWLThing())));
             else
                 simplifiedClasses.push(Set.of(ce));
         }
@@ -621,6 +596,18 @@ public class OWLSanitiser {
                 simplifiedClasses.push(Set.of(df.getOWLThing()));
             else
                 simplifiedClasses.push(Set.of(ce));
+        }
+
+        @Override
+        public void visit(OWLObjectAllValuesFrom ce) {
+            OWLClassExpression f = ce.getFiller();
+            f.accept(this);
+
+            Set<OWLClassExpression> result = new HashSet<>();
+            for (OWLClassExpression c : this.getSimplications())
+                result.add(df.getOWLObjectAllValuesFrom(ce.getProperty(), c));
+
+            simplifiedClasses.push(result);
         }
 
     }
