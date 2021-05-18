@@ -193,7 +193,7 @@ public class TGDFactory<Q extends TGD> {
 
         Set<Variable> frontierVariables = new HashSet<>();
 
-        for(Atom a : tgd.getAtoms())
+        for(Atom a : tgd.getHeadAtoms())
             for (Variable v : a.getVariables())
                 if (!eVariables.contains(v))
                     frontierVariables.add(v);
@@ -216,12 +216,25 @@ public class TGDFactory<Q extends TGD> {
     }
 
     /**
-     * compute the SHNF of a TGD
+     * compute the SHNF optimized for TGD 
      * @param tgd
      */
     public Collection<Q> computeSHNF(Q tgd) {
 
-        if (tgd.getHeadAtoms().length == 1)
+        if (tgd.getHeadAtoms().length <= 1)
+            return List.of(computeSkolemized(tgd));
+
+        Collection<Q> result = new ArrayList<>();
+        Q skolemizedTGD = computeSkolemized(tgd);
+        // for all the head atom we add to the result a single head TGD
+        for (Atom headAtom : skolemizedTGD.getHeadAtoms())
+            result.add(constructor.create(skolemizedTGD.getBodySet(), Set.of(headAtom)));
+
+        return result;
+    }
+    public Collection<Q> computeSHNFForDisjonctiveTGD(Q tgd) {
+
+        if (tgd.getHeadAtoms().length <= 1)
             return List.of(tgd);
 
         Collection<Q> result = new ArrayList<>();
