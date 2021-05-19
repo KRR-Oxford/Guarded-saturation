@@ -20,7 +20,8 @@ import uk.ac.ox.cs.pdq.fol.Variable;
 public class SimpleSat {
 
     private static TGDFactory<TGD> FACTORY = TGDFactory.getTGDInstance();
-
+    private final Long TIME_OUT = Configuration.getTimeout();
+    
     // New variable name for Universally Quantified Variables
     public String uVariable = "GSat_u";
     // New variable name for Existentially Quantified Variables
@@ -50,6 +51,7 @@ public class SimpleSat {
     public Collection<TGD> run(Collection<Dependency> allDependencies) {
 
         final long startTime = System.nanoTime();
+        boolean timeoutReached = false;
         int discarded = 0;
 
         Collection<TGD> selectedTGDs = new HashSet<>();
@@ -89,24 +91,32 @@ public class SimpleSat {
         App.logger.info("# initial TGDs: " + fullTGDs.size() + " , " + nonfullTGDs.size());
         App.logger.info("Simple Sat width : " + width);
 
+        // copying the initial full TGD set for later comparison
+        Collection<TGD> inputFullTGD = new HashSet<>(fullTGDs);
+
         Collection<TGD> resultingFullTDGs = new ArrayList<>(filterFullTGDByBodyPredicate(fullTGDs, nfTGDHeadPredicate));
         int newFullCount = 0;
         int step = 1;
         do {
 
+            if (isTimeout(startTime)) {
+                timeoutReached = true;
+                break;
+            }
+
             List<TGD> currentFullTDGs = new ArrayList<>(resultingFullTDGs);
 
             resultingFullTDGs.clear();
             int res = resultingFullTDGs.size();
-            resultingFullTDGs.addAll(applyComposition(fullTGDs, fullTGDSubsumer, currentFullTDGs, width, true));
-            resultingFullTDGs.addAll(applyComposition(fullTGDs, fullTGDSubsumer, currentFullTDGs, width, false));
+            resultingFullTDGs.addAll(applyComposition(fullTGDs, fullTGDSubsumer, currentFullTDGs, width, true, startTime));
+            resultingFullTDGs.addAll(applyComposition(fullTGDs, fullTGDSubsumer, currentFullTDGs, width, false, startTime));
 
             // filter the composition results 
             resultingFullTDGs = filterFullTGDByBodyPredicate(resultingFullTDGs, nfTGDHeadPredicate);
             res = resultingFullTDGs.size() - res;
             App.logger.fine("step " + step + " COMPOSITION results " + res);
 
-            resultingFullTDGs.addAll(applyOriginal(nonfullTGDs, fullTGDs, fullTGDSubsumer));
+            resultingFullTDGs.addAll(applyOriginal(nonfullTGDs, fullTGDs, fullTGDSubsumer, startTime));
             res = resultingFullTDGs.size() -res;
 			App.logger.fine("step "+ step +" ORIGINAL results " + res);
 
@@ -127,6 +137,13 @@ public class SimpleSat {
                 + (fullTGDSubsumer.getFilterDiscarded() + fullTGDSubsumer.getFilterDiscarded()));
         App.logger.info("Derived full/non full TGDs: " + newFullCount + " , " + 0);
 
+        Collection<TGD> outputCopy = new ArrayList<>(fullTGDs);
+        outputCopy.removeAll(inputFullTGD);
+        App.logger.info("ouptput full TGDs not contained in the input: " + outputCopy.size());
+
+        if (timeoutReached)
+            App.logger.info("!!! TIME OUT !!!");
+        
         return fullTGDs;
     }
 
@@ -162,11 +179,14 @@ public class SimpleSat {
      * @param fullTGDSubsumer
      * @return all the ORIGINAL compositions between a collection of non full TGDs and a collection of full TGDs
      */    
-    private Collection<TGD> applyOriginal(Collection<TGD> nonfullTGDs, Collection<TGD> fullTGDs, Subsumer<TGD> fullTGDSubsumer) {
+    private Collection<TGD> applyOriginal(Collection<TGD> nonfullTGDs, Collection<TGD> fullTGDs, Subsumer<TGD> fullTGDSubsumer, long startTime) {
         Collection<TGD> resultingFullTGDs = new ArrayList<>();
         Collection<TGD> fullTGDsCopy = new ArrayList<>(fullTGDs);
 
         for (TGD nftgd : nonfullTGDs) {
+            if (isTimeout(startTime))
+                break;
+
             for (TGD ftgd : fullTGDsCopy) {
                 for (TGD o : originalNew(nftgd, ftgd)) {
                     if (!fullTGDSubsumer.subsumed(o)) {
@@ -330,13 +350,16 @@ public class SimpleSat {
      *         with respect to the width except if they are subsumed 
      *         or the other way around, if reversed is true
      */	
-	public Collection<TGD> applyComposition(Collection<TGD> fullTGDs, Subsumer<TGD> fullTGDSubsumer, Collection<TGD> otherFullTGDs, int width, boolean reversed) {
+	public Collection<TGD> applyComposition(Collection<TGD> fullTGDs, Subsumer<TGD> fullTGDSubsumer, Collection<TGD> otherFullTGDs, int width, boolean reversed, long startTime) {
 		Collection<TGD> resultingFullTGDs = new ArrayList<>();
         Collection<TGD> s1 = (!reversed) ? new ArrayList<>(fullTGDs): otherFullTGDs;
         Collection<TGD> s2 = (!reversed) ? otherFullTGDs : new ArrayList<>(fullTGDs);
 
 	    for (TGD t1bis : s1) {
 	        TGD t1 = renameTgd(t1bis);
+            if (isTimeout(startTime))
+                break;
+
 	        for (TGD t2 : s2) {
                 boolean subsumed = false;
                 for (TGD o : compose(t1, t2, width)) {
@@ -501,4 +524,12 @@ public class SimpleSat {
 
     }
 
+    private boolean isTimeout(long startTime) {
+        // from seconds to nano seconds
+        Long timeout = (TIME_OUT != null) ? (long) (1000 * 1000 * 1000 * TIME_OUT) : null;
+
+        if (timeout != null && timeout < (System.nanoTime() - startTime))
+            return true;
+        return false;
+    }
 }
