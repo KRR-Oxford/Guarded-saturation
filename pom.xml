@@ -58,8 +58,6 @@
       <groupId>org.semanticweb.kaon2</groupId>
       <artifactId>kaon2</artifactId>
       <version>2008-06-29</version>
-      <scope>system</scope>
-      <systemPath>${project.basedir}/src/main/resources/kaon2.jar</systemPath>
     </dependency>
   </dependencies>
   <build>
