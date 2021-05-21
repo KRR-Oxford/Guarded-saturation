@@ -66,6 +66,7 @@ public class App {
 				printHelp("No arguments provided");
 
 		} catch (Throwable t) {
+			t.printStackTrace(System.err);
 			System.err.println("Unknown error. The system will now terminate.");
 			logger.severe(t.getLocalizedMessage());
 			System.exit(1);
