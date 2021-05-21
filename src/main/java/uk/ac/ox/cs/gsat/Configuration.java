@@ -5,6 +5,8 @@ import java.io.FileInputStream;
 import java.io.IOException;
 import java.util.Properties;
 
+import uk.ac.ox.cs.gsat.EvolveBasedSat.newTGDStructure;
+
 /**
  * From Angry-HEX code
  */
@@ -12,6 +14,15 @@ public class Configuration {
 
     private static final String file = "config.properties";
     private static Properties prop = null;
+	private static boolean isSaturationOnly;
+	private static boolean debugMode;
+	private static boolean sortedVNF;
+	private static boolean simpleSatPredicateFilter;
+	private static Long timeout;
+	private static boolean negativeConstraint;
+	private static uk.ac.ox.cs.gsat.EvolveBasedSat.newTGDStructure newTGDStructure;
+	private static boolean stopEvolvingIfSubsumed;
+	private static boolean evolvingTGDOrdering;
 
     public static String getSolverName() {
 
@@ -84,7 +95,7 @@ public class Configuration {
         Configuration.initialize();
 
         if (Configuration.prop == null)
-            return "simple";
+            return "tree_predicate";
 
         return Configuration.prop.getProperty("subsumption_method");
 
@@ -111,19 +122,44 @@ public class Configuration {
                     } catch (IOException e) {
                         e.printStackTrace();
                     }
-            }
 
+                if (Configuration.prop != null) {
+                isSaturationOnly = Configuration.prop.containsKey("saturation_only") ? Boolean.parseBoolean(Configuration.prop.getProperty("saturation_only")) : true;
+
+                debugMode = Configuration.prop.containsKey("debug") ? Boolean.parseBoolean(Configuration.prop.getProperty("debug")) : false;
+
+                sortedVNF = Configuration.prop.containsKey("sorted_vnf") ? Boolean.parseBoolean(Configuration.prop.getProperty("sorted_vnf")) : true;
+
+                simpleSatPredicateFilter = Configuration.prop.containsKey("simple_sat_predicate_filter")
+                    ? Boolean.parseBoolean(Configuration.prop.getProperty("simple_sat_predicate_filter"))
+                    : true;
+
+                timeout = Configuration.prop.containsKey("timeout") ? Long.parseLong(Configuration.prop.getProperty("timeout")): null;
+
+                negativeConstraint = Configuration.prop.containsKey("negative_constraint")
+                        ? Boolean.parseBoolean(Configuration.prop.getProperty("negative_constraint"))
+                        : true;
+
+                newTGDStructure = Configuration.prop.containsKey("optimization.new_tgd_structure")
+                    ? EvolveBasedSat.newTGDStructure.valueOf(prop.getProperty("optimization.new_tgd_structure"))
+                    : EvolveBasedSat.newTGDStructure.SET;
+
+                stopEvolvingIfSubsumed = Configuration.prop.containsKey("optimization.stop_evolving_if_subsumed") ?
+                    Boolean.parseBoolean(Configuration.prop.getProperty("optimization.stop_evolving_if_subsumed"))
+                    : true;
+
+                evolvingTGDOrdering = Configuration.prop.containsKey("optimization.evolving_tgd_ordering") ?
+                    Boolean.parseBoolean(Configuration.prop.getProperty("optimization.evolving_tgd_ordering"))
+                    : true;
+
+                }
+            }
     }
 
     public static boolean isSaturationOnly() {
 
         Configuration.initialize();
-
-        if (Configuration.prop == null)
-            return true;
-
-        return Boolean.parseBoolean(Configuration.prop.getProperty("saturation_only"));
-
+        return isSaturationOnly;
     }
 
     public static String getSaturationAlg() {
@@ -149,35 +185,7 @@ public class Configuration {
 
         Configuration.initialize();
 
-        if (Configuration.prop == null)
-            return false;
-
-        return Boolean.parseBoolean(Configuration.prop.getProperty("debug"));
-
-    }
-
-    public static int getOptimizationValue() {
-
-        Configuration.initialize();
-
-        if (Configuration.prop == null)
-            return 0;
-
-        return Integer.parseInt(Configuration.prop.getProperty("optimization"));
-
-        // 0: no optimizations
-        // 1: subsumption check
-        // 2: ordered sets to store the new TGDs to evaluate
-        // (stored in `newFullTGDs` and `newNonFullTGDs`)
-        // 3: stop to evolve a TGD if we found a new one that subsumes it
-        // 4: ordered sets to store the "possible evolving" TGDs
-        // (stored in `fullTGDsMap` and `nonFullTGDsMap`)
-        // 5: stacks to store the new TGDs to evaluate
-        //
-        // the order of 2 and 4 is conceived to evaluate earlier rules with bigger heads
-        // and smaller bodies (i.e. rules that can easily subsume other rule),
-        // see `comparator` in `GSat`
-
+        return debugMode;
     }
 
     /**
@@ -185,11 +193,7 @@ public class Configuration {
      */
     public static boolean isSortedVNF() {
         Configuration.initialize();
-
-        if (Configuration.prop == null || !Configuration.prop.containsKey("sorted_vnf"))
-            return true;
-
-        return Boolean.parseBoolean(Configuration.prop.getProperty("sorted_vnf"));
+        return sortedVNF;
     }
 
     /** 
@@ -199,11 +203,7 @@ public class Configuration {
      */
     public static boolean isSimpleSatPredicateFilterEnabled() {
         Configuration.initialize();
-
-        if (Configuration.prop == null || !Configuration.prop.containsKey("simple_sat_predicate_filter"))
-            return true;
-
-        return Boolean.parseBoolean(Configuration.prop.getProperty("simple_sat_predicate_filter"));
+        return simpleSatPredicateFilter;
     }
 
     /**
@@ -211,12 +211,7 @@ public class Configuration {
      */
     public static Long getTimeout() {
         Configuration.initialize();
-
-        if (Configuration.prop == null)
-            return null;
-
-        String value = Configuration.prop.getProperty("timeout");
-        return (value != null) ? Long.parseLong(value) : null;
+        return timeout;
     }
 
     /**
@@ -224,10 +219,26 @@ public class Configuration {
      */
     public static boolean includeNegativeConstraint() {
         Configuration.initialize();
-
-        if (Configuration.prop == null || !Configuration.prop.containsKey("negative_constraint"))
-            return true;
-
-        return Boolean.parseBoolean(Configuration.prop.getProperty("negative_constraint"));
+        return negativeConstraint;
     }
+
+    public static boolean isEvolvingTGDOrderingEnabled() {
+        Configuration.initialize();
+        return evolvingTGDOrdering;
+    }
+
+    public static EvolveBasedSat.newTGDStructure getNewTGDStrusture() {
+        Configuration.initialize();
+        return newTGDStructure;
+    }
+
+    /**
+     * In evolved based algorithms, the new TGDs can be subsumed by the TGDs outputed by an 
+     * evolve application on this new TGD and others TGDs. This parameter allows stop to apply evolve
+     * using this new TGDs, when it is subsumed by one of the outputed TGDs.
+     */
+	public static boolean isStopEvolvingIfSubsumedEnabled() {
+        Configuration.initialize();
+        return stopEvolvingIfSubsumed;
+	}
 }
