@@ -109,16 +109,27 @@ public class TGDFactory<Q extends TGD> {
         Set<Variable> eVariables = Set.of(tgd.getExistential());
 
         Map<Term, Term> substitution = new HashMap<>();
+        boolean isIdentitySub = true;
         int ecounter = 1;
         int ucounter = 1;
         List<Atom> headAtoms = Arrays.asList(tgd.getHeadAtoms());
         headAtoms.sort(new AtomComparator());
         for(Atom a : headAtoms) {
             for (Variable v : a.getVariables()) {
-                if (eVariables.contains(v) && !substitution.containsKey(v))
-                    substitution.put(v, Variable.create(eVariable + ecounter++));
-                else if (!substitution.containsKey(v))
-                    substitution.put(v, Variable.create(uVariable + ucounter++));
+                if (substitution.containsKey(v))
+                    continue;
+
+                Variable newV;
+                if (eVariables.contains(v)) {
+                    newV = Variable.create(eVariable + ecounter++);
+                } else {
+                    newV = Variable.create(uVariable + ucounter++);
+                }
+
+                substitution.put(v, newV);
+
+                if (!v.equals(newV))
+                    isIdentitySub = false;
             }
         }
 
@@ -126,12 +137,22 @@ public class TGDFactory<Q extends TGD> {
         bodyAtoms.sort(new AtomComparator());
         for(Atom a : bodyAtoms) {
             for (Variable v : a.getVariables()) {
-                if (!substitution.containsKey(v))
-                    substitution.put(v, Variable.create(uVariable + ucounter++));
+                if (substitution.containsKey(v))
+                    continue;
+
+                Variable newV = Variable.create(uVariable + ucounter++);
+                substitution.put(v, newV);
+
+                if (!v.equals(newV))
+                    isIdentitySub = false;
             }
         }
 
+
         App.logger.fine("VNF substitution:\n" + substitution);
+
+        if (isIdentitySub)
+            return tgd;
 
         Q applySubstitution = (Q) Logic.applySubstitution(tgd, substitution);
         App.logger.fine("VNF: " + tgd + "===>>>" + applySubstitution);
