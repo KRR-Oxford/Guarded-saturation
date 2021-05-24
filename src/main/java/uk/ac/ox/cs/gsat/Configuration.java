@@ -23,6 +23,7 @@ public class Configuration {
 	private static uk.ac.ox.cs.gsat.EvolveBasedSat.newTGDStructure newTGDStructure;
 	private static boolean stopEvolvingIfSubsumed;
 	private static boolean evolvingTGDOrdering;
+	private static boolean discardUselessTGD;
 
     public static String getSolverName() {
 
@@ -152,6 +153,10 @@ public class Configuration {
                     Boolean.parseBoolean(Configuration.prop.getProperty("optimization.evolving_tgd_ordering"))
                     : true;
 
+                discardUselessTGD = Configuration.prop.containsKey("optimization.discard_useless_tgd") ?
+                    Boolean.parseBoolean(Configuration.prop.getProperty("optimization.discard_useless_tgd"))
+                    : true;
+
                 }
             }
     }
@@ -241,4 +246,10 @@ public class Configuration {
         Configuration.initialize();
         return stopEvolvingIfSubsumed;
 	}
+
+    public static boolean isDiscardUselessTGDEnabled() {
+        Configuration.initialize();
+        return discardUselessTGD;
+	}
+
 }
