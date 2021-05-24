@@ -154,6 +154,12 @@ public abstract class EvolveBasedSat {
         // initialization of the structures
         initialization(selectedTGDs, rightTGDsSet, newLeftTGDs, rightTGDsMap, rightTGDsSubsumer, leftTGDsSubsumer);
 
+        Set<Predicate> bodyPredicates = new HashSet<>();
+        if (Configuration.isDiscardUselessTGDEnabled()) {
+            bodyPredicates.addAll(getBodyPredicates(leftTGDsSet));
+            bodyPredicates.addAll(getBodyPredicates(rightTGDsSet));
+        }
+
         // copying the initial left TGD set for later comparison
         Collection<GTGD> initialRightTGDs = new HashSet<>(rightTGDsSet);
 
@@ -199,7 +205,7 @@ public abstract class EvolveBasedSat {
                 if (added)
                     for (GTGD rightTGD : getRightTGDsToEvolveWith(currentTGD, rightTGDsMap)) {
                         evolveCount++;
-                        boolean isCurrentTGDSubsumed = fillToAdd(toAdd, currentTGD, rightTGD, true,                                                                  evolvedEqualsCount, evolveTime);
+                        boolean isCurrentTGDSubsumed = fillToAdd(toAdd, currentTGD, rightTGD, true,                                                                  bodyPredicates, evolvedEqualsCount, evolveTime);
 
                         if (isCurrentTGDSubsumed) {
                             stopBecauseSubsumedCount++;
@@ -220,7 +226,7 @@ public abstract class EvolveBasedSat {
                 if (added && leftTGDsToEvolve != null)
                     for (GTGD leftTGD : leftTGDsToEvolve) {
                         evolveCount++;
-                        boolean isCurrentTGDSubsumed = fillToAdd(toAdd, currentTGD, leftTGD, false,                                                                  evolvedEqualsCount, evolveTime);
+                        boolean isCurrentTGDSubsumed = fillToAdd(toAdd, currentTGD, leftTGD, false,                                                                  bodyPredicates, evolvedEqualsCount, evolveTime);
 
                         if (isCurrentTGDSubsumed) {
                             stopBecauseSubsumedCount++;
@@ -274,8 +280,7 @@ public abstract class EvolveBasedSat {
         return output;
     }
 
-    private boolean fillToAdd(Collection<GTGD> toAdd, GTGD currentTGD, GTGD otherTGD, boolean isCurrentLeftTGD,
-                              int[] evolvedEqualsCount, long[] evolveTime) {
+    private boolean fillToAdd(Collection<GTGD> toAdd, GTGD currentTGD, GTGD otherTGD, boolean isCurrentLeftTGD, Set<Predicate> bodyPredicates, int[] evolvedEqualsCount, long[] evolveTime) {
         GTGD leftTGD = (isCurrentLeftTGD) ? currentTGD : otherTGD;
         GTGD rightTGD = (!isCurrentLeftTGD) ? currentTGD : otherTGD;
         final long startTime = System.nanoTime();
@@ -285,15 +290,20 @@ public abstract class EvolveBasedSat {
             boolean subsumed = false;
             for (GTGD newTGD : evolvedTGDs) {
                 if (!currentTGD.equals(newTGD)) {
-                    toAdd.add(newTGD);
-                    subsumed = subsumed || subsumed(currentTGD, newTGD);
-                    if (subsumed) {
-                        if (DEBUG_MODE)
-                            System.out.println("stop because sub :\n" + leftTGD + "\n + \n" + rightTGD + "\n = \n"
-                                               + newTGD + "\n");
-                        toAdd.clear();
+                    if (!Configuration.isDiscardUselessTGDEnabled() || isEvolvedTGDIsUseful(newTGD, rightTGD, bodyPredicates)) {
                         toAdd.add(newTGD);
-                        break;
+                        subsumed = subsumed || subsumed(currentTGD, newTGD);
+                        if (subsumed) {
+                            if (DEBUG_MODE)
+                                System.out.println("stop because sub :\n" + leftTGD + "\n + \n" + rightTGD + "\n = \n"
+                                        + newTGD + "\n");
+                            toAdd.clear();
+                            toAdd.add(newTGD);
+                            break;
+                        }
+                    } else {
+                        if (DEBUG_MODE) 
+                            System.out.println("evolve useless :\n" + leftTGD + "\n + \n" + rightTGD + "\n = \n" + newTGD + "\n");
                     }
                 } else {
                     if (DEBUG_MODE) 
@@ -308,6 +318,16 @@ public abstract class EvolveBasedSat {
             for (GTGD newTGD : evolvedTGDs)
                 toAdd.add(newTGD);
 
+        return false;
+    }
+
+    private boolean isEvolvedTGDIsUseful(GTGD evolvedTGD, GTGD rightTGD, Set<Predicate> bodyPredicates) {
+        if (isRightTGD(evolvedTGD))
+            return true;
+        else
+            for (Atom a : rightTGD.getHeadAtoms())
+                if (bodyPredicates.contains(a.getPredicate()))
+                    return true;
         return false;
     }
 
@@ -459,6 +479,16 @@ public abstract class EvolveBasedSat {
 
         return false;
 
+    }
+
+    private Collection<Predicate> getBodyPredicates(Collection<GTGD> tgds) {
+        Collection<Predicate> result = new HashSet<>();
+
+        for (GTGD tgd : tgds)
+            for (Atom a : tgd.getBodyAtoms())
+                result.add(a.getPredicate());
+
+        return result;
     }
 
     static boolean isSupportedRule(Dependency d) {
