@@ -83,31 +83,58 @@ public class Logic {
 				bodyAtomsF.add((Atom) applySubstitution(bodyAtoms[atomIndex], substitution));
 			return new TGD(bodyAtomsF, headAtomsF);
         } else if (formula instanceof Atom) {
-            Term[] nterms = applySubstitution(((Atom) formula).getTerms(), substitution);
-            return Atom.create(((Atom) formula).getPredicate(), nterms);
+            Term[] aterms = ((Atom) formula).getTerms();
+            Term[] nterms = applySubstitution(aterms, substitution);
+            // before creating a new atom, we check if the substitution changes its terms
+            if (aterms != nterms)
+                return Atom.create(((Atom) formula).getPredicate(), nterms);
+            else {
+                return formula;
+            }
         }
         throw new RuntimeException("Unsupported formula type: " + formula);
     }
 
     public static Term[] applySubstitution(Term[] terms, Map<Term, Term> substitution) {
         Term[] nterms = new Term[terms.length];
+        boolean isSubstitutionApplied = false;
         for (int termIndex = 0; termIndex < nterms.length; ++termIndex) {
             Term term = terms[termIndex];
 
+            Term substitute = substitution.get(term);
             // if the term substitution is a function term,
             // we need to also apply the substitution to the function term 
-            if (substitution.containsKey(term) && substitution.get(term) instanceof FunctionTerm)
-                term = substitution.get(term);
+            if (substitute != null && substitute instanceof FunctionTerm) {
+                isSubstitutionApplied = true;
+                term = substitute;
+            }
+            // we handle the case of function term, using a recursive call
+            if (term instanceof FunctionTerm) {
+                Term[] oldfterms = ((FunctionTerm) term).getTerms();
+                Term[] fterms = applySubstitution(((FunctionTerm) term).getTerms(), substitution);
+                // if the substitution changes at least one term, we create a new function term
+                if (fterms != oldfterms) {
+                    isSubstitutionApplied = true;
+                    nterms[termIndex] = FunctionTerm.create(((FunctionTerm) term).getFunction(), fterms);
+                } else {
+                    nterms[termIndex] = term;
+                }
+                continue;
+            }
 
-            if (term instanceof FunctionTerm)
-                nterms[termIndex] = FunctionTerm.create(((FunctionTerm) term).getFunction(), applySubstitution(((FunctionTerm) term).getTerms(), substitution));
-            else if (substitution.containsKey(term))
-                nterms[termIndex] = substitution.get(term);
-            else
+            // handle case where the term nor the substitute are function terms
+            if (substitute != null) {
+                isSubstitutionApplied = true;
+                nterms[termIndex] = substitute;
+            } else {
                 nterms[termIndex] = term;
+            }
         }
 
-        return nterms;
+        if (isSubstitutionApplied) 
+            return nterms;
+        else 
+            return terms;
     }
 
 	static boolean containsAny(Atom atom, Variable[] eVariables) {
@@ -354,9 +381,12 @@ public class Logic {
     }
 
     public static Set<Atom> applyMGU(Collection<Atom> atoms, Map<Term, Term> mgu) {
+        Set<Atom> result = new HashSet<Atom>();
 
-        return atoms.stream().map(atom -> (Atom) Logic.applySubstitution(atom, mgu)).collect(Collectors.toSet());
+        for (Atom a : atoms)
+            result.add((Atom) Logic.applySubstitution(a, mgu));
 
+        return result;
     }
     
 	// public static Map<Term, Term> getMGU(List<Atom> s, List<Atom> t) {
