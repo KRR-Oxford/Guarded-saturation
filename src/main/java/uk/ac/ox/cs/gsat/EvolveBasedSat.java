@@ -294,20 +294,17 @@ public abstract class EvolveBasedSat {
                         toAdd.add(newTGD);
                         subsumed = subsumed || subsumed(currentTGD, newTGD);
                         if (subsumed) {
-                            if (DEBUG_MODE)
-                                System.out.println("stop because sub :\n" + leftTGD + "\n + \n" + rightTGD + "\n = \n"
+                            App.logger.fine("stop because sub :\n" + leftTGD + "\n + \n" + rightTGD + "\n = \n"
                                         + newTGD + "\n");
                             toAdd.clear();
                             toAdd.add(newTGD);
                             break;
                         }
                     } else {
-                        if (DEBUG_MODE) 
-                            System.out.println("evolve useless :\n" + leftTGD + "\n + \n" + rightTGD + "\n = \n" + newTGD + "\n");
+                            App.logger.fine("evolve useless :\n" + leftTGD + "\n + \n" + rightTGD + "\n = \n" + newTGD + "\n");
                     }
                 } else {
-                    if (DEBUG_MODE) 
-                        System.out.println("evolve equals :\n" + leftTGD + "\n + \n" + rightTGD + "\n = \n" + newTGD + "\n");
+                    App.logger.fine("evolve equals :\n" + leftTGD + "\n + \n" + rightTGD + "\n = \n" + newTGD + "\n");
                     evolvedEqualsCount[0]++;
                 }
             }
@@ -433,9 +430,6 @@ public abstract class EvolveBasedSat {
             return;
 
         Collection<GTGD> sub = TGDsSubsumer.subsumesAny(newTGD);
-
-        // if (!sub.isEmpty())
-        // System.out.println(newTGD + " subsumes " + sub);
 
         TGDsSet.removeAll(sub);
         newTGDs.removeAll(sub);
