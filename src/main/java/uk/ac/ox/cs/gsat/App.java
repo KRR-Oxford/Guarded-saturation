@@ -69,6 +69,7 @@ public class App {
 			t.printStackTrace(System.err);
 			System.err.println("Unknown error. The system will now terminate.");
 			logger.severe(t.getLocalizedMessage());
+			logger.severe(Arrays.toString(t.getStackTrace()));
 			System.exit(1);
 		}
 
@@ -198,6 +199,7 @@ public class App {
 
 		} catch (Exception e) {
 			System.err.println("Full TGD saturation algorithm failed. The system will now terminate.");
+			logger.severe(Arrays.toString(e.getStackTrace()));
 			logger.severe(e.getLocalizedMessage());
 			System.exit(1);
 		}
