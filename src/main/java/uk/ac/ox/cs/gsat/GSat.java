@@ -92,20 +92,26 @@ public class GSat extends EvolveBasedSat {
                 var new_ftgd_head_atoms = new_ftgd.getHeadSet();
                 var new_ftgd_body_atoms = new_ftgd.getBodySet();
 
-                Set<Atom> new_body = new HashSet<>(new_ftgd_body_atoms);
+                Set<Atom> new_body = new HashSet<>();
+                new_body.addAll(new_ftgd_body_atoms);
                 Atom new_guard = (Atom) Logic.applySubstitution(guard, guardMGU);
                 new_body.remove(new_guard);
+
                 List<Atom> Sbody = getSbody(new_body, new_nftgd_existentials);
                 new_body.addAll(new_nftgd_body_atoms);
                 Set<Atom> new_head = new HashSet<>(new_nftgd_head_atoms);
-                new_head.addAll(new_ftgd_head_atoms);
+                // we save if new atoms have been added from the new non full TGD head
+                boolean isNewHeadNFTGDHead = !new_head.addAll(new_ftgd_head_atoms);
 
                 List<List<Atom>> Shead = getShead(new_nftgd_head_atoms, Sbody, new_nftgd_existentials);
 
                 // if Sbody is empty, then Shead is empty, and we take this short-cut;
                 // in fact, we should never have Shead == null and Sbody.isEmpty
                 if (Shead == null || Shead.isEmpty()) {
-                    if (Sbody.isEmpty()) {
+                    // we skip the cases, where the full TGD is linear and the new head is equals to
+                    // the new non full TGD head, since the resulting TGD is u(B1) -> u(H1)
+                    // which is subsumed by the non full TGD
+                    if (Sbody.isEmpty() && !(new_ftgd_body_atoms.size() == 1 && isNewHeadNFTGDHead)) {
 						for (GTGD hnf : FACTORY.computeHNF(new GTGD(new_body, new_head)))
 							results.add(FACTORY.computeVNF(hnf, eVariable, uVariable));
 					}
@@ -118,7 +124,7 @@ public class GSat extends EvolveBasedSat {
                 for (List<Atom> S : getProduct(Shead)) {
 
                     App.logger.fine("Non-Full:" + new_nftgd.toString() + "\nFull:" + new_ftgd.toString() + "\nSbody:"
-                            + Sbody + "\nS:" + S);
+                                    + Sbody + "\nS:" + S);
 
                     Map<Term, Term> mgu = getVariableSubstitution(S, Sbody);
                     if (mgu == null)
@@ -136,9 +142,7 @@ public class GSat extends EvolveBasedSat {
 							results.add(FACTORY.computeVNF(hnf, eVariable, uVariable));
 
                 }
-
             }
-
         }
 
         return results;
