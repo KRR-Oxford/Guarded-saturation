@@ -453,9 +453,9 @@ public abstract class EvolveBasedSat {
                         set.remove(tgd);
                 }
             }
-
-            TGDsMap.values().removeIf(v -> v.isEmpty());
         }
+
+        TGDsMap.values().removeIf(v -> v.isEmpty());
 
         if (Configuration.getNewTGDStrusture().equals(newTGDStructure.STACK) && newTGDs.contains(newTGD))
             return;
