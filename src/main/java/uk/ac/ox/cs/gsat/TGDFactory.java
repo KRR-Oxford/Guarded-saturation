@@ -212,17 +212,11 @@ public class TGDFactory<Q extends TGD> {
 
         Set<Variable> eVariables = Set.of(tgd.getExistential());
 
-        Set<Variable> frontierVariables = new HashSet<>();
-
-        for(Atom a : tgd.getHeadAtoms())
-            for (Variable v : a.getVariables())
-                if (!eVariables.contains(v))
-                    frontierVariables.add(v);
-
-        int skolemArity = frontierVariables.size();
+        Variable[] universalVariables = tgd.getUniversal();
+        int skolemArity = universalVariables.length;
         Variable[] fVariables = new Variable[skolemArity];
         int i = 0;
-        for(Variable v: frontierVariables)
+        for(Variable v: universalVariables)
             fVariables[i++]= v;
 
         Map<Term, Term> substitution = new HashMap<>();
@@ -253,6 +247,7 @@ public class TGDFactory<Q extends TGD> {
 
         return result;
     }
+
     public Collection<Q> computeSHNFForDisjonctiveTGD(Q tgd) {
 
         if (tgd.getHeadAtoms().length <= 1)
