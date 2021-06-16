@@ -273,6 +273,11 @@ public class ExactAtomFilterV1<Q extends TGD> implements FormulaFilter<Q> {
         return answer;
     }
 
+    public void init(Collection<Q> formulas) {
+        for (Q formula : formulas)
+            add(formula);
+    }
+
     public void add(Q formula) {
         // StackTraceElement[] stackTraceElements =
         // Thread.currentThread().getStackTrace();

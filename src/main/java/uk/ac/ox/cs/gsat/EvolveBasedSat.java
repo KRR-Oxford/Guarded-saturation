@@ -147,12 +147,13 @@ public abstract class EvolveBasedSat {
         Set<GTGD> rightTGDsSet = new HashSet<>();
         Set<GTGD> leftTGDsSet = new HashSet<>();
 
-        App.logger.info("Subsumption method : " + Configuration.getSubsumptionMethod());
-        Subsumer<GTGD> rightTGDsSubsumer = createSubsumer();
-        Subsumer<GTGD> leftTGDsSubsumer = createSubsumer();
-
         // initialization of the structures
-        initialization(selectedTGDs, rightTGDsSet, newLeftTGDs, rightTGDsMap, rightTGDsSubsumer, leftTGDsSubsumer);
+        initialization(selectedTGDs, rightTGDsSet, newLeftTGDs, rightTGDsMap);
+
+        App.logger.info("Subsumption method : " + Configuration.getSubsumptionMethod());
+        Subsumer<GTGD> rightTGDsSubsumer = createSubsumer(rightTGDsSet);
+        Subsumer<GTGD> leftTGDsSubsumer = createSubsumer(leftTGDsSet);
+
 
         Set<Predicate> bodyPredicates = new HashSet<>();
         if (Configuration.isDiscardUselessTGDEnabled()) {
@@ -329,16 +330,14 @@ public abstract class EvolveBasedSat {
     }
 
     protected void initialization(Collection<GTGD> selectedTGDs, Set<GTGD> rightTGDsSet, Collection<GTGD> newLeftTGDs,
-            Map<Predicate, Set<GTGD>> rightTGDsMap, Subsumer<GTGD> rightTGDsSubsumer, Subsumer<GTGD> leftTGDsSubsumer) {
+            Map<Predicate, Set<GTGD>> rightTGDsMap) {
 
         for (GTGD transformedTGD : transformInputTGDs(selectedTGDs)) {
 
             if (isRightTGD(transformedTGD)) {
                 addRightTGD(transformedTGD, rightTGDsMap, rightTGDsSet);
-                rightTGDsSubsumer.add(transformedTGD);
             }
             if (isLeftTGD(transformedTGD)) {
-                leftTGDsSubsumer.add(transformedTGD);
                 newLeftTGDs.add(transformedTGD);
             }
         }
@@ -538,13 +537,15 @@ public abstract class EvolveBasedSat {
         return false;
     }
 
-    static <Q extends TGD> Subsumer<Q> createSubsumer() {
+    static <Q extends TGD> Subsumer<Q> createSubsumer(Set<Q> initialTgds) {
 
         String subsumptionMethod = Configuration.getSubsumptionMethod();
         Subsumer<Q> subsumer;
 
         if (subsumptionMethod.equals("tree_atom")) {
             subsumer = new ExactAtomSubsumer<Q>();
+            for (Q formula: initialTgds)
+                subsumer.add(formula);
         } else {
             FormulaFilter<Q> filter;
             if (subsumptionMethod.equals("min_predicate")) {
@@ -558,6 +559,7 @@ public abstract class EvolveBasedSat {
             } else {
                 throw new IllegalStateException("Subsumption method " + subsumptionMethod + " is not supported.");
             }
+            filter.init(initialTgds);
             subsumer = new SimpleSubsumer<Q>(filter);
         }
         return subsumer;
