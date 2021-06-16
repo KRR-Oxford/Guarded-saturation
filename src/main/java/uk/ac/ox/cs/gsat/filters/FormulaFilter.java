@@ -43,6 +43,11 @@ public interface FormulaFilter<Q extends TGD> {
     void add(Q tgd);
 
     /**
+     * initialize the filter with a set of tgds
+    */    
+    void init(Collection<Q> tgds);
+    
+    /**
      * Removes {@code tgd} from S.
      */
     void remove(Q tgd);

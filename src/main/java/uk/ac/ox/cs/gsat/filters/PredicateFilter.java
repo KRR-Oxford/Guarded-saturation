@@ -20,6 +20,11 @@ public abstract class PredicateFilter<Q extends TGD> implements FormulaFilter<Q>
         return all;
     }
 
+    public void init(Collection<Q> formulas) {
+        for (Q formula: formulas)
+            add(formula);
+    }
+    
     public void add(Q formula) {
         all.add(formula);
         for (Atom atom : formula.getBodyAtoms()) {
