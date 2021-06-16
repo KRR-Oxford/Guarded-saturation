@@ -20,6 +20,11 @@ public class IdentityFormulaFilter<Q extends TGD> implements FormulaFilter<Q> {
         formulas.addAll(newFormulas);
     }
 
+    public void init(Collection<Q> formulas) {
+        for (Q formula: formulas)
+            add(formula);
+    }
+
     public void add(Q newFormula) {
         formulas.add(newFormula);
     }
