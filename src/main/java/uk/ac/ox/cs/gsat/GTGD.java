@@ -1,10 +1,8 @@
 package uk.ac.ox.cs.gsat;
 
 import java.util.Arrays;
-import java.util.Collection;
 import java.util.List;
 import java.util.Set;
-import java.util.stream.Collectors;
 
 import uk.ac.ox.cs.pdq.fol.Atom;
 import uk.ac.ox.cs.pdq.fol.Variable;

@@ -21,6 +21,7 @@ public class TGDFactory<Q extends TGD> {
 
     private static final TGDFactory<TGD> TGDINSTANCE = new TGDFactory<TGD>(new TGDConstructor());
     private static final TGDFactory<GTGD> GTGDINSTANCE = new TGDFactory<GTGD>(new GTGDConstructor());
+    private static final TGDFactory<SkGTGD> SKGTGDINSTANCE = new TGDFactory<SkGTGD>(new SkGTGDConstructor());
 
     private static final String SKOLEM_PREFIX = "f";
     private static int skolemIndex = 0;
@@ -43,6 +44,14 @@ public class TGDFactory<Q extends TGD> {
         return GTGDINSTANCE;
     }
 
+    public static TGDFactory<SkGTGD> getSkGTGDInstance() {
+        return SKGTGDINSTANCE;
+    }
+
+    public Q create(Set<Atom> body, Set<Atom> head) {
+        return this.constructor.create(body, head);
+    }
+    
     /**
      *
      * Returns the Variable Normal Form (VNF)
@@ -293,6 +302,14 @@ public class TGDFactory<Q extends TGD> {
         @Override
         public GTGD create(Set<Atom> bodyAtoms, Set<Atom> headAtoms) {
             return new GTGD(bodyAtoms, headAtoms);
+        }
+    }
+
+    private static class SkGTGDConstructor implements Constructor<SkGTGD> {
+
+        @Override
+        public SkGTGD create(Set<Atom> bodyAtoms, Set<Atom> headAtoms) {
+            return new SkGTGD(bodyAtoms, headAtoms);
         }
     }
 }
