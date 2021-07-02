@@ -5,6 +5,7 @@ import java.util.HashSet;
 
 import uk.ac.ox.cs.gsat.TGD;
 import uk.ac.ox.cs.gsat.filters.FormulaFilter;
+import uk.ac.ox.cs.gsat.filters.TreePredicateFilter;
 
 /**
  * A subsumer that uses an index to filter out only candidates for subsumption,
@@ -27,7 +28,10 @@ public class SimpleSubsumer<Q extends TGD> implements Subsumer<Q> {
         var bodyN = newTGD.getBodySet();
         var headN = newTGD.getHeadSet();
 
+        long start = System.nanoTime();
+        long candidatesCount = 0;
         for (Q tgd : filter.getSubsumedCandidates(newTGD)) {
+            candidatesCount++;
             var body = tgd.getBodySet();
             var head = tgd.getHeadSet();
 
@@ -45,6 +49,9 @@ public class SimpleSubsumer<Q extends TGD> implements Subsumer<Q> {
 
         }
         filter.removeAll(subsumed);
+
+        // System.out.println("subsumed " + candidatesCount + "  " + subsumed.size() + "  " + (System.nanoTime() - start) + "ns");
+        
         return subsumed;
     }
 
@@ -52,8 +59,10 @@ public class SimpleSubsumer<Q extends TGD> implements Subsumer<Q> {
     public boolean subsumed(Q newTGD) {
         var bodyN = newTGD.getBodySet();
         var headN = newTGD.getHeadSet();
-
+        long start = System.nanoTime();
+        long candidatesCount = 0;
         for (Q tgd : filter.getSubsumingCandidates(newTGD)) {
+            candidatesCount++;
             var body = tgd.getBodySet();
             var head = tgd.getHeadSet();
 
@@ -64,12 +73,14 @@ public class SimpleSubsumer<Q extends TGD> implements Subsumer<Q> {
 
             if (bodyN.containsAll(body) && head.containsAll(headN)) {
                 num_subsumed += 1;
+                // System.out.println("subsuming " + candidatesCount + "  " + 0 + "  " + (System.nanoTime() - start) + "ns");
                 return true;
             } else {
                 num_filter_discarded += 1;
             }
         }
 
+        // System.out.println("subsuming " + candidatesCount + "  " + 0 + "  " + (System.nanoTime() - start) + "ns");
         return false;
     }
 
@@ -89,4 +100,8 @@ public class SimpleSubsumer<Q extends TGD> implements Subsumer<Q> {
         return num_filter_discarded;
     }
 
+    public void printIndex() {
+        if (filter instanceof TreePredicateFilter)
+            ((TreePredicateFilter) filter).printIndex("index.dot");
+    }
 }
