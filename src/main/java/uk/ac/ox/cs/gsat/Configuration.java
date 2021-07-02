@@ -24,6 +24,7 @@ public class Configuration {
 	private static boolean stopEvolvingIfSubsumed;
 	private static boolean evolvingTGDOrdering;
 	private static boolean discardUselessTGD;
+	private static int maxPredicate;
 
     public static String getSolverName() {
 
@@ -157,6 +158,10 @@ public class Configuration {
                     Boolean.parseBoolean(Configuration.prop.getProperty("optimization.discard_useless_tgd"))
                     : true;
 
+                maxPredicate = Configuration.prop.containsKey("optimization.maxPredicate") ?
+                    Integer.parseInt(Configuration.prop.getProperty("optimization.maxPredicate"))
+                    : 0;
+
                 }
             }
     }
@@ -252,4 +257,8 @@ public class Configuration {
         return discardUselessTGD;
 	}
 
+    public static int getMaxPredicate() {
+        Configuration.initialize();
+        return maxPredicate;
+    }
 }
