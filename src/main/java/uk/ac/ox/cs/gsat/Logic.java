@@ -62,16 +62,6 @@ public class Logic {
 			for (int atomIndex = 0; atomIndex < atoms.length; ++atomIndex)
 				bodyAtoms[atomIndex] = applySubstitution(atoms[atomIndex], substitution);
 			return Conjunction.create(bodyAtoms);
-		} else if (formula instanceof GTGD) {
-			Set<Atom> headAtoms = ((GTGD) formula).getHeadSet();
-			Set<Atom> headAtomsF = new HashSet<>();
-			Set<Atom> bodyAtoms = ((GTGD) formula).getBodySet();
-			Set<Atom> bodyAtomsF = new HashSet<>();
-			for (Atom headAtom : headAtoms)
-				headAtomsF.add((Atom) applySubstitution(headAtom, substitution));
-			for (Atom bodyAtom : bodyAtoms)
-				bodyAtomsF.add((Atom) applySubstitution(bodyAtom, substitution));
-			return new GTGD(bodyAtomsF, headAtomsF);
 		} else if (formula instanceof TGD) {
 			Atom[] headAtoms = ((TGD) formula).getHeadAtoms();
 			Set<Atom> headAtomsF = new HashSet<>();
@@ -81,7 +71,12 @@ public class Logic {
 				headAtomsF.add((Atom) applySubstitution(headAtoms[atomIndex], substitution));
 			for (int atomIndex = 0; atomIndex < bodyAtoms.length; ++atomIndex)
 				bodyAtomsF.add((Atom) applySubstitution(bodyAtoms[atomIndex], substitution));
-			return new TGD(bodyAtomsF, headAtomsF);
+            if (formula instanceof SkGTGD) 
+                return new SkGTGD(bodyAtomsF, headAtomsF);
+            else if (formula instanceof GTGD)
+                return new GTGD(bodyAtomsF, headAtomsF);
+            else
+                return new TGD(bodyAtomsF, headAtomsF);
         } else if (formula instanceof Atom) {
             Term[] aterms = ((Atom) formula).getTerms();
             Term[] nterms = applySubstitution(aterms, substitution);

@@ -24,8 +24,9 @@ import uk.ac.ox.cs.pdq.fol.Variable;
  * - left: a non full TGD
  * - right: a full TGD
  */
-public class GSat extends EvolveBasedSat {
+public class GSat extends EvolveBasedSat<GTGD> {
 
+    protected static final TGDFactory<GTGD> FACTORY = TGDFactory.getGTGDInstance();
     private static final String NAME = "GSat";
     private static final GSat INSTANCE = new GSat();
 
@@ -302,6 +303,11 @@ public class GSat extends EvolveBasedSat {
 	@Override
 	protected Collection<Predicate> getUnifiableBodyPredicates(GTGD tgd) {
 		return List.of(tgd.getGuard().getPredicate());
+	}
+
+	@Override
+	protected TGDFactory<GTGD> getTGDFactory() {
+		return FACTORY;
 	}
 
 }
