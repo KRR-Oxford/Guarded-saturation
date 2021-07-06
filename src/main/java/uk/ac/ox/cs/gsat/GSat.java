@@ -34,7 +34,7 @@ public class GSat extends EvolveBasedSat<GTGD> {
      * Private construtor, we want this class to be a Singleton
      */
     private GSat() {
-        super(NAME);
+        super(NAME, FACTORY);
     }
 
     /**
@@ -303,11 +303,6 @@ public class GSat extends EvolveBasedSat<GTGD> {
 	@Override
 	protected Collection<Predicate> getUnifiableBodyPredicates(GTGD tgd) {
 		return List.of(tgd.getGuard().getPredicate());
-	}
-
-	@Override
-	protected TGDFactory<GTGD> getTGDFactory() {
-		return FACTORY;
 	}
 
 }

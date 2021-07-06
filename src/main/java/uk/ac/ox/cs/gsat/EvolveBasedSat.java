@@ -45,8 +45,9 @@ public abstract class EvolveBasedSat<Q extends GTGD> {
     protected final boolean DEBUG_MODE = Configuration.isDebugMode();
     protected final Long TIME_OUT = Configuration.getTimeout();
     protected final String saturationName;
+    protected final TGDFactory<Q> factory;
 
-    // New variable name for Universally Quantified Variables
+	// New variable name for Universally Quantified Variables
     public String uVariable;
     // New variable name for Existentially Quantified Variables
     public String eVariable;
@@ -75,11 +76,12 @@ public abstract class EvolveBasedSat<Q extends GTGD> {
 
     };
 
-    protected EvolveBasedSat(String saturationName) {
+    protected EvolveBasedSat(String saturationName, TGDFactory<Q> factory) {
         this.saturationName = saturationName;
         this.uVariable = saturationName + "_u";
         this.eVariable = saturationName + "_e";
         this.zVariable = saturationName + "_z";
+        this.factory = factory;
     }
 
     /**
@@ -98,11 +100,13 @@ public abstract class EvolveBasedSat<Q extends GTGD> {
         int discarded = 0;
 
         Collection<Q> selectedTGDs = new HashSet<>();
-        for (Dependency d : allDependencies)
-            if (isSupportedRule(d))
-                selectedTGDs.add(getTGDFactory().create(Set.of(d.getBodyAtoms()), Set.of(d.getHeadAtoms())));
-            else
+        for (Dependency d : allDependencies) {
+            if (isSupportedRule(d)) {
+                selectedTGDs.add(this.factory.create(Set.of(d.getBodyAtoms()), Set.of(d.getHeadAtoms())));
+            } else {
                 discarded++;
+            }
+        }
 
         App.logger.info(this.saturationName + " discarded rules : " + discarded + "/" + allDependencies.size() + " = "
                 + String.format(Locale.UK, "%.3f", (float) discarded / allDependencies.size() * 100) + "%");
@@ -341,7 +345,6 @@ public abstract class EvolveBasedSat<Q extends GTGD> {
             Map<Predicate, Set<Q>> rightTGDsMap) {
 
         for (Q transformedTGD : transformInputTGDs(selectedTGDs)) {
-
             if (isRightTGD(transformedTGD)) {
                 addRightTGD(transformedTGD, rightTGDsMap, rightTGDsSet);
             }
@@ -542,7 +545,9 @@ public abstract class EvolveBasedSat<Q extends GTGD> {
 
     }
 
-    protected abstract TGDFactory<Q> getTGDFactory();
+    public TGDFactory<Q> getFactory() {
+		return factory;
+	}
 
     private boolean isTimeout(long startTime) {
         // from seconds to nano seconds
