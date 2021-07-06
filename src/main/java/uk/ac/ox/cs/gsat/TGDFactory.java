@@ -22,6 +22,7 @@ public class TGDFactory<Q extends TGD> {
     private static final TGDFactory<TGD> TGDINSTANCE = new TGDFactory<TGD>(new TGDConstructor());
     private static final TGDFactory<GTGD> GTGDINSTANCE = new TGDFactory<GTGD>(new GTGDConstructor());
     private static final TGDFactory<SkGTGD> SKGTGDINSTANCE = new TGDFactory<SkGTGD>(new SkGTGDConstructor());
+        private static final TGDFactory<OrderedSkGTGD> ORDEREDSKGTGDINSTANCE = new TGDFactory<>(new OrderedSkGTGDConstructor());
 
     private static final String SKOLEM_PREFIX = "f";
     private static int skolemIndex = 0;
@@ -46,6 +47,10 @@ public class TGDFactory<Q extends TGD> {
 
     public static TGDFactory<SkGTGD> getSkGTGDInstance() {
         return SKGTGDINSTANCE;
+    }
+
+    public static TGDFactory<OrderedSkGTGD> getOrderedSkGTGDInstance() {
+        return ORDEREDSKGTGDINSTANCE;
     }
 
     public Q create(Set<Atom> body, Set<Atom> head) {
@@ -310,6 +315,14 @@ public class TGDFactory<Q extends TGD> {
         @Override
         public SkGTGD create(Set<Atom> bodyAtoms, Set<Atom> headAtoms) {
             return new SkGTGD(bodyAtoms, headAtoms);
+        }
+    }
+
+    private static class OrderedSkGTGDConstructor implements Constructor<OrderedSkGTGD> {
+
+        @Override
+        public OrderedSkGTGD create(Set<Atom> bodyAtoms, Set<Atom> headAtoms) {
+            return new OrderedSkGTGD(bodyAtoms, headAtoms);
         }
     }
 }

@@ -178,10 +178,14 @@ public class App {
 
                 System.out.println("Full TGD saturation algorithm: GSat");
                 executionOutput.setFullTGDSaturation(GSat.getInstance().run(rules));
-            } else if (Configuration.getSaturationAlg().equals("skolemized_sat")) {
+            } else if (Configuration.getSaturationAlg().equals("skolem_sat")) {
 
-                System.out.println("Full TGD saturation algorithm: Skolemized Sat");
-                executionOutput.setFullTGDSaturation(SkolemizedSat.getInstance().run(rules));
+                System.out.println("Full TGD saturation algorithm: Skolem Sat");
+                executionOutput.setFullTGDSaturation(SkolemSat.getInstance().run(rules));
+            } else if (Configuration.getSaturationAlg().equals("ordered_skolem_sat")) {
+
+                System.out.println("Full TGD saturation algorithm: ordered skolemized Sat");
+                executionOutput.setFullTGDSaturation(OrderedSkolemSat.getInstance().run(rules));
             } else if (Configuration.getSaturationAlg().equals("simple_sat")) {
 
                 System.out.println("Full TGD saturation algorithm: Simple Sat");
