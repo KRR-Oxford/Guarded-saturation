@@ -71,9 +71,13 @@ public class Logic {
 				headAtomsF.add((Atom) applySubstitution(headAtoms[atomIndex], substitution));
 			for (int atomIndex = 0; atomIndex < bodyAtoms.length; ++atomIndex)
 				bodyAtomsF.add((Atom) applySubstitution(bodyAtoms[atomIndex], substitution));
-            if (formula instanceof SkGTGD) 
-                return new SkGTGD(bodyAtomsF, headAtomsF);
-            else if (formula instanceof GTGD)
+            if (formula instanceof SkGTGD) {
+                if (formula instanceof OrderedSkGTGD) {
+                    return new OrderedSkGTGD(bodyAtomsF, headAtomsF);
+                } else {
+                    return new SkGTGD(bodyAtomsF, headAtomsF);
+                }
+            } else if (formula instanceof GTGD)
                 return new GTGD(bodyAtomsF, headAtomsF);
             else
                 return new TGD(bodyAtomsF, headAtomsF);

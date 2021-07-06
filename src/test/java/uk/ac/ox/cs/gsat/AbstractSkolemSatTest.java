@@ -19,7 +19,7 @@ import uk.ac.ox.cs.pdq.fol.Dependency;
 import uk.ac.ox.cs.pdq.fol.Predicate;
 import uk.ac.ox.cs.pdq.fol.Variable;
 
-public class SkolemizedSatTest {
+public abstract class AbstractSkolemSatTest<Q extends SkGTGD> {
 
     // Variables
     private static final Variable x1 = Variable.create("x1");
@@ -66,10 +66,15 @@ public class SkolemizedSatTest {
         App.logger.setUseParentHandlers(false);
     }
 
+    private AbstractSkolemSat<Q> sksat;
+
+    public AbstractSkolemSatTest(AbstractSkolemSat<Q> sksat) {
+        this.sksat = sksat;
+    }
+
+    
     @Test
     public void simpleTest() {
-
-        SkolemizedSat sksat = SkolemizedSat.getInstance();
 
         /**
          * input TGDs :
@@ -77,9 +82,9 @@ public class SkolemizedSatTest {
          * - R(x1, x2) -> U(x2) 
          * - R(x1, x2), U(x2) -> P(x1)
          */
-        SkGTGD nonFull = new SkGTGD(Set.of(Ax1), Set.of(Rx1x2));
-        SkGTGD full = new SkGTGD(Set.of(Rx1x2), Set.of(Ux2));
-        SkGTGD full1 = new SkGTGD(Set.of(Rx1x2, Ux2), Set.of(Px1));
+        Q nonFull = sksat.getFactory().create(Set.of(Ax1), Set.of(Rx1x2));
+        Q full = sksat.getFactory().create(Set.of(Rx1x2), Set.of(Ux2));
+        Q full1 = sksat.getFactory().create(Set.of(Rx1x2, Ux2), Set.of(Px1));
 
         Collection<Dependency> input = new ArrayList<>();
         input.add(nonFull);
@@ -92,12 +97,12 @@ public class SkolemizedSatTest {
          * - the VNF of A(x1) -> P(x1)
          */
         HashSet<TGD> expected = new HashSet<TGD>();
-        expected.add(SkolemizedSat.FACTORY.computeVNF(full, sksat.eVariable, sksat.uVariable));
-        expected.add(SkolemizedSat.FACTORY.computeVNF(full1, sksat.eVariable, sksat.uVariable));
-        expected.add(SkolemizedSat.FACTORY.computeVNF(new SkGTGD(Set.of(Ax1), Set.of(Px1)), sksat.eVariable,
+        expected.add(sksat.getFactory().computeVNF(full, sksat.eVariable, sksat.uVariable));
+        expected.add(sksat.getFactory().computeVNF(full1, sksat.eVariable, sksat.uVariable));
+        expected.add(sksat.getFactory().computeVNF(sksat.getFactory().create(Set.of(Ax1), Set.of(Px1)), sksat.eVariable,
                 sksat.uVariable));
 
-        Collection<SkGTGD> result = sksat.run(input);
+        Collection<Q> result = sksat.run(input);
 
         assertEquals(result, expected);
     }
@@ -105,15 +110,13 @@ public class SkolemizedSatTest {
     @Test
     public void twoAtomsUnifiedTest() {
 
-        SkolemizedSat sksat = SkolemizedSat.getInstance();
-
         /**
          * input TGDs :
          * - A(x1) -> ∃ x2 R(x1, x2) , U(x2)
          * - R(x1, x2), U(x2) -> P(x1)
          */
-        SkGTGD nonFull = new SkGTGD(Set.of(Ax1), Set.of(Rx1x2, Ux2));
-        SkGTGD full1 = new SkGTGD(Set.of(Rx1x2, Ux2), Set.of(Px1));
+        Q nonFull = sksat.getFactory().create(Set.of(Ax1), Set.of(Rx1x2, Ux2));
+        Q full1 = sksat.getFactory().create(Set.of(Rx1x2, Ux2), Set.of(Px1));
 
         Collection<Dependency> input = new ArrayList<>();
         input.add(nonFull);
@@ -125,11 +128,11 @@ public class SkolemizedSatTest {
          * - the VNF of A(x1) -> P(x1)
          */
         HashSet<TGD> expected = new HashSet<TGD>();
-        expected.add(SkolemizedSat.FACTORY.computeVNF(full1, sksat.eVariable, sksat.uVariable));
-        expected.add(SkolemizedSat.FACTORY.computeVNF(new SkGTGD(Set.of(Ax1), Set.of(Px1)), sksat.eVariable,
+        expected.add(sksat.getFactory().computeVNF(full1, sksat.eVariable, sksat.uVariable));
+        expected.add(sksat.getFactory().computeVNF(sksat.getFactory().create(Set.of(Ax1), Set.of(Px1)), sksat.eVariable,
                 sksat.uVariable));
 
-        Collection<SkGTGD> result = sksat.run(input);
+        Collection<Q> result = sksat.run(input);
 
         assertTrue(result.containsAll(expected));
     }
@@ -141,7 +144,6 @@ public class SkolemizedSatTest {
     @Test
     public void example1() {
     
-        SkolemizedSat sksat = SkolemizedSat.getInstance();
         /** input TGDs:
          * - ∀ x1 R(x1) → ∃ y1,y2 T(x1,y1,y2)
          * - ∀ x1,x2,x3 T(x1,x2,x3) → ∃ y1 U(x1,x2,y1)
@@ -149,11 +151,11 @@ public class SkolemizedSatTest {
          * - ∀ x1,x2,x3 U(x1,x2,x3) → V(x1,x2)
          * - ∀ x1,x2,x3 T(x1,x2,x3) ∧ V(x1,x2) ∧ S(x1) → M(x1)
          */
-		SkGTGD t1 = new SkGTGD(Set.of( R_x1 ), Set.of( T_x1y1y2 ));
-		SkGTGD t2 = new SkGTGD(Set.of( T_x1x2x3 ), Set.of( U_x1x2y1 ));
-		SkGTGD t3 = new SkGTGD(Set.of( U_x1x2x3 ), Set.of( P_x1 ));
-        SkGTGD t3bis = new SkGTGD(Set.of( U_x1x2x3 ), Set.of( V_x1x2 ));
-		SkGTGD t4 = new SkGTGD(Set.of( T_x1x2x3, V_x1x2, S_x1 ), Set.of( M_x1 ));
+		Q t1 = sksat.getFactory().create(Set.of( R_x1 ), Set.of( T_x1y1y2 ));
+		Q t2 = sksat.getFactory().create(Set.of( T_x1x2x3 ), Set.of( U_x1x2y1 ));
+		Q t3 = sksat.getFactory().create(Set.of( U_x1x2x3 ), Set.of( P_x1 ));
+        Q t3bis = sksat.getFactory().create(Set.of( U_x1x2x3 ), Set.of( V_x1x2 ));
+		Q t4 = sksat.getFactory().create(Set.of( T_x1x2x3, V_x1x2, S_x1 ), Set.of( M_x1 ));
 
 		Collection<Dependency> initial = new HashSet<>();
 		initial.add(t1);
@@ -162,7 +164,7 @@ public class SkolemizedSatTest {
         initial.add(t3bis);
 		initial.add(t4);
 
-        Collection<SkGTGD> result = sksat.run(initial);
+        Collection<Q> result = sksat.run(initial);
 
         /** expected output TGDs
          * ∀ u1,u2,u3 U(u1,u2,u3) → P(u1)
@@ -175,13 +177,13 @@ public class SkolemizedSatTest {
          */
 
         HashSet<TGD> expected = new HashSet<TGD>();
-        expected.add(SkolemizedSat.FACTORY.computeVNF(t3, sksat.eVariable, sksat.uVariable));
-        expected.add(SkolemizedSat.FACTORY.computeVNF(t3bis, sksat.eVariable, sksat.uVariable));
-        expected.add(SkolemizedSat.FACTORY.computeVNF(t4, sksat.eVariable, sksat.uVariable));
-        expected.add(SkolemizedSat.FACTORY.computeVNF(new SkGTGD(Set.of( T_x1x2x3 ), Set.of( P_x1 )), sksat.eVariable, sksat.uVariable));
-        expected.add(SkolemizedSat.FACTORY.computeVNF(new SkGTGD(Set.of( T_x1x2x3 ), Set.of( V_x1x2 )), sksat.eVariable, sksat.uVariable));
-        expected.add(SkolemizedSat.FACTORY.computeVNF(new SkGTGD(Set.of( R_x1 ), Set.of( P_x1 )), sksat.eVariable, sksat.uVariable));
-        expected.add(SkolemizedSat.FACTORY.computeVNF(new SkGTGD(Set.of( R_x1, S_x1 ), Set.of( M_x1 )), sksat.eVariable, sksat.uVariable));
+        expected.add(sksat.getFactory().computeVNF(t3, sksat.eVariable, sksat.uVariable));
+        expected.add(sksat.getFactory().computeVNF(t3bis, sksat.eVariable, sksat.uVariable));
+        expected.add(sksat.getFactory().computeVNF(t4, sksat.eVariable, sksat.uVariable));
+        expected.add(sksat.getFactory().computeVNF(sksat.getFactory().create(Set.of( T_x1x2x3 ), Set.of( P_x1 )), sksat.eVariable, sksat.uVariable));
+        expected.add(sksat.getFactory().computeVNF(sksat.getFactory().create(Set.of( T_x1x2x3 ), Set.of( V_x1x2 )), sksat.eVariable, sksat.uVariable));
+        expected.add(sksat.getFactory().computeVNF(sksat.getFactory().create(Set.of( R_x1 ), Set.of( P_x1 )), sksat.eVariable, sksat.uVariable));
+        expected.add(sksat.getFactory().computeVNF(sksat.getFactory().create(Set.of( R_x1, S_x1 ), Set.of( M_x1 )), sksat.eVariable, sksat.uVariable));
 
         assertEquals(expected, result);
         
@@ -192,7 +194,6 @@ public class SkolemizedSatTest {
      */    
     @Test
     public void example2() {
-        SkolemizedSat sksat = SkolemizedSat.getInstance();
 
         /**
          * intput TGDs:
@@ -202,11 +203,11 @@ public class SkolemizedSatTest {
          * ∀ x1,x2,x3,x4 S(x1,x2,x3,x4) → U(x4)
          * ∀ z1,z2,z3 T(z1,z2,z3) ∧ U(z3) → P(z1)
         */
-		SkGTGD t1 = new SkGTGD(Set.of( R_x1x2 ), Set.of( H1_x1x2y1y2 ));
-        SkGTGD t1bis = new SkGTGD(Set.of( H1_x1x2y1y2 ), Set.of( S_x1x2y1y2 ));
-        SkGTGD t1ter = new SkGTGD(Set.of( H1_x1x2y1y2 ), Set.of( T_x1x2y2 ));
-		SkGTGD t2 = new SkGTGD(Set.of( S_x1x2x3x4 ), Set.of( U_x4 ));
-		SkGTGD t3 = new SkGTGD(Set.of( T_z1z2z3, U_z3 ), Set.of( P_z1 ));
+		Q t1 = sksat.getFactory().create(Set.of( R_x1x2 ), Set.of( H1_x1x2y1y2 ));
+        Q t1bis = sksat.getFactory().create(Set.of( H1_x1x2y1y2 ), Set.of( S_x1x2y1y2 ));
+        Q t1ter = sksat.getFactory().create(Set.of( H1_x1x2y1y2 ), Set.of( T_x1x2y2 ));
+		Q t2 = sksat.getFactory().create(Set.of( S_x1x2x3x4 ), Set.of( U_x4 ));
+		Q t3 = sksat.getFactory().create(Set.of( T_z1z2z3, U_z3 ), Set.of( P_z1 ));
 
 		Collection<Dependency> initial = new HashSet<>();
 		initial.add(t1);
@@ -215,7 +216,7 @@ public class SkolemizedSatTest {
 		initial.add(t2);
 		initial.add(t3);
 
-		Collection<SkGTGD> result = sksat.run(initial);
+		Collection<Q> result = sksat.run(initial);
 
         /**
          * expected TGDs: 
@@ -226,11 +227,11 @@ public class SkolemizedSatTest {
          * ∀ u1,u2 R(u1,u2) → P(u1)
         */
         HashSet<TGD> expected = new HashSet<TGD>();
-        expected.add(SkolemizedSat.FACTORY.computeVNF(t1bis, sksat.eVariable, sksat.uVariable));
-        expected.add(SkolemizedSat.FACTORY.computeVNF(t1ter, sksat.eVariable, sksat.uVariable));
-        expected.add(SkolemizedSat.FACTORY.computeVNF(t2, sksat.eVariable, sksat.uVariable));
-        expected.add(SkolemizedSat.FACTORY.computeVNF(t3, sksat.eVariable, sksat.uVariable));
-        expected.add(SkolemizedSat.FACTORY.computeVNF(new SkGTGD(Set.of( R_x1x2 ), Set.of( P_x1 )), sksat.eVariable, sksat.uVariable));
+        expected.add(sksat.getFactory().computeVNF(t1bis, sksat.eVariable, sksat.uVariable));
+        expected.add(sksat.getFactory().computeVNF(t1ter, sksat.eVariable, sksat.uVariable));
+        expected.add(sksat.getFactory().computeVNF(t2, sksat.eVariable, sksat.uVariable));
+        expected.add(sksat.getFactory().computeVNF(t3, sksat.eVariable, sksat.uVariable));
+        expected.add(sksat.getFactory().computeVNF(sksat.getFactory().create(Set.of( R_x1x2 ), Set.of( P_x1 )), sksat.eVariable, sksat.uVariable));
 
         assertEquals(expected, result);
     }
