@@ -7,7 +7,6 @@ import java.util.Map;
 import java.util.Set;
 
 import uk.ac.ox.cs.pdq.fol.Atom;
-import uk.ac.ox.cs.pdq.fol.Predicate;
 import uk.ac.ox.cs.pdq.fol.Term;
 
 public abstract class AbstractSkolemSat<Q extends SkGTGD> extends EvolveBasedSat<Q> {
@@ -37,18 +36,6 @@ public abstract class AbstractSkolemSat<Q extends SkGTGD> extends EvolveBasedSat
                 output.add(tgd);
 
         return output;
-    }
-
-    protected abstract Atom[] getUnifiableBodyAtoms(Q rightTGD);
-    
-    @Override
-    protected Collection<Predicate> getUnifiableBodyPredicates(Q rightTGD) {
-        Set<Predicate> result = new HashSet<>();
-
-        for (Atom atom : getUnifiableBodyAtoms(rightTGD))
-            result.add(atom.getPredicate());
-
-        return result;
     }
 
     @Override
