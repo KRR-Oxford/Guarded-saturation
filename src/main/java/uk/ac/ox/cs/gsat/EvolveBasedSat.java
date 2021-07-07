@@ -20,6 +20,9 @@ import uk.ac.ox.cs.gsat.filters.TreePredicateFilter;
 import uk.ac.ox.cs.gsat.subsumers.ExactAtomSubsumer;
 import uk.ac.ox.cs.gsat.subsumers.SimpleSubsumer;
 import uk.ac.ox.cs.gsat.subsumers.Subsumer;
+import uk.ac.ox.cs.gsat.unification.UnificationIndex;
+import uk.ac.ox.cs.gsat.unification.UnificationIndexFactory;
+import uk.ac.ox.cs.gsat.unification.UnificationIndexType;
 import uk.ac.ox.cs.pdq.fol.Atom;
 import uk.ac.ox.cs.pdq.fol.Dependency;
 import uk.ac.ox.cs.pdq.fol.Predicate;
@@ -53,8 +56,10 @@ public abstract class EvolveBasedSat<Q extends GTGD> {
     public String eVariable;
     // New variable name for evolveRename
     public String zVariable;
+	private UnificationIndexType leftIndexType;
+	private UnificationIndexType rightIndexType;
 
-    protected static Comparator<? super GTGD> comparator = (tgd1, tgd2) -> {
+    protected static Comparator<GTGD> comparator = (tgd1, tgd2) -> {
 
         int numberOfHeadAtoms1 = tgd1.getNumberOfHeadAtoms();
         int numberOfHeadAtoms2 = tgd2.getNumberOfHeadAtoms();
@@ -77,11 +82,18 @@ public abstract class EvolveBasedSat<Q extends GTGD> {
     };
 
     protected EvolveBasedSat(String saturationName, TGDFactory<Q> factory) {
+        
+        this(saturationName, factory, UnificationIndexType.PREDICATE_INDEX, UnificationIndexType.PREDICATE_INDEX);
+    }
+    
+    protected EvolveBasedSat(String saturationName, TGDFactory<Q> factory, UnificationIndexType leftIndexType, UnificationIndexType rightIndexType) {
         this.saturationName = saturationName;
         this.uVariable = saturationName + "_u";
         this.eVariable = saturationName + "_e";
         this.zVariable = saturationName + "_z";
         this.factory = factory;
+        this.leftIndexType = leftIndexType;
+        this.rightIndexType = rightIndexType;
     }
 
     /**
@@ -143,13 +155,18 @@ public abstract class EvolveBasedSat<Q extends GTGD> {
             throw new IllegalStateException();
         }
 
-        Map<Predicate, Set<Q>> leftTGDsMap = new HashMap<>();
-        Map<Predicate, Set<Q>> rightTGDsMap = new HashMap<>();
+        UnificationIndex<Q> leftIndex = UnificationIndexFactory.getInstance().create(this.leftIndexType);
+        UnificationIndex<Q> rightIndex;
+        if (Configuration.isEvolvingTGDOrderingEnabled())
+            rightIndex = UnificationIndexFactory.getInstance().create(this.rightIndexType, comparator);
+        else
+            rightIndex = UnificationIndexFactory.getInstance().create(this.rightIndexType);
+
         Set<Q> rightTGDsSet = new HashSet<>();
         Set<Q> leftTGDsSet = new HashSet<>();
 
         // initialization of the structures
-        initialization(selectedTGDs, rightTGDsSet, newLeftTGDs, rightTGDsMap);
+        initialization(selectedTGDs, rightTGDsSet, newLeftTGDs, rightIndex);
 
         App.logger.info("Subsumption method : " + Configuration.getSubsumptionMethod());
 
@@ -209,9 +226,9 @@ public abstract class EvolveBasedSat<Q extends GTGD> {
 
                 App.logger.fine("current TGD: " + currentTGD);
 
-                boolean added = addLeftTGD(currentTGD, leftTGDsMap, leftTGDsSet);
+                boolean added = addLeftTGD(currentTGD, leftIndex, leftTGDsSet);
                 if (added)
-                    for (Q rightTGD : getRightTGDsToEvolveWith(currentTGD, rightTGDsMap)) {
+                    for (Q rightTGD : getRightTGDsToEvolveWith(currentTGD, rightIndex)) {
                         evolveCount++;
                         boolean isCurrentTGDSubsumed = fillToAdd(toAdd, currentTGD, rightTGD, true,                                                                  bodyPredicates, evolvedEqualsCount, evolveTime);
 
@@ -228,9 +245,9 @@ public abstract class EvolveBasedSat<Q extends GTGD> {
                 iterator.remove();
                 App.logger.fine("current TGD: " + currentTGD);
 
-                boolean added = addRightTGD(currentTGD, rightTGDsMap, rightTGDsSet);
+                boolean added = addRightTGD(currentTGD, rightIndex, rightTGDsSet);
 
-                Set<Q> leftTGDsToEvolve = getLeftTGDsToEvolveWith(currentTGD, leftTGDsMap);
+                Set<Q> leftTGDsToEvolve = getLeftTGDsToEvolveWith(currentTGD, leftIndex);
                 if (added && leftTGDsToEvolve != null)
                     for (Q leftTGD : leftTGDsToEvolve) {
                         evolveCount++;
@@ -249,12 +266,12 @@ public abstract class EvolveBasedSat<Q extends GTGD> {
 
                 if (isRightTGD(newTGD)) {
                     newRightCount++;
-                    addNewTGD(newTGD, true, newRightTGDs, rightTGDsSubsumer, rightTGDsMap, rightTGDsSet);
+                    addNewTGD(newTGD, true, newRightTGDs, rightTGDsSubsumer, rightIndex, rightTGDsSet);
                 }
 
                 if (isLeftTGD(newTGD)) {
                     newLeftCount++;
-                    addNewTGD(newTGD, false, newLeftTGDs, leftTGDsSubsumer, leftTGDsMap, leftTGDsSet);
+                    addNewTGD(newTGD, false, newLeftTGDs, leftTGDsSubsumer, leftIndex, leftTGDsSet);
                 }
             }
             timeToAdd += (System.nanoTime() - startTimeToAdd);
@@ -342,11 +359,11 @@ public abstract class EvolveBasedSat<Q extends GTGD> {
     }
 
     protected void initialization(Collection<Q> selectedTGDs, Set<Q> rightTGDsSet, Collection<Q> newLeftTGDs,
-            Map<Predicate, Set<Q>> rightTGDsMap) {
+            UnificationIndex<Q> rightIndex) {
 
         for (Q transformedTGD : transformInputTGDs(selectedTGDs)) {
             if (isRightTGD(transformedTGD)) {
-                addRightTGD(transformedTGD, rightTGDsMap, rightTGDsSet);
+                addRightTGD(transformedTGD, rightIndex, rightTGDsSet);
             }
             if (isLeftTGD(transformedTGD)) {
                 newLeftTGDs.add(transformedTGD);
@@ -376,17 +393,17 @@ public abstract class EvolveBasedSat<Q extends GTGD> {
     protected abstract boolean isRightTGD(Q newTGD);
 
     /**
-     * Returns the predicates of the body atoms of the input right TGD that may be
+     * Returns the atoms of the body of the input right TGD that may be
      * unifiable in evolve
      */
-    protected abstract Collection<Predicate> getUnifiableBodyPredicates(Q rightTGD);
+    protected abstract Atom[] getUnifiableBodyAtoms(Q rightTGD);
 
     /**
      * Apply the evolve function
      */
     protected abstract Collection<Q> evolveNew(Q leftTGD, Q rightTGD);
 
-    private Set<Q> getRightTGDsToEvolveWith(Q leftTGD, Map<Predicate, Set<Q>> rightTGDsMap) {
+    private Set<Q> getRightTGDsToEvolveWith(Q leftTGD, UnificationIndex<Q> rightIndex) {
 
         Set<Q> result = new HashSet<>();
 
@@ -394,47 +411,41 @@ public abstract class EvolveBasedSat<Q extends GTGD> {
             result = new TreeSet<>(comparator);
 
         for (Atom atom : leftTGD.getHeadSet()) {
-            Set<Q> set = rightTGDsMap.get(atom.getPredicate());
-            if (set != null)
-                result.addAll(set);
+            Set<Q> set = rightIndex.get(atom);
+            result.addAll(set);
         }
 
         return result;
     }
 
-    protected Set<Q> getLeftTGDsToEvolveWith(Q rightTGD, Map<Predicate, Set<Q>> leftTGDsMap) {
+    protected Set<Q> getLeftTGDsToEvolveWith(Q rightTGD, UnificationIndex<Q> leftIndex) {
         Set<Q> result = new HashSet<>();
 
-        for (Predicate p : getUnifiableBodyPredicates(rightTGD)) {
-            if (leftTGDsMap.containsKey(p))
-                result.addAll(leftTGDsMap.get(p));
+        for (Atom atom : getUnifiableBodyAtoms(rightTGD)) {
+            result.addAll(leftIndex.get(atom));
         }
 
         return result;
     }
 
-    protected boolean addRightTGD(Q rightTGD, Map<Predicate, Set<Q>> rightTGDsMap, Set<Q> rightTGDsSet) {
+    protected boolean addRightTGD(Q rightTGD, UnificationIndex<Q> rightIndex, Set<Q> rightTGDsSet) {
 
-        for (Predicate p : getUnifiableBodyPredicates(rightTGD))
-            rightTGDsMap.computeIfAbsent(p, k -> new HashSet<Q>()).add(rightTGD);
+        for (Atom a : getUnifiableBodyAtoms(rightTGD))
+            rightIndex.put(a, rightTGD);
 
         return rightTGDsSet.add(rightTGD);
     }
 
-    protected boolean addLeftTGD(Q leftTGD, Map<Predicate, Set<Q>> leftTGDsMap, Set<Q> leftTGDsSet) {
+    protected boolean addLeftTGD(Q leftTGD, UnificationIndex<Q> leftIndex, Set<Q> leftTGDsSet) {
 
-        if (Configuration.isEvolvingTGDOrderingEnabled())
-            for (Atom atom : leftTGD.getHeadSet())
-                leftTGDsMap.computeIfAbsent(atom.getPredicate(), k -> new TreeSet<Q>(comparator)).add(leftTGD);
-        else
-            for (Atom atom : leftTGD.getHeadSet())
-                leftTGDsMap.computeIfAbsent(atom.getPredicate(), k -> new HashSet<Q>()).add(leftTGD);
+        for (Atom atom : leftTGD.getHeadSet())
+            leftIndex.put(atom, leftTGD);
 
         return leftTGDsSet.add(leftTGD);
     }
 
     private void addNewTGD(Q newTGD, boolean asRightTGD, Collection<Q> newTGDs, Subsumer<Q> TGDsSubsumer,
-            Map<Predicate, Set<Q>> TGDsMap, Set<Q> TGDsSet) {
+            UnificationIndex<Q> unificationIndex, Set<Q> TGDsSet) {
 
         if (TGDsSubsumer.subsumed(newTGD))
             return;
@@ -445,22 +456,12 @@ public abstract class EvolveBasedSat<Q extends GTGD> {
         newTGDs.removeAll(sub);
         for (Q tgd : sub) {
             if (asRightTGD) {
-                for (Predicate p : getUnifiableBodyPredicates(newTGD)) {
-                    Set<Q> set = TGDsMap.get(p);
-                    if (set != null) {
-                        set.remove(tgd);
-                        if (set.isEmpty())
-                            TGDsMap.remove(p);
-                    }
+                for (Atom atom : getUnifiableBodyAtoms(newTGD)) {
+                    unificationIndex.remove(atom, newTGD);
                 }
             } else {
                 for (Atom atom : tgd.getHeadSet()) {
-                    Set<Q> set = TGDsMap.get(atom.getPredicate());
-                    if (set != null) {
-                        set.remove(tgd);
-                        if (set.isEmpty())
-                            TGDsMap.remove(atom.getPredicate());
-                    }
+                    unificationIndex.remove(atom, newTGD);
                 }
             }
         }

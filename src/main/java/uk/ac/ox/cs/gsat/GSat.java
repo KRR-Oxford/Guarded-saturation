@@ -301,8 +301,8 @@ public class GSat extends EvolveBasedSat<GTGD> {
 	}
 
 	@Override
-	protected Collection<Predicate> getUnifiableBodyPredicates(GTGD tgd) {
-		return List.of(tgd.getGuard().getPredicate());
+	protected Atom[] getUnifiableBodyAtoms(GTGD rightTGD) {
+        return new Atom[] { rightTGD.getGuard() };
 	}
 
 }
