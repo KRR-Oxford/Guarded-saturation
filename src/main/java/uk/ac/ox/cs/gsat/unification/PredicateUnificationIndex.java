@@ -40,7 +40,7 @@ public class PredicateUnificationIndex<Q extends GTGD> implements UnificationInd
 
 	@Override
 	public void remove(Atom atom, Q tgd) {
-        Set<Q> set = this.get(atom);
+        Set<Q> set = this.map.get(atom.getPredicate());
         if (set != null) {
             set.remove(tgd);
             if (set.isEmpty())
