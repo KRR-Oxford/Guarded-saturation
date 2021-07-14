@@ -6,13 +6,14 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
+import uk.ac.ox.cs.gsat.unification.UnificationIndexType;
 import uk.ac.ox.cs.pdq.fol.Atom;
 import uk.ac.ox.cs.pdq.fol.Term;
 
 public abstract class AbstractSkolemSat<Q extends SkGTGD> extends EvolveBasedSat<Q> {
 
     protected AbstractSkolemSat(TGDFactory<Q> factory, String name) {
-        super(name, factory);
+        super(name, factory, UnificationIndexType.ATOM_PATH_INDEX , UnificationIndexType.ATOM_PATH_INDEX);
     }
 
     @Override
@@ -32,7 +33,7 @@ public abstract class AbstractSkolemSat<Q extends SkGTGD> extends EvolveBasedSat
         Collection<Q> output = new HashSet<>();
 
         for (Q tgd : rightTGDs)
-            if (isFullTGD(tgd))
+            if (!tgd.isFunctional())
                 output.add(tgd);
 
         return output;
@@ -72,16 +73,10 @@ public abstract class AbstractSkolemSat<Q extends SkGTGD> extends EvolveBasedSat
                     new_tgd = factory.computeVNF(new_tgd, eVariable, uVariable);
 
                     results.add(new_tgd);
-                } else {
-                    System.out.println(leftTGD + "\n +\n" + rightTGD);
                 }
             }
         }
         return results;
-    }
-
-    private boolean isFullTGD(Q tgd) {
-        return !tgd.isNonFull() && !tgd.isFunctional();
     }
 
 }
