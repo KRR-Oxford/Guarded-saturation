@@ -23,6 +23,8 @@ public class UnificationIndexFactory {
         switch(type) {
         case PREDICATE_INDEX:
             return new PredicateUnificationIndex<Q>(comparator);
+        case ATOM_PATH_INDEX:
+            return new AtomPathUnificationIndex<Q>();
         default:
             String message = String.format("The type %s for unification index is not implemented", type);
             throw new IllegalStateException(message);
