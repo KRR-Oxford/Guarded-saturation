@@ -5,6 +5,7 @@ import java.io.FileInputStream;
 import java.io.IOException;
 import java.util.Properties;
 
+import uk.ac.ox.cs.gsat.AbstractSkolemSat.SkolemizationType;
 import uk.ac.ox.cs.gsat.EvolveBasedSat.newTGDStructure;
 
 /**
@@ -25,6 +26,7 @@ public class Configuration {
 	private static boolean evolvingTGDOrdering;
 	private static boolean discardUselessTGD;
 	private static int maxPredicate;
+    private static SkolemizationType skolemizationType;
 
     public static String getSolverName() {
 
@@ -162,6 +164,10 @@ public class Configuration {
                     Integer.parseInt(Configuration.prop.getProperty("optimization.maxPredicate"))
                     : 0;
 
+                skolemizationType = Configuration.prop.containsKey("skolemization_type")
+                    ? AbstractSkolemSat.SkolemizationType.valueOf(prop.getProperty("skolemization_type"))
+                    : AbstractSkolemSat.SkolemizationType.NAIVE;
+
                 }
             }
     }
@@ -261,4 +267,10 @@ public class Configuration {
         Configuration.initialize();
         return maxPredicate;
     }
+
+    public static SkolemizationType getSkolemizationType() {
+        Configuration.initialize();
+        return skolemizationType;
+    }
+
 }

@@ -302,7 +302,7 @@ public abstract class EvolveBasedSat<Q extends GTGD> {
         outputCopy.removeAll(initialRightTGDs);
         App.logger.info("ouptput full TGDs not contained in the input: " + outputCopy.size());
         // if (rightTGDsSubsumer instanceof SimpleSubsumer)
-        // ((SimpleSubsumer<Q>)rightTGDsSubsumer).printIndex();
+            // ((SimpleSubsumer<Q>)rightTGDsSubsumer).printIndex();
 
         if (timeoutReached)
             App.logger.info("!!! TIME OUT !!!");
