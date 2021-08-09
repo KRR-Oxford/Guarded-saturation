@@ -21,7 +21,22 @@ public abstract class AbstractSkolemSat<Q extends SkGTGD> extends EvolveBasedSat
         Collection<Q> result = new ArrayList<>();
 
         for (Q tgd : inputTGDs) {
-            for (Q shnf : factory.computeSHNF(tgd)) {
+
+            Collection<Q> singleSkolemizedTGDs;
+            switch (Configuration.getSkolemizationType()) {
+            case NAIVE:
+                singleSkolemizedTGDs = factory.computeSingleHeadedSkolemized(tgd);
+                break;
+            case PROJ_ON_FRONTIER:
+                singleSkolemizedTGDs = factory.computeSingleHeadSkolemizedOnFrontierVariable(tgd);
+                break;
+            default:
+                String message = String.format("the skolemization type %s is not supported",
+                        Configuration.getSkolemizationType());
+                throw new IllegalStateException(message);
+            }
+
+            for (Q shnf : singleSkolemizedTGDs) {
                 result.add(factory.computeVNF(shnf, eVariable, uVariable));
             }
         }
@@ -79,4 +94,8 @@ public abstract class AbstractSkolemSat<Q extends SkGTGD> extends EvolveBasedSat
         return results;
     }
 
+    public static enum SkolemizationType {
+        NAIVE,
+        PROJ_ON_FRONTIER
+    }
 }

@@ -245,10 +245,11 @@ public class TGDFactory<Q extends TGD> {
     }
 
     /**
-     * compute the SHNF optimized for TGD 
+     * compute the single headed skolemization version of a TGD 
+     * without introducing a new predicate
      * @param tgd
      */
-    public Collection<Q> computeSHNF(Q tgd) {
+    public Collection<Q> computeSingleHeadedSkolemized(Q tgd) {
 
         if (tgd.getHeadAtoms().length <= 1)
             return List.of(computeSkolemized(tgd));
@@ -262,6 +263,11 @@ public class TGDFactory<Q extends TGD> {
         return result;
     }
 
+    /**
+     * compute the SHNF as defined in Kevin's thesis
+     * it introduces new predicate function capturing all the universal variables of the TGD
+     *
+     */
     public Collection<Q> computeSHNFForDisjonctiveTGD(Q tgd) {
 
         if (tgd.getHeadAtoms().length <= 1)
@@ -290,6 +296,48 @@ public class TGDFactory<Q extends TGD> {
         return result;
     }
 
+    /**
+     * compute the single headed skolemized TGD version of the input TGD, 
+     * by first projecting the universal variables to the frontier ones by introducing a new predicate
+     * This is the initialization used by KAON2
+     */
+    public Collection<Q> computeSingleHeadSkolemizedOnFrontierVariable(Q tgd) {
+
+        if (tgd.getHeadAtoms().length <= 1)
+            return computeSingleHeadedSkolemized(tgd);
+
+        Collection<Q> result = new ArrayList<>();
+
+        Set<Variable> universalVariables = Set.of(tgd.getUniversal());
+        Collection<Variable> frontier = new HashSet<>();
+        // we add all the variables in the head to frontier
+        for (Atom a : tgd.getHeadAtoms())
+            for (Variable v : a.getVariables())
+                frontier.add(v);
+        // we remove the existential variable
+        boolean containsExistential = frontier.retainAll(universalVariables);
+
+        boolean areUniversalContainedInFrontier = frontier.containsAll(universalVariables);
+
+        if (!containsExistential || areUniversalContainedInFrontier)
+            return computeSingleHeadedSkolemized(tgd);
+        
+        // we create a head atom capturing all the frontier variables
+        Predicate fPredicate = Predicate.create(SHNF_SYMBOL + (SHNFIndex++), frontier.size());
+        Variable[] fatomVariables = new ArrayList<Variable>(frontier).toArray( new Variable[frontier.size()]);
+        Atom fAtom = Atom.create(fPredicate, fatomVariables);
+        Set<Atom> fAtomSet = Set.of(fAtom);
+
+        // we add to the result the original TGD where the head is replaced by fAtom
+        result.add(constructor.create(tgd.getBodySet(), fAtomSet));
+
+        // for all the head atom we add to the result a single head skolemized TGD
+        result.addAll(computeSingleHeadedSkolemized(constructor.create(fAtomSet, tgd.getHeadSet())));
+
+        return result;
+        
+    }
+    
     private static interface Constructor<T extends TGD> {
         T create(Set<Atom> bodyAtoms, Set<Atom> headAtoms);
     }
