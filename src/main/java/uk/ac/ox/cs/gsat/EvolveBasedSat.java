@@ -447,9 +447,13 @@ public abstract class EvolveBasedSat<Q extends GTGD> {
     private void addNewTGD(Q newTGD, boolean asRightTGD, Collection<Q> newTGDs, Subsumer<Q> TGDsSubsumer,
             UnificationIndex<Q> unificationIndex, Set<Q> TGDsSet) {
 
+        // discard if the newTGD is a tautology
+        if (Configuration.isTautologyDiscarded() && newTGD.getBodySet().containsAll(newTGD.getHeadSet())) {
+            return;
+        }
+
         if (TGDsSubsumer.subsumed(newTGD))
             return;
-
         Collection<Q> sub = TGDsSubsumer.subsumesAny(newTGD);
 
         TGDsSet.removeAll(sub);
