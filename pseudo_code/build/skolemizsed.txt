@@ -1,0 +1,70 @@
+
+
+
+The skolemised approach is the one described in Definition 5.2.17 in the
+thesis. It is the one that ends up being the same as the one by De
+Nivelle et al.
+
+Summary of the approach: For GTGDs, we first make all rules single
+headed, skolemise, and start resolving. Each resolution step takes one
+non-full rule r -- that is, one with a skolem in the head -- with head atom H and another rule r' containing a body
+atom B' such that either:
+
+1. r' is full (no skolems in the head) and B' is its guard or
+2. B' contains a function symbol
+If H and B' unify, we resolve the rules and add them to our set.
+
+One key difference between GSAT and the unskolemised approach is that
+the former can resolve multiple atoms at a time but in exchange might
+create larger rules; the latter only performs binary resolution and
+hence might take more resolution steps to finish but also creates
+smaller rules.
+
+Example 6.2.1 in the thesis
+shows a simple case where the unskolemised approach can be
+beneficial (in terms of resolution steps required) as it resolves
+multiple atoms at once.
+
+
+
+The following example, on the other hand, might be a candidate where
+GSat does worse. Consider the following set of rules
+
+B1(x) -> H1(x,y1,y2)
+H1(x,x1,x2),B2(x) -> H2(x1,x2)
+H1(x,x1,x2),B3(x) -> H3(x1,x2)
+
+Then GSat creates
+
+B1(x),B2(x) -> H1(x,y1,y2),H2(y1,y2)
+B1(x),B3(x) -> H1(x,y1,y2),H3(y1,y2)
+B1(x),B2(x),B3(x) -> H1(x,y1,y2),H2(y1,y2),H3(y1,y2)
+
+and the skolemised approach creates
+
+B1(x),B2(x) -> H2(f(x),g(x))
+B1(x),B3(x) -> H3(f(x),g(x))
+
+assuming that y1 got skolemised to f(x) and y2 to g(x).
+
+Here GSat created larger rules and an additional rule which shortcuts
+binary resolution steps. If there would have been an additional rule in
+the input
+
+H1(x,x1,x2),H2(x1,x2),H3(x1,x2) -> P(x)
+
+this shortcut would show its merits.
+
+Here's another difference: GSat does not resolve when
+existentials/skolemised variables would be introduced in the body, which
+can be beneficial (but I guess to a neglectable degree). For example,
+given the following rules:
+
+B1(x) -> H1(x,y1,y2)
+H1(x,x1,x2),B2(x1) -> H2(x1,x2)
+H1(x,x1,x2),B3(x1) -> H3(x1,x2)
+
+GSat would not resolve anything while the skolemised approach would create
+
+B1(x),B2(f(x)) -> H2(f(x),g(x))
+B1(x),B3(f(x)) -> H3(f(x),g(x))
