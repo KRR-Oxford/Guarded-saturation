@@ -27,6 +27,7 @@ public class Configuration {
 	private static boolean discardUselessTGD;
 	private static int maxPredicate;
     private static SkolemizationType skolemizationType;
+    private static boolean discardTautology;
 
     public static String getSolverName() {
 
@@ -168,6 +169,11 @@ public class Configuration {
                     ? AbstractSkolemSat.SkolemizationType.valueOf(prop.getProperty("skolemization_type"))
                     : AbstractSkolemSat.SkolemizationType.NAIVE;
 
+                discardTautology = Configuration.prop.containsKey("optimization.discard_tautology") ?
+                    Boolean.parseBoolean(Configuration.prop.getProperty("optimization.discard_tautology"))
+                    : true;
+
+
                 }
             }
     }
@@ -271,6 +277,11 @@ public class Configuration {
     public static SkolemizationType getSkolemizationType() {
         Configuration.initialize();
         return skolemizationType;
+    }
+
+    public static boolean isTautologyDiscarded() {
+        Configuration.initialize();
+        return discardTautology;
     }
 
 }
