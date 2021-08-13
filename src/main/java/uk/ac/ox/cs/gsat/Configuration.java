@@ -28,6 +28,7 @@ public class Configuration {
 	private static int maxPredicate;
     private static SkolemizationType skolemizationType;
     private static boolean discardTautology;
+    private static boolean orderedSkolemSatSelectSkolemBodyAtom;
 
     public static String getSolverName() {
 
@@ -173,6 +174,11 @@ public class Configuration {
                     Boolean.parseBoolean(Configuration.prop.getProperty("optimization.discard_tautology"))
                     : true;
 
+                    orderedSkolemSatSelectSkolemBodyAtom = Configuration.prop
+                            .containsKey("ordered_skolemsat_select_skolem_body_atom")
+                                    ? Boolean.parseBoolean(
+                                            Configuration.prop.getProperty("ordered_skolemsat_select_skolem_body_atom"))
+                                    : true;
 
                 }
             }
@@ -284,4 +290,7 @@ public class Configuration {
         return discardTautology;
     }
 
+    public static boolean isOrderedSkolemSatSelectSkolemBodyAtom() {
+        return orderedSkolemSatSelectSkolemBodyAtom;
+    }
 }

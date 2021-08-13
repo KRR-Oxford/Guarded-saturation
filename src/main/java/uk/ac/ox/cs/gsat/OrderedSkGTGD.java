@@ -45,7 +45,12 @@ public class OrderedSkGTGD extends SkGTGD {
             if (this.isFunctional) {
                 // in this case, there are functional atoms in the body and the head
                 // we compute the maximal atoms among all
-                List<Atom> maxAtoms = computeMaxAtom(this.getAtoms());
+                List<Atom> maxAtoms;
+
+                if (Configuration.isOrderedSkolemSatSelectSkolemBodyAtom())
+                    maxAtoms = computeMaxAtom(this.getBodyAtoms());
+                else
+                    maxAtoms = computeMaxAtom(this.getAtoms());
 
                 // if the head's atom is maximal
                 if (maxAtoms.containsAll(this.getHeadSet())) {
