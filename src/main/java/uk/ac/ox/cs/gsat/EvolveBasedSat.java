@@ -58,6 +58,7 @@ public abstract class EvolveBasedSat<Q extends GTGD> {
     public String zVariable;
 	private UnificationIndexType leftIndexType;
 	private UnificationIndexType rightIndexType;
+    private EvolveStatisticsFactory<Q> statFactory;
 
     protected static Comparator<GTGD> comparator = (tgd1, tgd2) -> {
 
@@ -81,12 +82,12 @@ public abstract class EvolveBasedSat<Q extends GTGD> {
 
     };
 
-    protected EvolveBasedSat(String saturationName, TGDFactory<Q> factory) {
+    protected EvolveBasedSat(String saturationName, TGDFactory<Q> factory, EvolveStatisticsFactory<Q> statFactory) {
         
-        this(saturationName, factory, UnificationIndexType.PREDICATE_INDEX, UnificationIndexType.PREDICATE_INDEX);
+        this(saturationName, factory, UnificationIndexType.PREDICATE_INDEX, UnificationIndexType.PREDICATE_INDEX, statFactory);
     }
     
-    protected EvolveBasedSat(String saturationName, TGDFactory<Q> factory, UnificationIndexType leftIndexType, UnificationIndexType rightIndexType) {
+    protected EvolveBasedSat(String saturationName, TGDFactory<Q> factory, UnificationIndexType leftIndexType, UnificationIndexType rightIndexType, EvolveStatisticsFactory<Q> statFactory) {
         this.saturationName = saturationName;
         this.uVariable = saturationName + "_u";
         this.eVariable = saturationName + "_e";
@@ -94,6 +95,7 @@ public abstract class EvolveBasedSat<Q extends GTGD> {
         this.factory = factory;
         this.leftIndexType = leftIndexType;
         this.rightIndexType = rightIndexType;
+        this.statFactory = statFactory;
     }
 
     /**
@@ -106,7 +108,7 @@ public abstract class EvolveBasedSat<Q extends GTGD> {
     public Collection<Q> run(Collection<Dependency> allDependencies) {
 
         System.out.println(String.format("Running %s...", this.saturationName));
-        final long startTime = System.nanoTime();
+        EvolveStatistics<Q> stats = this.statFactory.create(saturationName);
         boolean timeoutReached = false;
 
         int discarded = 0;
@@ -127,6 +129,9 @@ public abstract class EvolveBasedSat<Q extends GTGD> {
             System.out.println(this.saturationName + " discarded rules : " + discarded + "/" + allDependencies.size()
                     + " = " + String.format(Locale.UK, "%.3f", (float) discarded / allDependencies.size() * 100) + "%");
 
+        // we start the time watch
+        stats.start();
+        
         // we change the fesh variables prefixes we will use until
         // they do not appear into the selected TGDs
         while (checkRenameVariablesInTGDs(selectedTGDs)) {
@@ -187,18 +192,14 @@ public abstract class EvolveBasedSat<Q extends GTGD> {
         // copying the initial left TGD set for later comparison
         Collection<Q> initialRightTGDs = new HashSet<>(rightTGDsSet);
 
-        App.logger.info("# initial TGDs: " + rightTGDsSet.size() + " , " + newLeftTGDs.size());
+        stats.setInitialLeftTGDs(newLeftTGDs.size());
+        stats.setInitialRightTGDs(rightTGDsSet.size());
+
         int counter = 100;
-        int newRightCount = 0;
-        int newLeftCount = 0;
-        int[] evolvedEqualsCount = { 0 };
-        int stopBecauseSubsumedCount = 0;
-        long[] evolveTime = { 0 };
-        int evolveCount = 0;
-        long timeToAdd = 0;
+
         while (!newRightTGDs.isEmpty() || !newLeftTGDs.isEmpty()) {
 
-            if (isTimeout(startTime)) {
+            if (isTimeout(stats.getStartTime())) {
                 timeoutReached = true;
                 break;
             }
@@ -229,11 +230,11 @@ public abstract class EvolveBasedSat<Q extends GTGD> {
                 boolean added = addLeftTGD(currentTGD, leftIndex, leftTGDsSet);
                 if (added)
                     for (Q rightTGD : getRightTGDsToEvolveWith(currentTGD, rightIndex)) {
-                        evolveCount++;
-                        boolean isCurrentTGDSubsumed = fillToAdd(toAdd, currentTGD, rightTGD, true,                                                                  bodyPredicates, evolvedEqualsCount, evolveTime);
+                        stats.incrEvolveCount();
+                        boolean isCurrentTGDSubsumed = fillToAdd(toAdd, currentTGD, rightTGD, true,                                                                  bodyPredicates, stats);
 
                         if (isCurrentTGDSubsumed) {
-                            stopBecauseSubsumedCount++;
+                            stats.incrStopBecauseSubsumedCount();
                             break;
                         }
                     }
@@ -250,59 +251,42 @@ public abstract class EvolveBasedSat<Q extends GTGD> {
                 Set<Q> leftTGDsToEvolve = getLeftTGDsToEvolveWith(currentTGD, leftIndex);
                 if (added && leftTGDsToEvolve != null)
                     for (Q leftTGD : leftTGDsToEvolve) {
-                        evolveCount++;
-                        boolean isCurrentTGDSubsumed = fillToAdd(toAdd, currentTGD, leftTGD, false,                                                                  bodyPredicates, evolvedEqualsCount, evolveTime);
+                        stats.incrEvolveCount();
+                        boolean isCurrentTGDSubsumed = fillToAdd(toAdd, currentTGD, leftTGD, false,                                                                  bodyPredicates, stats);
 
                         if (isCurrentTGDSubsumed) {
-                            stopBecauseSubsumedCount++;
+                            stats.incrStopBecauseSubsumedCount();
                             break;
                         }
                     }
             }
 
             // we update the structures with the TGDs to add
-            final long startTimeToAdd = System.nanoTime();
             for (Q newTGD : toAdd) {
 
                 if (isRightTGD(newTGD)) {
-                    newRightCount++;
-                    addNewTGD(newTGD, true, newRightTGDs, rightTGDsSubsumer, rightIndex, rightTGDsSet);
+                    stats.newRightTGD(newTGD);
+                    addNewTGD(newTGD, true, newRightTGDs, rightTGDsSubsumer, rightIndex, rightTGDsSet, stats);
                 }
 
                 if (isLeftTGD(newTGD)) {
-                    newLeftCount++;
-                    addNewTGD(newTGD, false, newLeftTGDs, leftTGDsSubsumer, leftIndex, leftTGDsSet);
+                    stats.newLeftTGD(newTGD);
+                    addNewTGD(newTGD, false, newLeftTGDs, leftTGDsSubsumer, leftIndex, leftTGDsSet, stats);
                 }
             }
-            timeToAdd += (System.nanoTime() - startTimeToAdd);
         }
 
-        final long stopTime = System.nanoTime();
-
-        long totalTime = stopTime - startTime;
-
-        App.logger.info(saturationName + " total time : " + String.format(Locale.UK, "%.0f", totalTime / 1E6) + " ms = "
-                + String.format(Locale.UK, "%.2f", totalTime / 1E9) + " s");
-        App.logger.info("Subsumed elements : "
-                + (rightTGDsSubsumer.getNumberSubsumed() + leftTGDsSubsumer.getNumberSubsumed()));
-        App.logger.info("Filter discarded elements : "
-                + (rightTGDsSubsumer.getFilterDiscarded() + leftTGDsSubsumer.getFilterDiscarded()));
-        App.logger.info("Derived full/non full TGDs: " + newRightCount + " , " + newLeftCount);
-        App.logger.info("Stop because subsumed: " + stopBecauseSubsumedCount);
-        App.logger.info("evolved equals to current: " + evolvedEqualsCount[0]);
-        App.logger.info("evolved time: " + String.format(Locale.UK, "%.0f", evolveTime[0] / 1E6) + " ms = "
-                        + String.format(Locale.UK, "%.2f", evolveTime[0] / 1E9) + " s");
-        App.logger.info("evolve count: " + evolveCount);
-
-        App.logger.info("subsumption time: " + String.format(Locale.UK, "%.0f", timeToAdd / 1E6) + " ms = "
-                        + String.format(Locale.UK, "%.2f", timeToAdd / 1E9) + " s");
         Collection<Q> output = getOutput(rightTGDsSubsumer.getAll());
 
+        stats.stop();
+        stats.log(leftTGDsSubsumer, rightTGDsSubsumer);
+        
         Collection<Q> outputCopy = new ArrayList<>(output);
         outputCopy.removeAll(initialRightTGDs);
         App.logger.info("ouptput full TGDs not contained in the input: " + outputCopy.size());
         // if (rightTGDsSubsumer instanceof SimpleSubsumer)
             // ((SimpleSubsumer<Q>)rightTGDsSubsumer).printIndex();
+
 
         if (timeoutReached)
             App.logger.info("!!! TIME OUT !!!");
@@ -310,12 +294,12 @@ public abstract class EvolveBasedSat<Q extends GTGD> {
         return output;
     }
 
-    private boolean fillToAdd(Collection<Q> toAdd, Q currentTGD, Q otherTGD, boolean isCurrentLeftTGD, Set<Predicate> bodyPredicates, int[] evolvedEqualsCount, long[] evolveTime) {
+    private boolean fillToAdd(Collection<Q> toAdd, Q currentTGD, Q otherTGD, boolean isCurrentLeftTGD, Set<Predicate> bodyPredicates, EvolveStatistics<Q> stats) {
         Q leftTGD = (isCurrentLeftTGD) ? currentTGD : otherTGD;
         Q rightTGD = (!isCurrentLeftTGD) ? currentTGD : otherTGD;
         final long startTime = System.nanoTime();
         Collection<Q> evolvedTGDs = evolveNew(leftTGD, rightTGD);
-        evolveTime[0] += (System.nanoTime() - startTime);
+        stats.incrEvolveTime(System.nanoTime() - startTime);
         if (Configuration.isStopEvolvingIfSubsumedEnabled()) {
             boolean subsumed = false;
             for (Q newTGD : evolvedTGDs) {
@@ -335,7 +319,7 @@ public abstract class EvolveBasedSat<Q extends GTGD> {
                     }
                 } else {
                     App.logger.fine("evolve equals :\n" + leftTGD + "\n + \n" + rightTGD + "\n = \n" + newTGD + "\n");
-                    evolvedEqualsCount[0]++;
+                    stats.incrEvolvedEqualsCount();
                 }
             }
             if (subsumed) {
@@ -445,16 +429,23 @@ public abstract class EvolveBasedSat<Q extends GTGD> {
     }
 
     private void addNewTGD(Q newTGD, boolean asRightTGD, Collection<Q> newTGDs, Subsumer<Q> TGDsSubsumer,
-            UnificationIndex<Q> unificationIndex, Set<Q> TGDsSet) {
+                           UnificationIndex<Q> unificationIndex, Set<Q> TGDsSet, EvolveStatistics<Q> stats) {
 
         // discard if the newTGD is a tautology
         if (Configuration.isTautologyDiscarded() && newTGD.getBodySet().containsAll(newTGD.getHeadSet())) {
+            stats.incrDiscardedTautologyCount();
             return;
         }
 
-        if (TGDsSubsumer.subsumed(newTGD))
+        long startTime = System.nanoTime();
+        boolean isSubsumed = TGDsSubsumer.subsumed(newTGD);
+        stats.incrForwardSubsumptionTime(System.nanoTime() - startTime);
+        if (isSubsumed)
             return;
+
+        startTime = System.nanoTime();
         Collection<Q> sub = TGDsSubsumer.subsumesAny(newTGD);
+        stats.incrBackwardSubsumptionTime(System.nanoTime() - startTime);
 
         TGDsSet.removeAll(sub);
         newTGDs.removeAll(sub);
@@ -469,8 +460,6 @@ public abstract class EvolveBasedSat<Q extends GTGD> {
                 }
             }
         }
-
-        // TGDsMap.values().removeIf(v -> v.isEmpty());
 
         if (Configuration.getNewTGDStrusture().equals(newTGDStructure.STACK) && newTGDs.contains(newTGD))
             return;

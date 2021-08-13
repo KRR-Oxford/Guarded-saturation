@@ -12,7 +12,6 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 import uk.ac.ox.cs.pdq.fol.Atom;
-import uk.ac.ox.cs.pdq.fol.Predicate;
 import uk.ac.ox.cs.pdq.fol.Term;
 import uk.ac.ox.cs.pdq.fol.Variable;
 
@@ -34,7 +33,7 @@ public class GSat extends EvolveBasedSat<GTGD> {
      * Private construtor, we want this class to be a Singleton
      */
     private GSat() {
-        super(NAME, FACTORY);
+        super(NAME, FACTORY, EvolveStatistics.getFactory());
     }
 
     /**

@@ -13,7 +13,7 @@ import uk.ac.ox.cs.pdq.fol.Term;
 public abstract class AbstractSkolemSat<Q extends SkGTGD> extends EvolveBasedSat<Q> {
 
     protected AbstractSkolemSat(TGDFactory<Q> factory, String name) {
-        super(name, factory, UnificationIndexType.ATOM_PATH_INDEX , UnificationIndexType.ATOM_PATH_INDEX);
+        super(name, factory, UnificationIndexType.ATOM_PATH_INDEX, UnificationIndexType.ATOM_PATH_INDEX, SkolemStatistics.getSkFactory());
     }
 
     @Override
