@@ -6,7 +6,7 @@ import java.io.IOException;
 import java.util.Properties;
 
 import uk.ac.ox.cs.gsat.AbstractSkolemSat.SkolemizationType;
-import uk.ac.ox.cs.gsat.EvolveBasedSat.newTGDStructure;
+import uk.ac.ox.cs.gsat.SaturationUtils.newTGDStructure;
 
 /**
  * From Angry-HEX code
@@ -21,7 +21,7 @@ public class Configuration {
 	private static boolean simpleSatPredicateFilter;
 	private static Long timeout;
 	private static boolean negativeConstraint;
-	private static uk.ac.ox.cs.gsat.EvolveBasedSat.newTGDStructure newTGDStructure;
+	private static newTGDStructure newTGDStructure;
 	private static boolean stopEvolvingIfSubsumed;
 	private static boolean evolvingTGDOrdering;
 	private static boolean discardUselessTGD;
@@ -147,8 +147,8 @@ public class Configuration {
                         : true;
 
                 newTGDStructure = Configuration.prop.containsKey("optimization.new_tgd_structure")
-                    ? EvolveBasedSat.newTGDStructure.valueOf(prop.getProperty("optimization.new_tgd_structure"))
-                    : EvolveBasedSat.newTGDStructure.SET;
+                    ? SaturationUtils.newTGDStructure.valueOf(prop.getProperty("optimization.new_tgd_structure"))
+                    : SaturationUtils.newTGDStructure.SET;
 
                 stopEvolvingIfSubsumed = Configuration.prop.containsKey("optimization.stop_evolving_if_subsumed") ?
                     Boolean.parseBoolean(Configuration.prop.getProperty("optimization.stop_evolving_if_subsumed"))
@@ -255,7 +255,7 @@ public class Configuration {
         return evolvingTGDOrdering;
     }
 
-    public static EvolveBasedSat.newTGDStructure getNewTGDStrusture() {
+    public static newTGDStructure getNewTGDStrusture() {
         Configuration.initialize();
         return newTGDStructure;
     }
