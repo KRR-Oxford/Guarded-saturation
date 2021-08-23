@@ -56,7 +56,7 @@ public class SimpleSat {
 
         Collection<TGD> selectedTGDs = new HashSet<>();
         for (Dependency d : allDependencies)
-            if (GSat.isSupportedRule(d))
+            if (SaturationUtils.isSupportedRule(d))
                 selectedTGDs.add(new TGD(Set.of(d.getBodyAtoms()), Set.of(d.getHeadAtoms())));
             else
                 discarded++;
@@ -65,7 +65,7 @@ public class SimpleSat {
                 + String.format(Locale.UK, "%.3f", (float) discarded / allDependencies.size() * 100) + "%");
 
         // compute the set of full and non-full tgds in normal forms
-        Subsumer<TGD> fullTGDSubsumer = EvolveBasedSat.createSubsumer(new HashSet<>());
+        Subsumer<TGD> fullTGDSubsumer = SaturationUtils.createSubsumer(new HashSet<>());
         Collection<TGD> fullTGDs = new HashSet<>();
         List<TGD> nonfullTGDs = new ArrayList<>();
         Collection<Predicate> nfTGDHeadPredicate = new HashSet<>();
