@@ -56,6 +56,7 @@ public abstract class EvolveBasedSat<Q extends GTGD> extends AbstractSaturation<
         while (!newRightTGDs.isEmpty() || !newLeftTGDs.isEmpty()) {
 
             if (isTimeout(stats.getStartTime())) {
+                stats.timeoutReached();
                 timeoutReached = true;
                 break;
             }
@@ -133,9 +134,6 @@ public abstract class EvolveBasedSat<Q extends GTGD> extends AbstractSaturation<
                 }
             }
         }
-
-        if (timeoutReached)
-            App.logger.info("!!! TIME OUT !!!");
 
     }
 
@@ -220,19 +218,4 @@ public abstract class EvolveBasedSat<Q extends GTGD> extends AbstractSaturation<
      */
     protected abstract Collection<Q> evolveNew(Q leftTGD, Q rightTGD);
 
-    protected Q evolveRename(Q ftgd) {
-
-        Variable[] uVariables = ftgd.getUniversal();
-
-        Map<Term, Term> substitution = new HashMap<>();
-        int counter = 1;
-        for (Variable v : uVariables) {
-            if (!v.getSymbol().startsWith(uVariable))
-                throw new IllegalArgumentException("TGD not valid in evolveRename: " + ftgd);
-            substitution.put(v, Variable.create(zVariable + counter++));
-        }
-
-        return (Q) Logic.applySubstitution(ftgd, substitution);
-
-    }
 }

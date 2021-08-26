@@ -278,7 +278,7 @@ public class SimpleSat {
     
                     App.logger.fine("Shead:" + Shead.toString());
     
-                    for (List<Atom> S : GSat.getProduct(Shead)) {
+                    for (List<Atom> S : SaturationUtils.getProduct(Shead)) {
     
                         App.logger.fine("Non-Full:" + new_nftgd.toString() + "\nFull:" + new_ftgd.toString() + "\nSbody:"
                                         + Sbody + "\nS:" + S);

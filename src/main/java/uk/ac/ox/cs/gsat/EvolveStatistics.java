@@ -20,6 +20,7 @@ public class EvolveStatistics<Q extends GTGD> {
     protected int discardedTautologyCount;
     protected long forwardSubsumptionTime;
     protected long backwardSubsumptionTime;
+    private boolean timeoutReached = false;
 
     public EvolveStatistics(String saturationName) {
         this.saturationName = saturationName;
@@ -51,6 +52,8 @@ public class EvolveStatistics<Q extends GTGD> {
         App.logger.info("evolve count: " + evolveCount);
 
         App.logger.info("discarded tautology count: " + discardedTautologyCount);
+        if (timeoutReached)
+            App.logger.info("!!! TIME OUT !!!");
     }
 
     public void start() {
@@ -61,6 +64,10 @@ public class EvolveStatistics<Q extends GTGD> {
         stopTime = System.nanoTime();
     }
 
+    public void timeoutReached() {
+        timeoutReached = true;
+    }
+    
     public long getStartTime() {
         return startTime;
     }
