@@ -59,7 +59,7 @@ public abstract class AbstractSkolemSat<Q extends SkGTGD> extends EvolveBasedSat
 
         Collection<Q> results = new HashSet<>();
 
-        rightTGD = evolveRename(rightTGD);
+        rightTGD = renameVariable(rightTGD);
 
         Collection<Atom> selectedBodyAtoms = new ArrayList<>();
         for (Atom atom : getUnifiableBodyAtoms(rightTGD))

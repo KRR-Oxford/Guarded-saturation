@@ -1,8 +1,10 @@
 package uk.ac.ox.cs.gsat;
 
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Comparator;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 
 import uk.ac.ox.cs.gsat.filters.FormulaFilter;
@@ -18,6 +20,33 @@ import uk.ac.ox.cs.pdq.fol.Dependency;
 import uk.ac.ox.cs.pdq.fol.Predicate;
 
 class SaturationUtils {
+
+    /**
+     * Mainly from https://stackoverflow.com/a/9496234
+     *
+     * @param input
+     * @return
+     */
+    static <T> List<List<T>> getProduct(List<? extends Collection<T>> input) {
+
+        List<List<T>> resultLists = new ArrayList<List<T>>();
+        if (input.size() == 0) {
+            resultLists.add(new ArrayList<>());
+            return resultLists;
+        } else {
+            Collection<T> firstList = input.get(0);
+            List<List<T>> remainingLists = getProduct(input.subList(1, input.size()));
+            for (T condition : firstList) {
+                for (List<T> remainingList : remainingLists) {
+                    ArrayList<T> resultList = new ArrayList<>(1 + remainingList.size());
+                    resultList.add(condition);
+                    resultList.addAll(remainingList);
+                    resultLists.add(resultList);
+                }
+            }
+        }
+        return resultLists;
+    }
 
     /**
      * check whether tgd1 is subsumed by tgd2 by checking the inclusion of the atom
