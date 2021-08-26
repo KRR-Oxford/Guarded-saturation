@@ -186,6 +186,10 @@ public class App {
 
                 System.out.println("Full TGD saturation algorithm: ordered skolemized Sat");
                 executionOutput.setFullTGDSaturation(OrderedSkolemSat.getInstance().run(rules));
+            } else if (Configuration.getSaturationAlg().equals("hyper_sat")) {
+
+                System.out.println("Full TGD saturation algorithm: hyperresolution Sat");
+                executionOutput.setFullTGDSaturation(HyperResolutionBasedSat.getInstance().run(rules));
             } else if (Configuration.getSaturationAlg().equals("simple_sat")) {
 
                 System.out.println("Full TGD saturation algorithm: Simple Sat");

@@ -2,8 +2,10 @@ package uk.ac.ox.cs.gsat;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Locale;
+import java.util.Map;
 import java.util.Set;
 import java.util.Stack;
 import java.util.TreeSet;
@@ -15,6 +17,8 @@ import uk.ac.ox.cs.gsat.unification.UnificationIndexType;
 import uk.ac.ox.cs.pdq.fol.Atom;
 import uk.ac.ox.cs.pdq.fol.Dependency;
 import uk.ac.ox.cs.pdq.fol.Predicate;
+import uk.ac.ox.cs.pdq.fol.Term;
+import uk.ac.ox.cs.pdq.fol.Variable;
 
 /**
  * The abstract saturation class initialize the structures used by each
@@ -32,7 +36,7 @@ public abstract class AbstractSaturation<Q extends GTGD> {
     public String uVariable;
     // New variable name for Existentially Quantified Variables
     public String eVariable;
-    // New variable name for evolveRename
+    // New variable name for renameVariable
     public String zVariable;
     // type of the left unification index
     protected final UnificationIndexType leftIndexType;
@@ -311,6 +315,22 @@ public abstract class AbstractSaturation<Q extends GTGD> {
                 }
 
         return false;
+
+    }
+
+    protected Q renameVariable(Q ftgd) {
+
+        Variable[] uVariables = ftgd.getUniversal();
+
+        Map<Term, Term> substitution = new HashMap<>();
+        int counter = 1;
+        for (Variable v : uVariables) {
+            if (!v.getSymbol().startsWith(uVariable))
+                throw new IllegalArgumentException("TGD not valid in renameVariable: " + ftgd);
+            substitution.put(v, Variable.create(zVariable + counter++));
+        }
+
+        return (Q) Logic.applySubstitution(ftgd, substitution);
 
     }
 

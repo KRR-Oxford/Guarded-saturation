@@ -28,7 +28,7 @@ public class GTGD extends TGD {
 
         Atom currentGuard = null;
         for (Atom atom : getBodySet())
-            if (Arrays.asList(atom.getTerms()).containsAll(universalList))
+            if (Arrays.asList(atom.getVariables()).containsAll(universalList))
                 if (currentGuard == null || atom.getPredicate().getArity() < currentGuard.getPredicate().getArity())
                     currentGuard = atom;
                 else if (atom.getPredicate().getArity() == currentGuard.getPredicate().getArity()

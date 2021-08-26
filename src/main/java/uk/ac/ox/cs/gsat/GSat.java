@@ -69,7 +69,7 @@ public class GSat extends EvolveBasedSat<GTGD> {
      */
     public Collection<GTGD> evolveNew(GTGD nftgd, GTGD ftgd) {
 
-        ftgd = evolveRename(ftgd);
+        ftgd = renameVariable(ftgd);
 
         App.logger.fine("Composing:\n" + nftgd + "\nand\n" + ftgd);
 
@@ -121,7 +121,7 @@ public class GSat extends EvolveBasedSat<GTGD> {
 
                 App.logger.fine("Shead:" + Shead.toString());
 
-                for (List<Atom> S : getProduct(Shead)) {
+                for (List<Atom> S : SaturationUtils.getProduct(Shead)) {
 
                     App.logger.fine("Non-Full:" + new_nftgd.toString() + "\nFull:" + new_ftgd.toString() + "\nSbody:"
                                     + Sbody + "\nS:" + S);
@@ -169,33 +169,6 @@ public class GSat extends EvolveBasedSat<GTGD> {
         }
 
         return sigma;
-    }
-
-    /**
-     * Mainly from https://stackoverflow.com/a/9496234
-     *
-     * @param shead
-     * @return
-     */
-    static List<List<Atom>> getProduct(List<List<Atom>> shead) {
-
-        List<List<Atom>> resultLists = new ArrayList<List<Atom>>();
-        if (shead.size() == 0) {
-            resultLists.add(new ArrayList<Atom>());
-            return resultLists;
-        } else {
-            List<Atom> firstList = shead.get(0);
-            List<List<Atom>> remainingLists = getProduct(shead.subList(1, shead.size()));
-            for (Atom condition : firstList) {
-                for (List<Atom> remainingList : remainingLists) {
-                    ArrayList<Atom> resultList = new ArrayList<Atom>(1 + remainingList.size());
-                    resultList.add(condition);
-                    resultList.addAll(remainingList);
-                    resultLists.add(resultList);
-                }
-            }
-        }
-        return resultLists;
     }
 
     static List<List<Atom>> getShead(Collection<Atom> headAtoms, Collection<Atom> sbody, Collection<Variable> eVariables) {
