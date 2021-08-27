@@ -64,7 +64,7 @@
 \newcommand{\nonFullSet}{\mathcal{N}}
 \newcommand{\comment}[1]{\tcp*[f]{#1}}
 \newcommand{\evolve}{\kw{EVOLVE}}
-\newcommand{\hyperresolve}{\kw{HYPERRESOLVE}}
+\newcommand{\hyperresolve}{\kw{HyperResolve}}
 \newcommand{\evolvedSet}{\mathcal{E}}
 \newcommand{\hgsat}{\kw{HyperSat}}
 \newcommand{\vars}{\kw{Vars}}
@@ -84,11 +84,12 @@
   \SetKwProg{Fn}{Function}{: }{}
   \SetKwInOut{Input}{Input}\SetKwInOut{Output}{Output}
   \Fn{$\hgsat$}{
-    \Input{Guarded TGDs $\Sigma$}
-    \Output{Atomic rewriting of $\Sigma$}
+    \Input{full guarded TGDs $\Sigma_f$ and non-full guarded TGDs $\Sigma_n$ }
+    \Output{Atomic rewriting of $\Sigma_f \cup \Sigma_n$}
     \BlankLine
-    $\workingSet = \vnf\bigl(\sk(\Sigma)\bigr)$\comment{working set}\;
-    $\fullSet = \nonFullSet =\emptyset$\comment{full and non-full set}\;
+    $\workingSet = \vnf\bigl(\sk(\Sigma_n)\bigr)$\comment{working set}\;
+    $\fullSet = \Sigma_f$\comment{full set}\;
+    $\nonFullSet = \emptyset$\comment{non-full set}\;
     \While{$\workingSet\neq\emptyset$}{
       Let $\sigma$ be a rule in $\workingSet$\;
       \eIf{$\sigma$ is full}{
@@ -103,26 +104,64 @@
     }
     \KwRet{$\fullSet$}\;
   }\;
+% \end{algorithm}
+% \newpage
 
+% \begin{algorithm}[H]
+  \DontPrintSemicolon
+  \SetAlgoLined
+  \SetKwProg{Fn}{Function}{: }{}
+  \SetKwInOut{Input}{Input}\SetKwInOut{Output}{Output}
   \Fn{$\hyperresolve$}{
-    \Input{Non-full set $\nonFullSet$ and full $\rho=\body\rightarrow\head$}
+    \Input{Non-full set $\nonFullSet$ and skolem rule $\rho=\body\rightarrow\head$}
     \Output{hyperresolutions of $\rho$ with rules from $\nonFullSet$}
     \BlankLine
     Let $\evolvedSet = \emptyset$\;
-    Let $S=(B_1, \dots, B_n)$ be a tuple such that $\body = \{ B_1, \dots, B_n\}$\;
-    Let $P= \nonFullSet^{n}$\;
-    \ForEach{$(\lambda_1, \dots, \lambda_n) \in P$}{
-      Rename variables $\lambda_1, \dots, \lambda_n$ such that $\var(\lambda_i) \cap \var(\lambda_j) = \emptyset$, for $i \neq j$ \comment{could be done on P directly}\;
-      Let $S'=(H_1', \dots, H_n')$ be the tuple defined such that for  $1 \leq i \leq n, H_i'$ is the head atom of $\lambda_i$\;
-      \If{there exists $\theta$ a mgu  $S$ and $S'$ }{
-        Let $\body_i'$ be the body of $\lambda_i$\;
-        $\beta'' = \cup_{1\leq i \leq n} \body_i'\theta$\;
+    \eIf{$\body$ contains Skolem terms}{
+      Let $G$ be a skolemized atom in $\body$\;
+    }{
+      Let $G$ be a guard of $\rho$\; 
+    }
+    
+    Let $\lambda_1, \dots, \lambda_n$ rules from $\nonFullSet$ among which the ones whose head may be unifiable with $G$\;
+    \For{$ 1 \leq i \leq n$}{
+      Rename variables $\lambda_i$ such that $\var(\lambda_i) \cap \var(\rho) = \emptyset$\;
+      Consider that $\lambda_i$ is defined as $\body'_i \rightarrow \head'_i$\;
+      \If{there exists $\theta$ a mgu  $G$ and $\head'_i$ }{
+        $\beta'' = (\body \setminus \{G\})\theta \cup \body_i'\theta$\;
         $\head'' = \head \theta$\;
-        $\evolvedSet = \evolvedSet \cup \vnf\left (\sk(\body'' \rightarrow \head'')\right )$\;
+        $\sigma = \body'' \rightarrow \head''$\;
+        \eIf{$\beta''$ contains Skolem terms} {
+          $\evolvedSet = \evolvedSet \cup \hyperresolve(\nonFullSet, \sigma)$\;
+        }{
+          $\evolvedSet = \evolvedSet \cup \{\vnf (\sigma)\}$\;
+        }
       }
     }
     \KwRet{$\evolvedSet$}\;
   }
+
+  % \Fn{$\hyperresolve_{REC}$}{
+  %   \Input{Non-full set $\nonFullSet$ and full $\rho=\body\rightarrow\head$}
+  %   \Output{hyperresolutions of $\rho$ with rules from $\nonFullSet$}
+  %   \BlankLine
+  %   Let $\evolvedSet = \emptyset$\;
+  %   Let $S=(B_1, \dots, B_n)$ be a tuple such that $\body = \{ B_1, \dots, B_n\}$\;
+  %   Let $G$ be the first $B_i$ containing Skolem or the guard\;
+
+  %   \While{$(\lambda_1, \dots, \lambda_n) \in P$}{
+  %     Rename variables $\lambda_1, \dots, \lambda_n$ such that $\var(\lambda_i) \cap \var(\lambda_j) = \emptyset$, for $i \neq j$ \comment{could be done on P directly}\;
+  %     Let $S'=(H_1', \dots, H_n')$ be the tuple defined such that for  $1 \leq i \leq n, H_i'$ is the head atom of $\lambda_i$\;
+  %     \If{there exists $\theta$ a mgu  $S$ and $S'$ }{
+  %       Let $\body_i'$ be the body of $\lambda_i$\;
+  %       $\beta'' = \cup_{1\leq i \leq n} \body_i'\theta$\;
+  %       $\head'' = \head \theta$\;
+  %       $\evolvedSet = \evolvedSet \cup \vnf\left (\sk(\body'' \rightarrow \head'')\right )$\;
+  %     }
+  %   }
+  %   \KwRet{$\evolvedSet$}\;
+  % }
+
   \caption{Unoptimized Hyperresolution Saturation}
 \end{algorithm}
 \end{document}
