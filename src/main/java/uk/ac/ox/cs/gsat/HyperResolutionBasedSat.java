@@ -2,10 +2,12 @@ package uk.ac.ox.cs.gsat;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.Set;
+import java.util.logging.Level;
 
 import uk.ac.ox.cs.gsat.subsumers.Subsumer;
 import uk.ac.ox.cs.gsat.unification.UnificationIndex;
@@ -17,7 +19,7 @@ import uk.ac.ox.cs.pdq.fol.Term;
 public class HyperResolutionBasedSat<Q extends SkGTGD> extends AbstractSaturation<Q> {
 
     private static final TGDFactory<SkGTGD> FACTORY = TGDFactory.getSkGTGDInstance();
-    private static final EvolveStatisticsFactory<SkGTGD> STAT_FACTORY = SkolemStatistics.getSkFactory();
+    private static final SaturationStatisticsFactory<SkGTGD> STAT_FACTORY = HyperResolutionStatistics.getFactory();
     private static final String NAME = "HyperSat";
     private static final HyperResolutionBasedSat<SkGTGD> INSTANCE = createInstance();
 
@@ -30,8 +32,10 @@ public class HyperResolutionBasedSat<Q extends SkGTGD> extends AbstractSaturatio
         return INSTANCE;
     }
 
+    private Map<Q, Q> renamingCache = new HashMap<>();
+
     protected HyperResolutionBasedSat(String saturationName, TGDFactory<Q> factory, UnificationIndexType leftIndexType,
-            UnificationIndexType rightIndexType, EvolveStatisticsFactory<Q> statFactory) {
+            UnificationIndexType rightIndexType, SaturationStatisticsFactory<Q> statFactory) {
         super(saturationName, factory, leftIndexType, rightIndexType, statFactory);
     }
 
@@ -39,7 +43,9 @@ public class HyperResolutionBasedSat<Q extends SkGTGD> extends AbstractSaturatio
     protected void process(Set<Q> leftTGDsSet, Set<Q> rightTGDsSet, Collection<Q> newLeftTGDs,
             Collection<Q> newRightTGDs, UnificationIndex<Q> leftIndex, UnificationIndex<Q> rightIndex,
             Subsumer<Q> leftTGDsSubsumer, Subsumer<Q> rightTGDsSubsumer, Set<Predicate> bodyPredicates,
-            EvolveStatistics<Q> stats) {
+            SaturationStatistics<Q> s) {
+
+        HyperResolutionStatistics<Q> stats = (HyperResolutionStatistics<Q>) s;
 
         while (!newLeftTGDs.isEmpty() || !newRightTGDs.isEmpty()) {
 
@@ -56,32 +62,56 @@ public class HyperResolutionBasedSat<Q extends SkGTGD> extends AbstractSaturatio
                 Q rightTGD = iterator.next();
                 iterator.remove();
                 addRightTGD(rightTGD, rightIndex, rightTGDsSet);
-                System.out.println("rightTGD: " + rightTGD);
-                stats.incrEvolveCount();
-                resolved.addAll(hyperresolve(leftTGDsSet, leftIndex, rightTGD));
 
+                if (App.logger.isLoggable(Level.FINE))
+                    App.logger.fine("rightTGD: " + rightTGD);
+
+                long startTime = System.nanoTime();
+                stats.incrHyperResolutionCount();
+                resolved.addAll(hyperresolve(leftTGDsSet, leftIndex, rightTGD));
+                stats.incrHyperResolutionTime(System.nanoTime() - startTime);
             } else if (!newLeftTGDs.isEmpty()) {
                 Iterator<Q> iterator = newLeftTGDs.iterator();
                 Q leftTGD = iterator.next();
                 iterator.remove();
                 addLeftTGD(leftTGD, leftIndex, leftTGDsSet);
 
-                System.out.println("leftTGD: " + leftTGD);
+                App.logger.fine("leftTGD: " + leftTGD);
                 for (Q rightTGD : rightIndex.get(leftTGD.getHeadAtom(0))) {
-                    System.out.println("rightTGD: " + rightTGD);
-                    stats.incrEvolveCount();
+
+                    stats.incrHyperResolutionCount();
+                    long startTime = System.nanoTime();
+
                     Q resolvedRightTGD = resolveOn(leftTGD, rightTGD);
-                    System.out.println("resolvedLeftTGD: " + resolvedRightTGD);
-                    if (resolvedRightTGD != null && resolvedRightTGD.getFunctionalBodyAtoms().length > 0)
-                        resolved.addAll(hyperresolve(leftTGDsSet, leftIndex, resolvedRightTGD));
-                    else if (resolvedRightTGD != null)
+
+                    if (App.logger.isLoggable(Level.FINE)) {
+                        App.logger.fine("rightTGD: " + rightTGD);
+                        App.logger.fine("resolvedLeftTGD: " + resolvedRightTGD);
+                    }
+
+                    if (resolvedRightTGD != null && resolvedRightTGD.getFunctionalBodyAtoms().length > 0) {
+                        
+                        Collection<Q> result = hyperresolve(leftTGDsSet, leftIndex, resolvedRightTGD);
+                        resolved.addAll(result);
+
+                        if (result.isEmpty())
+                            stats.incrHyperResolutionFailureCount();
+                        
+                    } else if (resolvedRightTGD != null) {
                         resolved.add(factory.computeVNF(resolvedRightTGD, eVariable, uVariable));
+                    } else {
+                        stats.incrHyperResolutionFailureCount();
+                    }
+
+                    stats.incrHyperResolutionTime(System.nanoTime() - startTime);
                 }
             }
 
             // we update the structures with the TGDs to add
             for (Q newTGD : resolved) {
-                System.out.println("newTGD: " + newTGD);
+                if (App.logger.isLoggable(Level.FINE))
+                    App.logger.fine("newTGD: " + newTGD);
+
                 if (isRightTGD(newTGD)) {
                     stats.newRightTGD(newTGD);
                     addNewTGD(newTGD, true, newRightTGDs, rightTGDsSubsumer, rightIndex, rightTGDsSet, stats);
@@ -92,14 +122,16 @@ public class HyperResolutionBasedSat<Q extends SkGTGD> extends AbstractSaturatio
                     addNewTGD(newTGD, false, newLeftTGDs, leftTGDsSubsumer, leftIndex, leftTGDsSet, stats);
                 }
             }
-            System.out.println("======================== \n");
+            App.logger.fine("======================== \n");
 
         }
 
     }
 
-    private Collection<? extends Q> hyperresolve(Set<Q> leftTGDsSet, UnificationIndex<Q> leftIndex, Q rightTGD) {
-        System.out.println("hyperresolve: " + rightTGD);
+    private Collection<Q> hyperresolve(Set<Q> leftTGDsSet, UnificationIndex<Q> leftIndex, Q rightTGD) {
+        if (App.logger.isLoggable(Level.FINE))
+            App.logger.fine("hyperresolve: " + rightTGD);
+
         Collection<Q> result = new HashSet<>();
 
         Atom selectedAtom;
@@ -116,13 +148,19 @@ public class HyperResolutionBasedSat<Q extends SkGTGD> extends AbstractSaturatio
             Q new_tgd = resolveOn(candidate, rightTGD, selectedAtom);
 
             if (new_tgd != null) {
+
+                new_tgd = factory.computeVNF(new_tgd, eVariable, uVariable);
+                
                 if (new_tgd.getFunctionalBodyAtoms().length > 0) {
 
-                    System.out.println("rec call on " + new_tgd);
+                    if (App.logger.isLoggable(Level.FINE))
+                        App.logger.fine("rec call on " + new_tgd);
+
                     for (Q r : hyperresolve(leftTGDsSet, leftIndex, new_tgd))
                         result.add(r);
+
                 } else {
-                    result.add(factory.computeVNF(new_tgd, eVariable, uVariable));
+                    result.add(new_tgd);
                 }
             }
         }
@@ -141,12 +179,30 @@ public class HyperResolutionBasedSat<Q extends SkGTGD> extends AbstractSaturatio
         return null;
     }
 
+    /**
+     * @param leftTGD rule in VNF 
+     * @param rightTGD rule in VNF
+     * @param B - an atom in rightTGD's body
+     */
     private Q resolveOn(Q leftTGD, Q rightTGD, Atom B) {
 
-        leftTGD = renameVariable(leftTGD);
         Atom H = leftTGD.getHeadAtom(0);
-        Map<Term, Term> mgu = Logic.getMGU(B, H);
-        System.out.println("mgu of " + B + " and " + H + ": " + mgu);
+
+        // quit if the atoms predicates are differents
+        if (!H.getPredicate().equals(B.getPredicate()))
+            return null;
+
+        Map<Term, Term> renamingSubstitution = getRenameVariableSubstitution(leftTGD);
+        Map<Term, Term> mgu = Logic.getMGU(B, (Atom) Logic.applySubstitution(H, renamingSubstitution));
+
+        if (!renamingCache.containsKey(leftTGD))
+            renamingCache.put(leftTGD, (Q) Logic.applySubstitution(leftTGD, renamingSubstitution));
+
+        leftTGD = renamingCache.get(leftTGD);
+
+        if (App.logger.isLoggable(Level.FINE))
+            App.logger.fine("mgu of " + B + " and " + H + ": " + mgu);
+
         if (mgu != null) {
             Set<Atom> new_body = new HashSet<>();
             for (Atom batom : rightTGD.getBodySet())
