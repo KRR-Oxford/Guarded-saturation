@@ -43,16 +43,16 @@ public abstract class AbstractSaturation<Q extends GTGD> {
     // type of the right unification index
     protected final UnificationIndexType rightIndexType;
     // factory of the statistics record
-    protected final EvolveStatisticsFactory<Q> statFactory;
+    protected final SaturationStatisticsFactory<Q> statFactory;
 
-    protected AbstractSaturation(String saturationName, TGDFactory<Q> factory, EvolveStatisticsFactory<Q> statFactory) {
+    protected AbstractSaturation(String saturationName, TGDFactory<Q> factory, SaturationStatisticsFactory<Q> statFactory) {
 
         this(saturationName, factory, UnificationIndexType.PREDICATE_INDEX, UnificationIndexType.PREDICATE_INDEX,
                 statFactory);
     }
 
     protected AbstractSaturation(String saturationName, TGDFactory<Q> factory, UnificationIndexType leftIndexType,
-            UnificationIndexType rightIndexType, EvolveStatisticsFactory<Q> statFactory) {
+            UnificationIndexType rightIndexType, SaturationStatisticsFactory<Q> statFactory) {
         this.saturationName = saturationName;
         this.uVariable = saturationName + "_u";
         this.eVariable = saturationName + "_e";
@@ -69,7 +69,7 @@ public abstract class AbstractSaturation<Q extends GTGD> {
     public Collection<Q> run(Collection<Dependency> allDependencies) {
 
         System.out.println(String.format("Running %s...", this.saturationName));
-        EvolveStatistics<Q> stats = this.statFactory.create(saturationName);
+        SaturationStatistics<Q> stats = this.statFactory.create(saturationName);
 
         int discarded = 0;
 
@@ -190,7 +190,7 @@ public abstract class AbstractSaturation<Q extends GTGD> {
     protected abstract void process(Set<Q> leftTGDsSet, Set<Q> rightTGDsSet, Collection<Q> newLeftTGDs,
                 Collection<Q> newRightTGDs, UnificationIndex<Q> leftIndex, UnificationIndex<Q> rightIndex,
                 Subsumer<Q> leftTGDsSubsumer, Subsumer<Q> rightTGDsSubsumer, Set<Predicate> bodyPredicates,
-                EvolveStatistics<Q> stats);
+                SaturationStatistics<Q> stats);
 
     /**
      * select the ouput from the final right TGDs
@@ -257,7 +257,7 @@ public abstract class AbstractSaturation<Q extends GTGD> {
     }
 
     protected void addNewTGD(Q newTGD, boolean asRightTGD, Collection<Q> newTGDs, Subsumer<Q> TGDsSubsumer,
-            UnificationIndex<Q> unificationIndex, Set<Q> TGDsSet, EvolveStatistics<Q> stats) {
+            UnificationIndex<Q> unificationIndex, Set<Q> TGDsSet, SaturationStatistics<Q> stats) {
 
         // discard if the newTGD is a tautology
         if (Configuration.isTautologyDiscarded() && newTGD.getBodySet().containsAll(newTGD.getHeadSet())) {
@@ -320,6 +320,11 @@ public abstract class AbstractSaturation<Q extends GTGD> {
 
     protected Q renameVariable(Q ftgd) {
 
+        return (Q) Logic.applySubstitution(ftgd, getRenameVariableSubstitution(ftgd));
+    }
+
+    protected Map<Term, Term> getRenameVariableSubstitution(Q ftgd) {
+
         Variable[] uVariables = ftgd.getUniversal();
 
         Map<Term, Term> substitution = new HashMap<>();
@@ -330,8 +335,7 @@ public abstract class AbstractSaturation<Q extends GTGD> {
             substitution.put(v, Variable.create(zVariable + counter++));
         }
 
-        return (Q) Logic.applySubstitution(ftgd, substitution);
-
+        return substitution;
     }
 
     protected boolean isTimeout(long startTime) {

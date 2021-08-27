@@ -33,14 +33,14 @@ import uk.ac.ox.cs.pdq.fol.Variable;
  */
 public abstract class EvolveBasedSat<Q extends GTGD> extends AbstractSaturation<Q> {
 
-    protected EvolveBasedSat(String saturationName, TGDFactory<Q> factory, EvolveStatisticsFactory<Q> statFactory) {
+    protected EvolveBasedSat(String saturationName, TGDFactory<Q> factory, SaturationStatisticsFactory<Q> statFactory) {
 
         this(saturationName, factory, UnificationIndexType.PREDICATE_INDEX, UnificationIndexType.PREDICATE_INDEX,
                 statFactory);
     }
 
     protected EvolveBasedSat(String saturationName, TGDFactory<Q> factory, UnificationIndexType leftIndexType,
-            UnificationIndexType rightIndexType, EvolveStatisticsFactory<Q> statFactory) {
+            UnificationIndexType rightIndexType, SaturationStatisticsFactory<Q> statFactory) {
         super(saturationName, factory, leftIndexType, rightIndexType, statFactory);
     }
 
@@ -48,16 +48,15 @@ public abstract class EvolveBasedSat<Q extends GTGD> extends AbstractSaturation<
     protected void process(Set<Q> leftTGDsSet, Set<Q> rightTGDsSet, Collection<Q> newLeftTGDs,
             Collection<Q> newRightTGDs, UnificationIndex<Q> leftIndex, UnificationIndex<Q> rightIndex,
             Subsumer<Q> leftTGDsSubsumer, Subsumer<Q> rightTGDsSubsumer, Set<Predicate> bodyPredicates,
-            EvolveStatistics<Q> stats) {
+            SaturationStatistics<Q> s) {
 
-        boolean timeoutReached = false;
+        EvolveStatistics<Q> stats = (EvolveStatistics<Q>) s;
         int counter = 100;
 
         while (!newRightTGDs.isEmpty() || !newLeftTGDs.isEmpty()) {
 
             if (isTimeout(stats.getStartTime())) {
                 stats.timeoutReached();
-                timeoutReached = true;
                 break;
             }
 

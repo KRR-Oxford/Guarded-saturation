@@ -48,11 +48,11 @@ public class SkolemStatistics<Q extends SkGTGD> extends EvolveStatistics<Q> {
         App.logger.info("derived TGD with more than two Skolem atoms in the body: " + tgdWithMultipleSkolemAtomInBodyCount);
     }
 
-    public static <P extends SkGTGD> EvolveStatisticsFactory<P> getSkFactory() {
+    public static <P extends SkGTGD> SaturationStatisticsFactory<P> getSkFactory() {
         return new Factory<P>();
     }
 
-    private static class Factory<P extends SkGTGD> implements EvolveStatisticsFactory<P> {
+    private static class Factory<P extends SkGTGD> implements SaturationStatisticsFactory<P> {
         @Override
         public EvolveStatistics<P> create(String name) {
             return new SkolemStatistics<P>(name);
