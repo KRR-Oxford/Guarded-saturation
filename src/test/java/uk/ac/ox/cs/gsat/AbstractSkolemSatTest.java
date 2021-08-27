@@ -66,9 +66,9 @@ public abstract class AbstractSkolemSatTest<Q extends SkGTGD> {
         App.logger.setUseParentHandlers(false);
     }
 
-    private AbstractSkolemSat<Q> sksat;
+    private AbstractSaturation<Q> sksat;
 
-    public AbstractSkolemSatTest(AbstractSkolemSat<Q> sksat) {
+    public AbstractSkolemSatTest(AbstractSaturation<Q> sksat) {
         this.sksat = sksat;
     }
 
