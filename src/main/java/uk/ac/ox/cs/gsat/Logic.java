@@ -303,7 +303,8 @@ public class Logic {
 		return sigma;
 	}
 
-
+    // Warning: the mgu computation is optimized such that null is returned when a nested Skolem term
+    // occurs, since they should not occur in our algorithms
     public static Map<Term, Term> getMGU(Term[] s, Term[] t, Map<Term, Term> sigma) {
 
 		for (int i = 0; i < s.length; i++) {
@@ -353,9 +354,13 @@ public class Logic {
                 FunctionTerm sko = (s_term instanceof FunctionTerm) ? (FunctionTerm) s_term : (FunctionTerm) t_term;
                 Term var = (s_term.isVariable()) ? s_term : t_term;
 
-                for (Variable v : sko.getVariables()) 
-                    if (getSubstitute(v, sigma).equals(var))
+                for (Variable v : sko.getVariables()) {
+                    Term sub = getSubstitute(v, sigma);
+                    // since the algorithm we consider do not derive any Skolem nesting
+                    // we return null, as soon as a nesting occurs
+                    if (sub instanceof FunctionTerm || sub.equals(var))
                         return null;
+                }
             }
 
             if (s_term.isVariable())

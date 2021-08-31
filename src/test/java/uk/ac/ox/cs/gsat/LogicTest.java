@@ -326,6 +326,11 @@ public class LogicTest {
         expected6.put(x1, y1);
         checkMGUTest(expected6, Logic.getMGU(A6, B6));
 
+        // 7.
+        Atom A7 = Atom.create(Predicate.create("R", 2), gy1, y1);
+        Atom B7 = Atom.create(Predicate.create("R", 2), x1, fx1);
+        Map<Term, Term> expected7 = null;
+        checkMGUTest(expected7, Logic.getMGU(A7, B7));
     }
 
 	private void checkMGUTest(Map<Term, Term> expected, Map<Term, Term> result) {
