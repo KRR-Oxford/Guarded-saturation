@@ -15,7 +15,7 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
-import java.util.stream.Collectors;
+import java.util.concurrent.ConcurrentHashMap;
 
 import uk.ac.ox.cs.pdq.fol.Atom;
 import uk.ac.ox.cs.pdq.fol.Conjunction;
@@ -34,33 +34,68 @@ import uk.ac.ox.cs.pdq.fol.Variable;
  */
 public class Logic {
 
+    static Map<ArgList, Formula> cache = new ConcurrentHashMap<>();
+
+    private static class ArgList {
+        public Formula formula;
+        public Map<Term, Term> substitution;
+
+        public ArgList(Formula  formula, Map<Term, Term> substitution) {
+            this.formula = formula;
+            this.substitution = substitution;
+        }
+        
+        @Override
+        public boolean equals(Object o) {
+            if (this == o) {
+                return true;
+            }
+            if (!(o instanceof ArgList)) {
+                return false;
+            }
+
+            ArgList argList = (ArgList) o;
+
+            // Probably incorrect - comparing Object[] arrays with Arrays.equals
+            return this.formula.equals(argList.formula) && this.substitution.equals(argList.substitution);
+        }
+
+        @Override
+        public int hashCode() {
+            return formula.hashCode() + 7 * substitution.hashCode();
+        }
+    }
+    
 	public static boolean isFull(uk.ac.ox.cs.pdq.fol.TGD tgd) {
 
 		return tgd.getExistential().length == 0;
 
 	}
-
+    static Formula applySubstitution(Formula formula, Map<Term, Term> substitution) {
+        return cache.computeIfAbsent(new ArgList(formula, substitution),args -> applySubstitutionFunc(args.formula, args.substitution));
+    }
+    
 	/**
 	 * From PDQ code, slightly modified
 	 */
-	static Formula applySubstitution(Formula formula, Map<Term, Term> substitution) {
+	static Formula applySubstitutionFunc(Formula formula, Map<Term, Term> substitution) {
 		if (formula instanceof Conjunction) {
-			Formula child1 = applySubstitution(((Conjunction) formula).getChildren()[0], substitution);
-			Formula child2 = applySubstitution(((Conjunction) formula).getChildren()[1], substitution);
+			Formula child1 = applySubstitutionFunc(((Conjunction) formula).getChildren()[0], substitution);
+			Formula child2 = applySubstitutionFunc(((Conjunction) formula).getChildren()[1], substitution);
 			return Conjunction.create(child1, child2);
 		} else if (formula instanceof Disjunction) {
-			Formula child1 = applySubstitution(((Disjunction) formula).getChildren()[0], substitution);
-			Formula child2 = applySubstitution(((Disjunction) formula).getChildren()[1], substitution);
+			Formula child1 = applySubstitutionFunc(((Disjunction) formula).getChildren()[0], substitution);
+			Formula child2 = applySubstitutionFunc(((Disjunction) formula).getChildren()[1], substitution);
 			return Disjunction.of(child1, child2);
 		} else if (formula instanceof Implication) {
-			Formula child1 = applySubstitution(((Implication) formula).getChildren()[0], substitution);
-			Formula child2 = applySubstitution(((Implication) formula).getChildren()[1], substitution);
+			Formula child1 = applySubstitutionFunc(((Implication) formula).getChildren()[0], substitution);
+			Formula child2 = applySubstitutionFunc(((Implication) formula).getChildren()[1], substitution);
 			return Implication.of(child1, child2);
 		} else if (formula instanceof ConjunctiveQuery) {
 			Atom[] atoms = ((ConjunctiveQuery) formula).getAtoms();
 			Formula[] bodyAtoms = new Formula[atoms.length];
 			for (int atomIndex = 0; atomIndex < atoms.length; ++atomIndex)
-				bodyAtoms[atomIndex] = applySubstitution(atoms[atomIndex], substitution);
+				bodyAtoms[atomIndex] = applySubstitutionFunc(atoms[atomIndex], substitution);
 			return Conjunction.create(bodyAtoms);
 		} else if (formula instanceof TGD) {
 			Atom[] headAtoms = ((TGD) formula).getHeadAtoms();
@@ -68,9 +103,9 @@ public class Logic {
 			Atom[] bodyAtoms = ((TGD) formula).getBodyAtoms();
 			Set<Atom> bodyAtomsF = new HashSet<>();
 			for (int atomIndex = 0; atomIndex < headAtoms.length; ++atomIndex)
-				headAtomsF.add((Atom) applySubstitution(headAtoms[atomIndex], substitution));
+				headAtomsF.add((Atom) applySubstitutionFunc(headAtoms[atomIndex], substitution));
 			for (int atomIndex = 0; atomIndex < bodyAtoms.length; ++atomIndex)
-				bodyAtomsF.add((Atom) applySubstitution(bodyAtoms[atomIndex], substitution));
+				bodyAtomsF.add((Atom) applySubstitutionFunc(bodyAtoms[atomIndex], substitution));
             if (formula instanceof SkGTGD) {
                 if (formula instanceof OrderedSkGTGD) {
                     return new OrderedSkGTGD(bodyAtomsF, headAtomsF);
