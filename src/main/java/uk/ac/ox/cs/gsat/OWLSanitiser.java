@@ -34,6 +34,7 @@ import org.semanticweb.owlapi.model.OWLDataMaxCardinality;
 import org.semanticweb.owlapi.model.OWLDataPropertyExpression;
 import org.semanticweb.owlapi.model.OWLDataPropertyRangeAxiom;
 import org.semanticweb.owlapi.model.OWLDataRange;
+import org.semanticweb.owlapi.model.OWLDisjointClassesAxiom;
 import org.semanticweb.owlapi.model.OWLDocumentFormat;
 import org.semanticweb.owlapi.model.OWLEquivalentClassesAxiom;
 import org.semanticweb.owlapi.model.OWLEquivalentDataPropertiesAxiom;
@@ -149,7 +150,7 @@ public class OWLSanitiser {
             List<OWLAxiom> simplifiedAxioms = new ArrayList<>();
             Set<OWLAxiom> supportedAxioms = new HashSet<>();
             for (OWLAxiom a : ontology.getAxioms()) {
-                if (simplifyForKaon2 && isDescription(a) || isFunctionalAxiom(a))
+                if (simplifyForKaon2 && isDisjonctAxiom(a) || isFunctionalAxiom(a))
                     continue;
 
                 if (isFactRelated(a) || isTrivialAxiom(a)) {
@@ -249,6 +250,22 @@ public class OWLSanitiser {
                 for (OWLClassExpression head : simplifiedHeads)
                     result.add(df.getOWLSubClassOfAxiom(body, head));
 
+        } else if (a.getAxiomType() == AxiomType.DISJOINT_CLASSES) {
+            RemoveUnionFromSubclassVisitor visitor = new RemoveUnionFromSubclassVisitor(df, simplifyForKaon2);
+
+            List<OWLClassExpression> simplifiedClasses = new ArrayList<>();
+            for (OWLClassExpression c : ((OWLDisjointClassesAxiom) a).getClassExpressionsAsList()) {
+                c.accept(visitor);
+                for (OWLClassExpression s : visitor.getSimplications()) {
+                    simplifiedClasses.add(s);
+                }
+            }
+
+            // disjoint by pair
+            for (int i = 0; i < simplifiedClasses.size(); i++)
+                for (int j = i + 1; j < simplifiedClasses.size(); j++)
+                    result.add(df.getOWLDisjointClassesAxiom(simplifiedClasses.get(i), simplifiedClasses.get(j)));
+
         } else {
             result.add(a);
         }
@@ -256,7 +273,7 @@ public class OWLSanitiser {
         return result;
     }
 
-    private static boolean isDescription(OWLAxiom a) {
+    private static boolean isDisjonctAxiom(OWLAxiom a) {
         return a.getAxiomType() == AxiomType.DISJOINT_CLASSES
                 || a.getAxiomType() == AxiomType.DISJOINT_OBJECT_PROPERTIES
                 || a.getAxiomType() == AxiomType.DISJOINT_DATA_PROPERTIES;
@@ -351,7 +368,7 @@ public class OWLSanitiser {
             if (pdqtgDsFromGraalRules.size() != rules.size()) {
                 dropAxiom("The number of rules identified by Graal is different from the number of the converted TDGs",
                         a, rules, pdqtgDsFromGraalRules);
-                throw new IllegalStateException();
+                return false;
             }
 
             int guardedTGDsCount = 0;
