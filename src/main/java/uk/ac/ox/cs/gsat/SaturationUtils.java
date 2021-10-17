@@ -12,6 +12,7 @@ import uk.ac.ox.cs.gsat.filters.IdentityFormulaFilter;
 import uk.ac.ox.cs.gsat.filters.MinAtomFilter;
 import uk.ac.ox.cs.gsat.filters.MinPredicateFilter;
 import uk.ac.ox.cs.gsat.filters.TreePredicateFilter;
+import uk.ac.ox.cs.gsat.subsumers.DisabledSubsumer;
 import uk.ac.ox.cs.gsat.subsumers.ExactAtomSubsumer;
 import uk.ac.ox.cs.gsat.subsumers.SimpleSubsumer;
 import uk.ac.ox.cs.gsat.subsumers.Subsumer;
@@ -135,6 +136,8 @@ class SaturationUtils {
             for (P formula : allTGDSet)
                 if (!newLeftTGDs.contains(formula))
                     subsumer.add(formula);
+        } else if (subsumptionMethod.equals("disabled")) {
+            subsumer = new DisabledSubsumer<P>();
         } else {
             FormulaFilter<P> filter;
             if (subsumptionMethod.equals("min_predicate")) {
