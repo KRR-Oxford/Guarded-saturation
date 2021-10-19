@@ -138,6 +138,9 @@ class SaturationUtils {
                     subsumer.add(formula);
         } else if (subsumptionMethod.equals("disabled")) {
             subsumer = new DisabledSubsumer<P>();
+            for (P formula : allTGDSet)
+                if (!newLeftTGDs.contains(formula))
+                    subsumer.add(formula);
         } else {
             FormulaFilter<P> filter;
             if (subsumptionMethod.equals("min_predicate")) {
