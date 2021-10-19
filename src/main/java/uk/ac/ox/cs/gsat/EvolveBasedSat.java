@@ -2,10 +2,8 @@ package uk.ac.ox.cs.gsat;
 
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
-import java.util.Map;
 import java.util.Set;
 import java.util.TreeSet;
 
@@ -14,8 +12,6 @@ import uk.ac.ox.cs.gsat.unification.UnificationIndex;
 import uk.ac.ox.cs.gsat.unification.UnificationIndexType;
 import uk.ac.ox.cs.pdq.fol.Atom;
 import uk.ac.ox.cs.pdq.fol.Predicate;
-import uk.ac.ox.cs.pdq.fol.Term;
-import uk.ac.ox.cs.pdq.fol.Variable;
 
 /**
  * Abstract saturation based on a evolve function. The evolve function takes two

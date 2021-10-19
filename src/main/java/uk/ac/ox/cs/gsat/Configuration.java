@@ -7,6 +7,7 @@ import java.util.Properties;
 
 import uk.ac.ox.cs.gsat.AbstractSkolemSat.SkolemizationType;
 import uk.ac.ox.cs.gsat.SaturationUtils.newTGDStructure;
+import uk.ac.ox.cs.gsat.unification.UnificationIndexType;
 
 /**
  * From Angry-HEX code
@@ -29,6 +30,7 @@ public class Configuration {
     private static SkolemizationType skolemizationType;
     private static boolean discardTautology;
     private static boolean orderedSkolemSatSelectSkolemBodyAtom;
+    private static UnificationIndexType unificationIndexType;
 
     public static String getSolverName() {
 
@@ -181,6 +183,11 @@ public class Configuration {
                                     : true;
 
                 }
+
+                unificationIndexType = Configuration.prop.containsKey("optimization.unification_index_type")
+                    ? UnificationIndexType.valueOf(prop.getProperty("optimization.unification_index_type"))
+                    : null;
+
             }
     }
 
@@ -293,4 +300,9 @@ public class Configuration {
     public static boolean isOrderedSkolemSatSelectSkolemBodyAtom() {
         return orderedSkolemSatSelectSkolemBodyAtom;
     }
+
+    public static UnificationIndexType getUnificationIndexType() {
+        return unificationIndexType;
+    }
+
 }
