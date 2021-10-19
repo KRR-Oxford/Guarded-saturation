@@ -58,8 +58,14 @@ public abstract class AbstractSaturation<Q extends GTGD> {
         this.eVariable = saturationName + "_e";
         this.zVariable = saturationName + "_z";
         this.factory = factory;
-        this.leftIndexType = leftIndexType;
-        this.rightIndexType = rightIndexType;
+        // in case the unification index type is configurated forces the configuration choice
+        if (Configuration.getUnificationIndexType() != null) {
+            this.leftIndexType = Configuration.getUnificationIndexType();
+            this.rightIndexType = Configuration.getUnificationIndexType();
+        } else {
+            this.leftIndexType = leftIndexType;
+            this.rightIndexType = rightIndexType;
+        }
         this.statFactory = statFactory;
     }
 
