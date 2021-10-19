@@ -25,6 +25,8 @@ public class UnificationIndexFactory {
             return new PredicateUnificationIndex<Q>(comparator);
         case ATOM_PATH_INDEX:
             return new AtomPathUnificationIndex<Q>();
+        case DISABLED_INDEX:
+            return new DisabledUnificationIndex<Q>();
         default:
             String message = String.format("The type %s for unification index is not implemented", type);
             throw new IllegalStateException(message);
