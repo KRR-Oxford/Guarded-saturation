@@ -4,7 +4,6 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.Locale;
-import java.util.Set;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
@@ -17,12 +16,11 @@ import java.util.logging.Handler;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-import org.semanticweb.kaon2.api.Axiom;
 import org.semanticweb.kaon2.api.DefaultOntologyResolver;
+import org.semanticweb.kaon2.api.KAON2Connection;
 import org.semanticweb.kaon2.api.KAON2Exception;
 import org.semanticweb.kaon2.api.KAON2Manager;
 import org.semanticweb.kaon2.api.Ontology;
-import org.semanticweb.kaon2.api.OntologyManager;
 import org.semanticweb.kaon2.api.logic.Rule;
 import org.semanticweb.kaon2.api.reasoner.Reasoner;
 
@@ -127,14 +125,18 @@ public class ExecutorOWL {
 	}
 
 	private static Collection<Rule> runKAON2(String input_file) throws KAON2Exception, InterruptedException {
-		OntologyManager ontologyManager = KAON2Manager.newOntologyManager();
+        KAON2Connection connection=KAON2Manager.newConnection();
+
+
 		DefaultOntologyResolver resolver = new DefaultOntologyResolver();
 		resolver.registerReplacement("http://bkhigkhghjbhgiyfgfhgdhfty", "file:" + input_file.replace("\\", "/"));
-		ontologyManager.setOntologyResolver(resolver);
-		Ontology ontology = ontologyManager.openOntology("http://bkhigkhghjbhgiyfgfhgdhfty",
+        connection.setOntologyResolver(resolver);
+
+		Ontology ontology = connection.openOntology("http://bkhigkhghjbhgiyfgfhgdhfty",
 				new HashMap<String, Object>());
 		System.out.println("Initial axioms in the ontology: " + ontology.createAxiomRequest().sizeAll());
 		Reasoner reasoner = ontology.createReasoner();
+
 		// reasoner.getOntology().saveOntology(OntologyFileFormat.OWL_RDF, System.out,
 		// "UTF-8");
 		// reasoner.setTrace("theoremProver", true,
