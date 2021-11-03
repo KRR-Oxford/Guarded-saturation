@@ -84,7 +84,8 @@ public class IO {
 
         StringBuilder body = new StringBuilder();
         String to_append = ":-";
-        for (Literal literal : rule.getBodyLiterals()) {
+        for (int pos = 0; pos < rule.getBodyLength(); pos++) {
+            Literal literal = rule.getBodyLiteral(pos);
             body.append(to_append);
             if (to_append.equals(":-"))
                 to_append = ",";
@@ -100,11 +101,12 @@ public class IO {
 
         Collection<String> rules = new LinkedList<>();
 
-        if (rule.getHeadLiterals().length == 0)
+        if (rule.getHeadLength() == 0)
             rules.add(bodyString); // Negative Constraint
         else
             // if multiple atoms in the head, we have to return multiple rules
-            for (Literal literal : rule.getHeadLiterals()) {
+            for (int pos = 0; pos < rule.getHeadLength(); pos++) {
+                Literal literal = rule.getHeadLiteral(pos);
                 Atom atom = getPDQAtomFromKAON2Literal(literal);
                 Atom renameVariablesAndConstantsDatalog = renameVariablesAndConstantsDatalog(
                         (Atom) Logic.applySubstitution(atom, substitution));

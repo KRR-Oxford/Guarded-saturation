@@ -15,12 +15,12 @@ import java.util.logging.Logger;
 
 import org.semanticweb.kaon2.api.Axiom;
 import org.semanticweb.kaon2.api.DefaultOntologyResolver;
+import org.semanticweb.kaon2.api.KAON2Connection;
 import org.semanticweb.kaon2.api.KAON2Exception;
 import org.semanticweb.kaon2.api.KAON2Factory;
 import org.semanticweb.kaon2.api.KAON2Manager;
 import org.semanticweb.kaon2.api.Ontology;
 import org.semanticweb.kaon2.api.OntologyChangeEvent;
-import org.semanticweb.kaon2.api.OntologyManager;
 import org.semanticweb.kaon2.api.logic.Rule;
 import org.semanticweb.kaon2.api.owl.elements.OWLClass;
 import org.semanticweb.kaon2.api.owl.elements.ObjectProperty;
@@ -97,11 +97,11 @@ public class Executor {
 			// totalTimeGSat / 1E6) + " ms = "
 			// + String.format(Locale.UK, "%.2f", totalTimeGSat / 1E9) + " s");
 
-			OntologyManager ontologyManager = KAON2Manager.newOntologyManager();
+            KAON2Connection connection=KAON2Manager.newConnection();
 			DefaultOntologyResolver resolver = new DefaultOntologyResolver();
-			ontologyManager.setOntologyResolver(resolver);
+            connection.setOntologyResolver(resolver);
 			resolver.registerReplacement("http://bkhigkhghjbhgiyfgfhgdhfty", "file:bkhigkhghjbhgiyfgfhgdhfty.xml");
-			Ontology ontology = ontologyManager.createOntology("http://bkhigkhghjbhgiyfgfhgdhfty",
+			Ontology ontology = connection.openOntology("http://bkhigkhghjbhgiyfgfhgdhfty",
 					new HashMap<String, Object>());
 
 			// Collection<Rule> kaon2Rules = getKAON2Rules(TGDRules);
