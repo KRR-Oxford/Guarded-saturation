@@ -1,5 +1,6 @@
 package uk.ac.ox.cs.gsat;
 
+import java.io.PrintWriter;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.LinkedList;
@@ -23,6 +24,7 @@ import org.semanticweb.kaon2.api.KAON2Manager;
 import org.semanticweb.kaon2.api.Ontology;
 import org.semanticweb.kaon2.api.logic.Rule;
 import org.semanticweb.kaon2.api.reasoner.Reasoner;
+import org.semanticweb.kaon2.saturation.TheoremProverMonitor;
 
 public class ExecutorOWL {
 
@@ -82,11 +84,12 @@ public class ExecutorOWL {
 		final Collection<Rule> runKAON2 = new LinkedList<>();
 
 		ExecutorService executorKAON2 = Executors.newSingleThreadExecutor();
+        KAON2Statistics monitor = new KAON2Statistics(new PrintWriter(System.out));
 		Future<String> futureKAON2 = executorKAON2.submit(new Callable<String>() {
 			@Override
 			public String call() throws Exception {
 				try {
-					runKAON2.addAll(runKAON2(input_file));
+					runKAON2.addAll(runKAON2(input_file, monitor));
 				} catch (Exception e) {
 					e.printStackTrace();
 					return "Failed!";
@@ -112,6 +115,7 @@ public class ExecutorOWL {
 
 		final long stopTimeKAON2 = System.nanoTime();
 		final long totalTimeKAON2 = stopTimeKAON2 - startTimeKAON2;
+        monitor.print();
 		System.out.println("KAON2 End; # rules: " + runKAON2.size());
 		System.out.println("KAON2 total time : " + String.format(Locale.UK, "%.0f", totalTimeKAON2 / 1E6) + " ms = "
 				+ String.format(Locale.UK, "%.2f", totalTimeKAON2 / 1E9) + " s");
@@ -124,7 +128,7 @@ public class ExecutorOWL {
 		System.exit(0); // needed because sometimes the program does not terminate
 	}
 
-	private static Collection<Rule> runKAON2(String input_file) throws KAON2Exception, InterruptedException {
+	private static Collection<Rule> runKAON2(String input_file, KAON2Statistics monitor) throws KAON2Exception, InterruptedException {
         KAON2Connection connection=KAON2Manager.newConnection();
 
 
@@ -137,6 +141,10 @@ public class ExecutorOWL {
 		System.out.println("Initial axioms in the ontology: " + ontology.createAxiomRequest().sizeAll());
 		Reasoner reasoner = ontology.createReasoner();
 
+        reasoner.setParameter("theoremProverMonitor", monitor);
+        reasoner.setParameter("predicateOrdering", "none");
+        reasoner.setParameter("selectionFunction", "empty");
+        reasoner.setParameter("useMagicSets", false);
 		// reasoner.getOntology().saveOntology(OntologyFileFormat.OWL_RDF, System.out,
 		// "UTF-8");
 		// reasoner.setTrace("theoremProver", true,
