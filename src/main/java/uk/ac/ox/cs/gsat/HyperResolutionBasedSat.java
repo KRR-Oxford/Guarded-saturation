@@ -24,8 +24,8 @@ public class HyperResolutionBasedSat<Q extends SkGTGD> extends AbstractSaturatio
     private static final HyperResolutionBasedSat<SkGTGD> INSTANCE = createInstance();
 
     private static HyperResolutionBasedSat<SkGTGD> createInstance() {
-        return new HyperResolutionBasedSat<SkGTGD>(NAME, FACTORY, UnificationIndexType.PREDICATE_INDEX,
-                UnificationIndexType.PREDICATE_INDEX, STAT_FACTORY);
+        return new HyperResolutionBasedSat<SkGTGD>(NAME, FACTORY, UnificationIndexType.ATOM_PATH_INDEX,
+                UnificationIndexType.ATOM_PATH_INDEX, STAT_FACTORY);
     }
 
     public static HyperResolutionBasedSat<SkGTGD> getInstance() {

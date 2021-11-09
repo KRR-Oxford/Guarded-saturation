@@ -9,6 +9,7 @@ import java.util.Set;
 
 import uk.ac.ox.cs.gsat.GTGD;
 import uk.ac.ox.cs.pdq.fol.Atom;
+import uk.ac.ox.cs.pdq.fol.Constant;
 import uk.ac.ox.cs.pdq.fol.Function;
 import uk.ac.ox.cs.pdq.fol.FunctionTerm;
 import uk.ac.ox.cs.pdq.fol.Predicate;
@@ -18,11 +19,8 @@ import uk.ac.ox.cs.pdq.fol.Term;
  * Implementation of path unification index proposed in 
  * The path-indexing Method for Indexing Terms - Mark E. Stickel
  * specialised for our usage: 
- * 1. the "terms" we consider are atoms, where the predicate can be considered as a function symbol,
- *    therefore all our paths will with a predicate symbol
- * 2. we build a restricted index (over approximation) that considers constant symbols as variables,
- *    and stop the paths after the first function encounters i.e. the paths are the following forms 
- *    < p.i.[f|*] > where p is a predicate, i is position in p, f is a function and * represents any variable
+ * the "terms" we consider are atoms, where the predicate can be considered as a function symbol,
+ *    therefore all our paths will start with a predicate symbol
  */
 public class AtomPathUnificationIndex<Q extends GTGD> implements UnificationIndex<Q> {
 
@@ -32,111 +30,150 @@ public class AtomPathUnificationIndex<Q extends GTGD> implements UnificationInde
         this.root = Node.createRoot();
     }
 
-	@Override
-	public Set<Q> get(Atom atom) {
+    @Override
+    public Set<Q> get(Atom atom) {
+
         Predicate p = atom.getPredicate();
-        Node<Q> pNode = this.root.lookup(p);
+        Node<Q> pNode = this.root.lookup_s(p);
         if (pNode != null) {
 
             Term[] terms = atom.getTerms();
-            boolean containsAtLeastOneFunctionTerm = false;
-            for (Term t : terms) {
-                if (t instanceof FunctionTerm) {
-                    containsAtLeastOneFunctionTerm = true;
-                    break;
-                }
-            }
-            
-            // we distinguish two cases whether there is a function term
-            // among the terms
-            if (containsAtLeastOneFunctionTerm) {
-
-                // we instantiate the candidate set with the first candidate
-                // in order to compute the intersection
-                // candicates represents GetUnifiables(<>, atom) = intersection_i GetUnifiables(<p,i>, t)
-                // p is the predicate and i the position of the term i in atom
-                Set<Q> candidates = null;
-                // the tCandidates are the candidates for unfications for the path
-                // tCandidates represents GetUnifiables(<p,i>, t)
-                Set<Q> tCandidates = new HashSet<>();
-                int i = 0;
-                for (Term t : terms) {
-                    Node<Q> iNode = pNode.lookup(i);
-                    tCandidates.addAll(iNode.getTGDs());
-
-                    if (t instanceof FunctionTerm) {
-                        Function f = ((FunctionTerm) t).getFunction();
-                        Node<Q> fNode = iNode.lookup(f);
-                        if (fNode != null) {
-                            tCandidates.addAll(fNode.getTGDs());
-                        }
-                    }
-
-                    if (candidates != null)
-                        candidates.retainAll(tCandidates);
-                    else
-                        candidates = new HashSet<>(tCandidates);
-
-                    // System.out.println("tcandidates " + tCandidates);
-                    tCandidates.clear();
-                    i++;
-                }
-                // System.out.println("root " + this.root);
-                // System.out.println("get " + atom + ":  " + candidates);
-                // System.out.println("=============");
-                return candidates;
-            } else {
-                // System.out.println("root " + this.root);
-                // System.out.println("get " + atom + ":  " + pNode.getTGDs());
-                // System.out.println("=============");
-                return pNode.getTGDs();
-            }
-
+            return get(pNode, terms);
         } else {
             return new HashSet<>();
         }
     }
 
+    // if the node represents the path P.s
+    // where s is function or predicate symbol
+    // terms are [t1, ..., tn]
+    // it computes the GetUnifiables(P, s(t1, ..., tn))
+    public Set<Q> get(Node<Q> node, Term[] terms) {
+
+        boolean containsAtLeastOneFunctionTermOrConstant = false;
+        for (Term t : terms) {
+            if (t instanceof FunctionTerm || t instanceof Constant) {
+                containsAtLeastOneFunctionTermOrConstant = true;
+                break;
+            }
+        }
+
+        // we distinguish two cases whether there is a function term
+        // among the terms
+        if (containsAtLeastOneFunctionTermOrConstant) {
+
+            // we instantiate the candidate set with the first candidate
+            // in order to compute the intersection
+            // represents GetUnifiables(P, s(t1, ..., tn)) = intersection_i
+            // GetUnifiables(P.s.i, ti)
+            Set<Q> candidates = null;
+            // the tCandidates are the candidates for unfications for the path
+            // tCandidates represents GetUnifiables(P.s.i, ti)
+            Set<Q> tCandidates = new HashSet<>();
+            for (int i = 0; i < terms.length; i++) {
+                Term t = terms[i];
+                if (t.isVariable()) {
+                    // in this case GetUnifiables(P.s.i, ti) = Terms
+                    // so it will not change the intersection
+                    continue;
+                }
+
+                Node<Q> iNode = node.lookup_i(i);
+                
+                if (t instanceof FunctionTerm) {
+                    Function f = ((FunctionTerm) t).getFunction();
+
+                    //GetUnifiables(P.s.i, f(u1, ...,uk)) = GetTerms(P.s.i, *) U
+                    // \cap_j GetUnifiables(P.s.i.f.j, uj)
+
+                    // add GetTerms(P.s.i, *)
+                    tCandidates.addAll(iNode.getTGDs());
+
+                    Node<Q> fNode = iNode.lookup_s(f);
+                    if (fNode != null) {
+                        // add \cap_j GetUnifiables(P.s.i.f.j, uj)
+                        tCandidates.addAll(get(fNode, ((FunctionTerm)t).getTerms()));
+                    }
+                }  else if (t instanceof Constant) {
+                    // GetUnifiables(P.s.i, c) = GetTerms(P.s.i, *) U GetTerms(P.s.i, c)
+
+                    // add GetTerms(P.s.i, *)
+                    tCandidates.addAll(iNode.getTGDs());
+
+                    Node<Q> cNode = iNode.lookup_s(t);
+                    if (cNode != null)
+                        tCandidates.addAll(cNode.getTGDs());
+                }
+
+                if (candidates != null)
+                    candidates.retainAll(tCandidates);
+                else
+                    candidates = new HashSet<>(tCandidates);
+
+                tCandidates.clear();
+            }
+            return candidates;
+        } else {
+            // GetUnifiables(<>, p(x1, ..., xn)) = GetTerms(<>, *) U GetTerms(<>, p)
+            // GetTerms(<>, *) is empty, since every terms start with a predicate symbol
+            return node.getTGDs();
+        }
+    }
+
     @Override
     public void put(Atom atom, Q tgd) {
-        // System.out.println("root " + this.root);
-        // System.out.println("put " + atom + " || " + tgd);
-        // System.out.println("=============");
+
         Predicate p = atom.getPredicate();
-        Node<Q> pNode = this.root.lookup(p);
+        Node<Q> pNode = this.root.lookup_s(p);
 
         if (pNode == null) {
-            pNode = new Node<>(p);
-            this.root.put(p, pNode);
+            pNode = new Node<>(p.getArity());
+            this.root.put_s(p, pNode);
         }
 
         pNode.add(tgd);
-        
-        int i = 0;
-        for (Term t : atom.getTerms()) {
-            Node<Q> iNode = pNode.lookup(i);
+        put(pNode, atom.getTerms(), tgd);
+    }
+
+    // recurve function to add tgd to a node corresponding to the path P.i.ti where
+    // ti is in terms at the index i
+    private void put(Node<Q> node, Term[] terms, Q tgd) {
+
+        for (int i = 0; i < terms.length; i++) {
+            Term t = terms[i];
+            Node<Q> iNode = node.lookup_i(i);
             if (t instanceof FunctionTerm) {
                 Function f = ((FunctionTerm) t).getFunction();
-                Node<Q> fNode = iNode.lookup(f);
+                Node<Q> fNode = iNode.lookup_s(f);
                 if (fNode == null) {
-                    fNode = Node.createLeaf();
-                    // we add tgd to the set corresponding to GetTerms(<p,i,f>, *)
-                    // here the arity of f is not taken into account
-                    iNode.put(f, fNode);
+                    fNode = new Node<>(f.getArity());
+                    // we recursively add tgd using the subterms
+                    put(fNode, ((FunctionTerm) t).getTerms(), tgd);
+                    iNode.put_s(f, fNode);
                 }
+                // we add tgd to the set corresponding to GetTerms(P.i, f)
                 fNode.add(tgd);
+            } else if (t instanceof Constant) {
+                Constant c = (Constant) t;
+                Node<Q> cNode = iNode.lookup_s(c);
+                if (cNode == null) {
+                    cNode = Node.createLeaf();
+                    iNode.put_s(c, cNode);
+                }
+                // we add tgd to the set corresponding to GetTerms(P.i, c)
+                cNode.add(tgd);
             } else {
-                // we add tgd to the set corresponding to GetTerms(<p,i>, *)
+                // we add tgd to the set corresponding to GetTerms(P.i, *)
                 iNode.add(tgd);
             }
-            i++;
         }
+
     }
 
     @Override
     public void remove(Atom atom, Q tgd) {
         Predicate p = atom.getPredicate();
-        Node<Q> pNode = this.root.lookup(p);
+        Node<Q> pNode = this.root.lookup_s(p);
 
         if (pNode == null)
             return;
@@ -146,21 +183,32 @@ public class AtomPathUnificationIndex<Q extends GTGD> implements UnificationInde
         if (pNode.isEmpty()) {
             this.root.remove(p, pNode);
         } else {
-            int i = 0;
-            for (Term t : atom.getTerms()) {
-                Node<Q> iNode = pNode.lookup(i);
-                if (t instanceof FunctionTerm) {
-                    Function f = ((FunctionTerm) t).getFunction();
-                    Node<Q> fNode = iNode.lookup(f);
-                    if (fNode != null) {
-                        fNode.remove(tgd);
-                        if (fNode.isEmpty())
-                            iNode.remove(f, fNode);
-                    }
-                } else {
-                    iNode.remove(tgd);
+            Term[] terms = atom.getTerms();
+            remove(pNode, terms, tgd);
+        }
+    }
+
+    public void remove(Node<Q> node, Term[] terms, Q tgd) {
+        for (int i = 0; i < terms.length; i++) {
+            Term t = terms[i];
+            Node<Q> iNode = node.lookup_i(i);
+            if (t instanceof FunctionTerm) {
+                Function f = ((FunctionTerm) t).getFunction();
+                Node<Q> fNode = iNode.lookup_s(f);
+                if (fNode != null) {
+                    fNode.remove(tgd);
+                    remove(fNode, ((FunctionTerm) t).getTerms(), tgd);
+                    if (fNode.isEmpty())
+                        iNode.remove(f, fNode);
                 }
-                i++;
+            } else if (t instanceof Constant) {
+                Constant c = (Constant) t;
+                Node<Q> cNode = iNode.lookup_s(c);
+                cNode.remove(tgd);
+                if (cNode.isEmpty())
+                    iNode.remove(c, cNode);
+            } else {
+                iNode.remove(tgd);
             }
         }
     }
@@ -170,53 +218,42 @@ public class AtomPathUnificationIndex<Q extends GTGD> implements UnificationInde
         // integer lookup operator
         private final List<Node<P>> ilp;
         // predicate symbols lookup operator
-        private final Map<Predicate, Node<P>> pslp;
-        // function symbols lookup operator
-        private final Map<Function, Node<P>> fslp;
+        private final Map<Object, Node<P>> slp;
 
         // tgds selected by the path of the node
         private final Set<P> tgds;
 
         public static <T extends GTGD> Node<T> createLeaf() {
-            return new Node<T>(null, null, null);
+            return new Node<T>(null, null);
         }
 
-		public static <T extends GTGD> Node<T> createRoot() {
-            return new Node<T>(null, new HashMap<>(), null);
+        public static <T extends GTGD> Node<T> createRoot() {
+            return new Node<T>(null, new HashMap<>());
         }
 
-        Node(Predicate p) {
-            this(new ArrayList<Node<P>>(p.getArity()), null, null);
-
-            for (int i = 0; i < p.getArity(); i++)
-                this.ilp.add(new Node<>(null, null, new HashMap<>()));
-        }
-
-        private Node(List<Node<P>> ilp, Map<Predicate, Node<P>> pslp, Map<Function, Node<P>> fslp) {
+        private Node(List<Node<P>> ilp, Map<Object, Node<P>> pslp) {
             this.ilp = ilp;
-            this.pslp = pslp;
-            this.fslp = fslp;
+            this.slp = pslp;
 
             this.tgds = new HashSet<>();
         }
 
-        void put (Function f, Node<P> n) {
-            this.fslp.put(f,n);
+        Node(int arity) {
+            this(new ArrayList<Node<P>>(arity), null);
+
+            for (int i = 0; i < arity; i++)
+                this.ilp.add(new Node<>(null, new HashMap<>()));
         }
 
-        void put (Predicate p, Node<P> n) {
-            this.pslp.put(p,n);
+        void put_s(Object p, Node<P> n) {
+            this.slp.put(p, n);
         }
 
-        Node<P> lookup(Function f) {
-            return this.fslp.get(f);
+        Node<P> lookup_s(Object p) {
+            return this.slp.get(p);
         }
 
-        Node<P> lookup(Predicate p) {
-            return this.pslp.get(p);
-        }
-
-        public Node<P> lookup(int i) {
+        public Node<P> lookup_i(int i) {
             return this.ilp.get(i);
         }
 
@@ -232,17 +269,13 @@ public class AtomPathUnificationIndex<Q extends GTGD> implements UnificationInde
             this.tgds.remove(tgd);
         }
 
-        public void remove(Function f, Node<P> fNode) {
-            this.fslp.remove(f, fNode);
-		}
+        public void remove(Object s, Node<P> pNode) {
+            this.slp.remove(s, pNode);
+        }
 
-        public void remove(Predicate p, Node<P> pNode) {
-            this.pslp.remove(p, pNode);
-		}
-
-		public boolean isEmpty() {
-			return this.tgds.isEmpty();
-		}
+        public boolean isEmpty() {
+            return this.tgds.isEmpty();
+        }
 
     }
 }
