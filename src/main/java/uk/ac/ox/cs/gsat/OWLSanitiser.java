@@ -93,17 +93,29 @@ public class OWLSanitiser {
         System.out.println("Starting the OWL Sanitiser...");
 
         try {
-
-            if (args.length > 0)
-                if (args[0].equals("guarded") || args[0].equals("guarded_kaon2"))
-                    if (args.length == 3) {
-                        sanitise(args[1], args[2], args[0].equals("guarded_kaon2"));
-                    } else
-                        printHelp("Wrong number of parameters for sanitise");
-                else
+            if (args.length == 3) {
+                boolean simplifyForKAON2 = false;
+                boolean keepData = false;
+                if (args[0].equals("guarded")) {
+                    simplifyForKAON2 = false;
+                    keepData = false;
+                } else if (args[0].equals("guarded_kaon2")) {
+                    simplifyForKAON2 = true;
+                    keepData = false;
+                } else if (args[0].equals("guarded_data")) {
+                    simplifyForKAON2 = false;
+                    keepData = true;
+                } else if (args[0].equals("guarded_kaon2_data")) {
+                    simplifyForKAON2 = true;
+                    keepData = true;
+                } else {
                     printHelp("Wrong command (i.e. first argument)");
-            else
-                printHelp("No arguments provided");
+                    return;
+                }
+
+                sanitise(args[1], args[2], simplifyForKAON2, keepData);
+            } else
+                printHelp("Wrong number of parameters for sanitise");
 
         } catch (Throwable t) {
             System.err.println("Unknown error. The system will now terminate.");
@@ -124,16 +136,22 @@ public class OWLSanitiser {
         System.err.println();
         System.err.println(message);
         System.err.println();
-        System.err.println("Note that only these commands are currently supported:");
-        System.err.println("sanitise \t sanitise the input OWL file");
+        System.err.println("the following arguments must be provided, in this strict order:");
+        System.err.println("<COMMAND> <PATH OF THE INPUT FILE> <PATH OF THE OUTPUT FILE>");
         System.err.println();
-        System.err.println("if sanitise is specified the following arguments must be provided, in this strict order:");
-        System.err.println("<PATH OF THE INPUT FILE> <PATH OF THE OUTPUT FILE>");
+        System.err.println("Note that only these commands are currently supported:");
+        System.err.println("sanitise \t sanitise the input OWL file and simplify the axioms and the ones representing a guarded TGDs only the guarded, remove data related axioms");
+        System.err.println();
+        System.err.println("guarded_kaon2 \t sanitise the input OWL file and remove the part that are not supported by KAON2 like nomimal (i.e. constants)");
+        System.err.println();
+        System.err.println("guarded_data \t sanitise the input OWL file, but keep the data");
+        System.err.println();
+        System.err.println("guarded_kaon2_data \t sanitise the input OWL file for KAON2, but keep the data");
         System.err.println();
 
     }
 
-    private static void sanitise(String input_file, String output_file, boolean simplifyForKaon2) {
+    private static void sanitise(String input_file, String output_file, boolean simplifyForKaon2, boolean keepData) {
 
         final long startTime = System.nanoTime();
 
@@ -153,19 +171,15 @@ public class OWLSanitiser {
                 if (simplifyForKaon2 && isDisjonctAxiom(a) || isFunctionalAxiom(a))
                     continue;
 
-                if (isFactRelated(a) || isTrivialAxiom(a)) {
+                if (isFactRelated(a) && keepData)
+                    supportedAxioms.add(a);
+                if (isTrivialAxiom(a)) {
                     if (!simplifyForKaon2)
                         supportedAxioms.add(a);
                 } else {
                     simplifiedAxioms.addAll(simplifyAxiom(a, manager.getOWLDataFactory(), simplifyForKaon2));
                 }
             }
-
-            // System.out.println("\n---------------------------------------------------------");
-            // System.out.println("\nAxiom");
-            // for (OWLAxiom a : simplifiedAxioms)
-            // System.out.println(a);
-            // System.out.println("\n---------------------------------------------------------");
 
             supportedAxioms.addAll(simplifiedAxioms.stream().filter(a -> !isFactRelated(a) && isSupported(a))
                     .collect(Collectors.toSet()));
