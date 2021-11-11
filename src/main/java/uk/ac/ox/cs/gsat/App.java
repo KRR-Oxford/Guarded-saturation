@@ -1,6 +1,7 @@
 package uk.ac.ox.cs.gsat;
 
 import java.io.File;
+import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.Arrays;
@@ -201,9 +202,11 @@ public class App {
 			logger.info("Rewriting completed!");
 			System.out
 					.println("Full TGD saturation: (" + executionOutput.getFullTGDSaturation().size() + " dependecies)");
-			System.out.println("=========================================");
-			executionOutput.getFullTGDSaturation().forEach(System.out::println);
-			System.out.println("=========================================");
+            if (!Configuration.writeOutputDatalog()) {
+                System.out.println("=========================================");
+                executionOutput.getFullTGDSaturation().forEach(System.out::println);
+                System.out.println("=========================================");
+            }
 
 		} catch (Exception e) {
 			System.err.println("Full TGD saturation algorithm failed. The system will now terminate.");
@@ -212,20 +215,41 @@ public class App {
 			System.exit(1);
 		}
 
+        if (!Configuration.isSaturationOnly() || Configuration.writeOutputDatalog()) {
+
+            String baseOutputPath = "test" + File.separator + "datalog" + File.separator
+				+ executionSteps.getBaseOutputPath() + File.separator;
+            if (!Configuration.isSaturationOnly()) {
+
+                if (Files.notExists(Paths.get(baseOutputPath))) {
+                    boolean mkdirs = new File(baseOutputPath).mkdirs();
+                    if (!mkdirs)
+                        throw new IllegalArgumentException("Output path not available: " + baseOutputPath);
+                }
+            }
+
+            // write the output rules in datalog file
+            try {
+                String datalogFile = (Configuration.writeOutputDatalog())
+					? executionSteps.getBaseOutputPath().replaceFirst("[.][^.]+$", "") + ".rul"
+					: baseOutputPath + "datalog.rul";
+                App.logger.info("Writing the saturation in the Datalog file " + datalogFile);
+                IO.writeDatalogRules(executionOutput.getFullTGDSaturation(), datalogFile);
+            } catch (IOException e) {
+                System.out.println("datalog writing failed");
+				e.printStackTrace();
+                System.exit(1);
+            }
+        }
+
 		if (!Configuration.isSaturationOnly()) {
+
+            String baseOutputPath = "test" + File.separator + "datalog" + File.separator
+					+ executionSteps.getBaseOutputPath() + File.separator;
 
 			logger.info("Converting facts to Datalog");
 
-			String baseOutputPath = "test" + File.separator + "datalog" + File.separator
-					+ executionSteps.getBaseOutputPath() + File.separator;
-
 			try {
-
-				if (Files.notExists(Paths.get(baseOutputPath))) {
-					boolean mkdirs = new File(baseOutputPath).mkdirs();
-					if (!mkdirs)
-						throw new IllegalArgumentException("Output path not available: " + baseOutputPath);
-				}
 
 				if (Files.notExists(Paths.get(baseOutputPath, "datalog.data")))
 					executionSteps.writeData(baseOutputPath + "datalog.data");
@@ -238,8 +262,6 @@ public class App {
 			}
 
 			try {
-
-				IO.writeDatalogRules(executionOutput.getFullTGDSaturation(), baseOutputPath + "datalog.rul");
 
 				if (Configuration.isFullGrounding()) {
 
