@@ -152,10 +152,10 @@ public class IO {
             if (name.length() > 6
                     && (name.substring(0, 7).equals("http://") || name.substring(0, 7).equals("file://"))) {
                 // URL in angle bracket
-                App.logger.info("URL as predicate name. Adding angle brackets." + name);
+                App.logger.fine("URL as predicate name. Adding angle brackets." + name);
                 name = '<' + name + '>';
             } else if (name.length() > 0 && name.substring(0, 1).matches("[A-Z]")) { // First char to Lower Case
-                App.logger.info("Predicate starting with an upper-case letter. Transforming it to lower-case.");
+                App.logger.fine("Predicate starting with an upper-case letter. Transforming it to lower-case.");
                 name = name.substring(0, 1).toLowerCase() + name.substring(1);
             }
             // // URL in angle bracket

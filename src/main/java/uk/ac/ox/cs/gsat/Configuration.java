@@ -31,6 +31,7 @@ public class Configuration {
     private static boolean discardTautology;
     private static boolean orderedSkolemSatSelectSkolemBodyAtom;
     private static UnificationIndexType unificationIndexType;
+    private static boolean writeOutput;
 
     public static String getSolverName() {
 
@@ -133,6 +134,7 @@ public class Configuration {
 
                 if (Configuration.prop != null) {
                 isSaturationOnly = Configuration.prop.containsKey("saturation_only") ? Boolean.parseBoolean(Configuration.prop.getProperty("saturation_only")) : true;
+                writeOutput = Configuration.prop.containsKey("write_output") ? Boolean.parseBoolean(Configuration.prop.getProperty("write_output")) : false;
 
                 debugMode = Configuration.prop.containsKey("debug") ? Boolean.parseBoolean(Configuration.prop.getProperty("debug")) : false;
 
@@ -303,6 +305,10 @@ public class Configuration {
 
     public static UnificationIndexType getUnificationIndexType() {
         return unificationIndexType;
+    }
+
+    public static boolean writeOutputDatalog() {
+        return writeOutput;
     }
 
 }
