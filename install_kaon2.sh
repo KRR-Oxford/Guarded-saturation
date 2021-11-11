@@ -3,7 +3,7 @@
 set -e
 
 # go into KAON2 source directory from Boris 
-cd KAON2
+cd ../KAON2
 rm -fr classes
 mkdir -p classes
 
