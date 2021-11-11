@@ -21,7 +21,7 @@ Clone the repository of PDQ and install the version available on the branch call
 
 #### Installing KAON 2
 
-Gather the code of KAON2 provided by Boris Motik in the directory ~../KAON2/~ and run the script ~./install-kaon2.sh~.
+Gather the code of KAON2 provided by Boris Motik in the directory `../KAON2/` and run the script `./install-kaon2.sh`.
 
 ### Installing
 
