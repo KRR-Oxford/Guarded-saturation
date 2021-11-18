@@ -182,7 +182,7 @@ public class Configuration {
                             .containsKey("ordered_skolemsat_select_skolem_body_atom")
                                     ? Boolean.parseBoolean(
                                             Configuration.prop.getProperty("ordered_skolemsat_select_skolem_body_atom"))
-                                    : true;
+                                    : false;
 
                 }
 
