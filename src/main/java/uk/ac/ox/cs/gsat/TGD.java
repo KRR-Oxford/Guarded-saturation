@@ -12,6 +12,7 @@ import java.util.Objects;
 import java.util.Set;
 
 import uk.ac.ox.cs.pdq.fol.Atom;
+import uk.ac.ox.cs.pdq.fol.FunctionTerm;
 import uk.ac.ox.cs.pdq.fol.LogicalSymbols;
 import uk.ac.ox.cs.pdq.fol.Predicate;
 import uk.ac.ox.cs.pdq.fol.Term;
@@ -88,6 +89,9 @@ public class TGD extends uk.ac.ox.cs.pdq.fol.TGD {
 				result.add(((UntypedConstant) term).getSymbol());
 			else if (term instanceof TypedConstant && ((TypedConstant) term).getValue() instanceof String)
 				result.add((String) ((TypedConstant) term).getValue());
+            else if (term instanceof FunctionTerm)
+                for (Term t : ((FunctionTerm) term).getTerms())
+                    result.add(((Variable) t).getSymbol());
 			else
 				throw new IllegalArgumentException("Term type not supported: " + term + " : " + term.getClass());
 

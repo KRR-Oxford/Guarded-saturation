@@ -141,10 +141,6 @@ public class ExecutorOWL {
 		System.out.println("Initial axioms in the ontology: " + ontology.createAxiomRequest().sizeAll());
 		Reasoner reasoner = ontology.createReasoner();
 
-        reasoner.setParameter("theoremProverMonitor", monitor);
-        reasoner.setParameter("predicateOrdering", "none");
-        reasoner.setParameter("selectionFunction", "empty");
-        reasoner.setParameter("useMagicSets", false);
 		// reasoner.getOntology().saveOntology(OntologyFileFormat.OWL_RDF, System.out,
 		// "UTF-8");
 		// reasoner.setTrace("theoremProver", true,

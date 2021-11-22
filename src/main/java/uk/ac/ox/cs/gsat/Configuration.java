@@ -32,6 +32,7 @@ public class Configuration {
     private static boolean orderedSkolemSatSelectSkolemBodyAtom;
     private static UnificationIndexType unificationIndexType;
     private static boolean writeOutput;
+    private static boolean applyStructuralTransformation;
 
     public static String getSolverName() {
 
@@ -190,6 +191,11 @@ public class Configuration {
                     ? UnificationIndexType.valueOf(prop.getProperty("optimization.unification_index_type"))
                     : null;
 
+                applyStructuralTransformation = Configuration.prop.containsKey("optimization.apply_structural_transformation") ?
+                    Boolean.parseBoolean(Configuration.prop.getProperty("optimization.apply_structural_transformation"))
+                    : false;
+
+
             }
     }
 
@@ -300,15 +306,23 @@ public class Configuration {
     }
 
     public static boolean isOrderedSkolemSatSelectSkolemBodyAtom() {
+        Configuration.initialize();
         return orderedSkolemSatSelectSkolemBodyAtom;
     }
 
     public static UnificationIndexType getUnificationIndexType() {
+        Configuration.initialize();
         return unificationIndexType;
     }
 
     public static boolean writeOutputDatalog() {
+        Configuration.initialize();
         return writeOutput;
+    }
+
+    public static boolean applyKAON2StructuralTransformation() {
+        Configuration.initialize();
+        return applyStructuralTransformation;
     }
 
 }

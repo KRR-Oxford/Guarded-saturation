@@ -3,10 +3,7 @@ package uk.ac.ox.cs.gsat;
 import java.io.PrintWriter;
 import java.util.Collection;
 
-import com.hp.hpl.jena.sparql.function.library.namespace;
-
 import org.semanticweb.kaon2.api.Namespaces;
-import org.semanticweb.kaon2.api.logic.Literal;
 import org.semanticweb.kaon2.saturation.InferenceRule;
 import org.semanticweb.kaon2.saturation.SClause;
 import org.semanticweb.kaon2.saturation.SLiteral;
