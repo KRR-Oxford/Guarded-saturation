@@ -21,7 +21,7 @@ public class DisabledSubsumer<Q extends TGD> implements Subsumer<Q> {
 
     @Override
     public boolean subsumed(Q tgd) {
-        return false;
+        return this.tgds.contains(tgd);
     }
 
     @Override
