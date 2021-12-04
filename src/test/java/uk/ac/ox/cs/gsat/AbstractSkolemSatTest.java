@@ -104,7 +104,7 @@ public abstract class AbstractSkolemSatTest<Q extends SkGTGD> {
 
         Collection<Q> result = sksat.run(input);
 
-        assertEquals(result, expected);
+        assertEquals(expected, result);
     }
 
     @Test
