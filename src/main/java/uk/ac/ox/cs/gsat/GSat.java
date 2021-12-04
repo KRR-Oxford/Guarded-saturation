@@ -126,7 +126,7 @@ public class GSat extends EvolveBasedSat<GTGD> {
                     App.logger.fine("Non-Full:" + new_nftgd.toString() + "\nFull:" + new_ftgd.toString() + "\nSbody:"
                                     + Sbody + "\nS:" + S);
 
-                    Map<Term, Term> mgu = getVariableSubstitution(S, Sbody);
+                    Map<Term, Term> mgu = Logic.getVariableSubstitution(S, Sbody);
                     if (mgu == null)
                         // unification failed -> continue with next sequence
                         continue;
@@ -147,28 +147,6 @@ public class GSat extends EvolveBasedSat<GTGD> {
 
         return results;
 
-    }
-
-    static Map<Term, Term> getVariableSubstitution(List<Atom> head, List<Atom> body) {
-
-        Map<Term, Term> sigma = new HashMap<>();
-
-        if (head.size() != body.size())
-            throw new IllegalArgumentException();
-
-        // assume they are all in the same order
-        for (int i = 0; i < head.size(); i++) {
-            Atom atom_h = head.get(i);
-            Atom atom_b = body.get(i);
-
-            if (!atom_h.getPredicate().equals(atom_b.getPredicate()))
-                throw new IllegalArgumentException();
-
-            sigma = Logic.getMGU(atom_h, atom_b, sigma);
-
-        }
-
-        return sigma;
     }
 
     static List<List<Atom>> getShead(Collection<Atom> headAtoms, Collection<Atom> sbody, Collection<Variable> eVariables) {

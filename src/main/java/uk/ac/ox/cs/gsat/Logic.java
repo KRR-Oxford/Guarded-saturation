@@ -292,7 +292,7 @@ public class Logic {
 
 	public static Map<Term, Term> getMGU(Atom s, Atom t) {
 
-		return getMGU(s, t, null);
+		return getMGU(s, t, new HashMap<Term, Term>());
 
 	}
 
@@ -318,12 +318,7 @@ public class Logic {
 			// different predicate names or arity: "+ s + " and "+ t);
 			return null;
 
-		Map<Term, Term> sigma;
-
-		if (renaming != null)
-			sigma = new HashMap<>(renaming);
-		else
-			sigma = new HashMap<>();
+		Map<Term, Term> sigma = sigma = new HashMap<>(renaming);
 
         sigma = getMGU(s.getTerms(), t.getTerms(), sigma);
 
@@ -403,6 +398,30 @@ public class Logic {
             else 
                 sigma.put(t_term, s_term);
 		}
+
+        return sigma;
+    }
+
+    public static Map<Term, Term> getVariableSubstitution(List<Atom> atoms1, List<Atom> atoms2) {
+
+        Map<Term, Term> sigma = new HashMap<>();
+
+        if (atoms1.size() != atoms2.size())
+            throw new IllegalArgumentException();
+
+        // assume they are all in the same order
+        for (int i = 0; i < atoms1.size(); i++) {
+            Atom atom1 = atoms1.get(i);
+            Atom atom2 = atoms2.get(i);
+
+            if (!atom1.getPredicate().equals(atom2.getPredicate()))
+                throw new IllegalArgumentException();
+
+            sigma = Logic.getMGU(atom1, atom2, sigma);
+
+            if (sigma == null)
+                return null;
+        }
 
         return sigma;
     }

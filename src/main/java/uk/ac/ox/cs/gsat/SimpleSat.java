@@ -283,7 +283,7 @@ public class SimpleSat {
                         App.logger.fine("Non-Full:" + new_nftgd.toString() + "\nFull:" + new_ftgd.toString() + "\nSbody:"
                                         + Sbody + "\nS:" + S);
     
-                        Map<Term, Term> mgu = GSat.getVariableSubstitution(S, Sbody);
+                        Map<Term, Term> mgu = Logic.getVariableSubstitution(S, Sbody);
     
                         if (mgu == null)
                             // unification failed -> continue with next sequence

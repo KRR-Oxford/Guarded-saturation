@@ -221,8 +221,8 @@ public class App {
             }
 
 		} catch (Exception e) {
+			e.printStackTrace(System.err);
 			System.err.println("Full TGD saturation algorithm failed. The system will now terminate.");
-			logger.severe(Arrays.toString(e.getStackTrace()));
 			logger.severe(e.getLocalizedMessage());
 			System.exit(1);
 		}

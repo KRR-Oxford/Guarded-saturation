@@ -330,6 +330,10 @@ public abstract class AbstractSaturation<Q extends GTGD> {
     }
 
     protected Map<Term, Term> getRenameVariableSubstitution(Q ftgd) {
+        return getRenameVariableSubstitution(ftgd, zVariable);
+    }
+
+    protected Map<Term, Term> getRenameVariableSubstitution(Q ftgd, String prefix) {
 
         Variable[] uVariables = ftgd.getUniversal();
 
@@ -338,7 +342,7 @@ public abstract class AbstractSaturation<Q extends GTGD> {
         for (Variable v : uVariables) {
             if (!v.getSymbol().startsWith(uVariable))
                 throw new IllegalArgumentException("TGD not valid in renameVariable: " + ftgd);
-            substitution.put(v, Variable.create(zVariable + counter++));
+            substitution.put(v, Variable.create(prefix + counter++));
         }
 
         return substitution;
