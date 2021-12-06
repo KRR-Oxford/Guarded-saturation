@@ -140,15 +140,16 @@ public class HyperResolutionBasedSat<Q extends SkGTGD> extends AbstractSaturatio
     
                         for (Q nonFullTGDForGuard : nonFullTGDsIndex.get(resolvedGuard)) {
                             // check if the head is compatible meaning it covers the skolem function of the resolved guard
-                            boolean isCompatible = true;
+                            // this initialisation is necessary in the case where the unification index is disabled.
+                            boolean isCompatible = resolvedGuard.getPredicate().equals(nonFullTGDForGuard.getHeadAtom(0).getPredicate());
                             for (int pos = 0; pos < resolvedGuard.getPredicate().getArity(); pos++) {
+                                if (!isCompatible)
+                                    break;
                                 isCompatible = isCompatible && (!(resolvedGuard.getTerm(pos) instanceof FunctionTerm)
                                         || ((nonFullTGDForGuard.getHeadAtom(0).getTerm(pos) instanceof FunctionTerm)
                                                 && ((FunctionTerm) resolvedGuard.getTerm(pos)).getFunction().equals(
                                                         ((FunctionTerm) nonFullTGDForGuard.getHeadAtom(0).getTerm(pos))
                                                                 .getFunction())));
-                                if (!isCompatible)
-                                    break;
                             }
     
                             if (isCompatible) {
