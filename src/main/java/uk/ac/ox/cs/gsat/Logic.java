@@ -318,12 +318,12 @@ public class Logic {
 			// different predicate names or arity: "+ s + " and "+ t);
 			return null;
 
-		Map<Term, Term> sigma = sigma = new HashMap<>(renaming);
+		Map<Term, Term> sigma = new HashMap<>(renaming);
 
         sigma = getMGU(s.getTerms(), t.getTerms(), sigma);
 
         if (sigma == null)
-            return sigma;
+            return null;
 
 		for (Entry<Term, Term> entry : sigma.entrySet())
 			// we don't care about the actual value, we just want for everything to point to
@@ -407,15 +407,12 @@ public class Logic {
         Map<Term, Term> sigma = new HashMap<>();
 
         if (atoms1.size() != atoms2.size())
-            throw new IllegalArgumentException();
+            return null;
 
         // assume they are all in the same order
         for (int i = 0; i < atoms1.size(); i++) {
             Atom atom1 = atoms1.get(i);
             Atom atom2 = atoms2.get(i);
-
-            if (!atom1.getPredicate().equals(atom2.getPredicate()))
-                throw new IllegalArgumentException();
 
             sigma = Logic.getMGU(atom1, atom2, sigma);
 
