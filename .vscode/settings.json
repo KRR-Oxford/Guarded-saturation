@@ -12,15 +12,6 @@
     "editor.formatOnType": true,
     "editor.wordWrapColumn": 100,
     "java.format.settings.url": "",
-    "spellright.language": [
-        "en"
-    ],
-    "spellright.documentTypes": [
-        "markdown",
-        "latex",
-        "plaintext",
-        "java"
-    ],
     "java.configuration.updateBuildConfiguration": "interactive",
     "markdownlint.run": "onSave"
 }

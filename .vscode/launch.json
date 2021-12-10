@@ -124,7 +124,6 @@
             "mainClass": "uk.ac.ox.cs.gsat.Executor",
             "args": "compare test\\DLGP\\A.dlp"
             // "args": "compare test\\DLGP\\imdb.dlgp"
-            // "args": "compare C:\\Users\\Stefano\\Downloads\\000332.dlgp"
         },
         {
             "type": "java",
