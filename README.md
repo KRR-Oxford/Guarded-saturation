@@ -17,11 +17,17 @@ It requires:
 
 #### Installing PDQ in Maven
 
-Clone the repository of PDQ and install the version available on the branch called `maxime`.
+1. Download from [PDQ releases](https://github.com/ProofDrivenQuerying/pdq/releases)
+   - pdq-common-1.0.0.jar
+2. Install as in [the official documentation](https://maven.apache.org/guides/mini/guide-3rd-party-jars-local.html)
+   - `mvn org.apache.maven.plugins:maven-install-plugin:2.5.2:install-file -Dfile="pdq-common-1.0.0.jar"`
 
 #### Installing KAON 2
 
-Gather the code of KAON2 provided by Boris Motik in the directory `../KAON2/` and run the script `./install-kaon2.sh`.
+Install the JAR of KAON2 using 
+```
+mvn install:install-file -Dfile=./src/main/resources/kaon2.jar -DgroupId=org.semanticweb.kaon2 -DartifactId=kaon2 -Dversion=2008-06-29 -Dpackaging=jar -DgeneratePom=true
+```
 
 ### Installing
 
