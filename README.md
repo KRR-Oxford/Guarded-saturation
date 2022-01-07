@@ -12,12 +12,14 @@ This README is aimed at developers.
 
 ### Prerequisites
 
-It requires:
+To build the software we require
 
 - [Java](https://www.oracle.com/java)
 - [Apache Maven](http://maven.apache.org)
 - [PDQ](https://github.com/ProofDrivenQuerying/pdq)
 - [KAON 2](http://kaon2.semanticweb.org)
+
+Kaon2 is only relevant for some experiments, and is not part of the delivered product.
 
 #### Installing PDQ in Maven
 
