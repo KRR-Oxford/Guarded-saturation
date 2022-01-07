@@ -1,6 +1,10 @@
 # Guarded-saturation
 
-Resolution-based rewriting algorithm from Guarded Tuple Generating Dependencies (GTGDs) to Datalog
+The software implements a Resolution-based rewriting algorithm from Guarded Tuple Generating Dependencies (GTGDs) to Datalog, along with some functions
+for running the resulting Datalog rules.
+
+This README is aimed at developers.
+
 
 <!-- Description: A description of your project follows. A good description is clear, short, and to the point. Describe the importance of your project, and what it does. -->
 
@@ -57,9 +61,9 @@ If no arguments or wrong arguments are provided, it prints this useful help mess
 
 ```txt
 Note that only these commands are currently supported:
-cb       for testing a ChaseBench scenario
-dlgp     for parsing a file in the DLGP format
-owl      for parsing a file in the OWL format
+cb       for processing a scenario for the ''ChaseBench'' -- seee the chasebench github for information on this format. A scenario is a directory with several files in it.
+dlgp     for processing a file of TGDs in the DLGP format
+owl      for processing a file of TGDs in the OWL format
 
 if cb is specified the following arguments must be provided, in this strict order:
 <NAME OF THE SCENARIO> <PATH OF THE BASE FOLDER> [<FACT/QUERY SIZE>]
@@ -79,7 +83,7 @@ As specified in this message, at the moment we support 3 input formats:
 
 Since they are completely different, each of them needs different options.
 
-To test a ChaseBench scenario, you need to specify the `cb` option and add:
+To run on a ChaseBench scenario, you need to specify the `cb` option and add:
 
 - `<NAME OF THE SCENARIO>` the name of the scenario as in the ChaseBench format
   - example: `doctors`
@@ -88,9 +92,9 @@ To test a ChaseBench scenario, you need to specify the `cb` option and add:
 - `[<FACT/QUERY SIZE>]` (optional) the size of the scenario that you want to test
   - example: `100k`
 
-To test a file in DLGP format, you simply need to specify the `dlgp` option and add the path to the file (`<PATH OF THE DLGP FILE>`). Luckily, the DLGP format can contain everything in a single file.
+To run on a file in DLGP format, you simply need to specify the `dlgp` option and add the path to the file (`<PATH OF THE DLGP FILE>`). Luckily, the DLGP format can contain everything in a single file.
 
-To test a file in OWL format, you need to specify the `owl` option and add:
+To run on a file in OWL format, you need to specify the `owl` option and add:
 
 - `<PATH OF THE OWL FILE>` the path to the file
 - `[<PATH OF THE SPARQL FILE>]` (optional) the path to the SPARQL file containing the query
