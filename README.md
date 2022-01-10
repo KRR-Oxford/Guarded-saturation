@@ -7,7 +7,7 @@ for running the resulting Datalog rules.
 
 ## Saturating 
 
-The main functionality of GSat is to compute the saturation of a set of TGDs. The corresponding command line is (the JAR file is available with the [releases](https://github.com/KRR-Oxford/Guarded-saturation/releases)):
+The main functionality of GSat is to compute the saturation of a set of GTGDs. To do this, download the JAR file available with the [releases](https://github.com/KRR-Oxford/Guarded-saturation/releases) and use the command line:
 ```bash
 java -jar guarded-saturation-1.0.0-jar-with-dependencies.jar <syntax> <TGD file>
 ```
@@ -27,13 +27,13 @@ Calling:
 ```bash
 java -jar guarded-saturation-1.0.0-jar-with-dependencies.jar dlgp example.dlgp
 ```
-returns the saturation corresponding to:
+returns the saturation containing:
 ```
 b(X, Y), c(Y) :-  a(X).
 d(X) :- a(X).
 ```
 
-### Choice the saturation algorithm
+### The choice of the saturation algorithm
 
 This project implements different saturation algorithms. You can set the algorithm to use by changing `saturation_alg`'s value in the file `config.properties` to either:
 
