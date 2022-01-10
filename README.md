@@ -8,6 +8,44 @@ This README is aimed at developers.
 
 <!-- Description: A description of your project follows. A good description is clear, short, and to the point. Describe the importance of your project, and what it does. -->
 
+## Saturating 
+
+The main functionality of GSat is to compute the saturation of a set of TGDs. The corresponding command line is (the JAR file is available with the [releases](https://github.com/KRR-Oxford/Guarded-saturation/releases)):
+```bash
+java -jar guarded-saturation-1.0.0-jar-with-dependencies.jar <syntax> <TGD file>
+```
+where `<syntax>` is the one of the syntax `dlgp`, `owl`, `cb` (for chasebench) and `<TGD file>` is a file containing the input TGDs in the syntax `<syntax>`.
+
+By default, the output saturation is printed in the console, it can be written to a file instead by setting `write_output` to `true` in the file `config.properties`.
+
+### Example
+
+Consider a DLGP file `example.dlgp` that contains the following two TGDs:
+```
+b(X, Y), c(Y) :-  a(X).
+d(X) :- b(X, Y), c(Y).
+```
+
+Calling:
+```bash
+java -jar guarded-saturation-1.0.0-jar-with-dependencies.jar dlgp example.dlgp
+```
+returns the saturation corresponding to:
+```
+b(X, Y), c(Y) :-  a(X).
+d(X) :- a(X).
+```
+
+### Choice the saturation algorithm
+
+This project implements different saturation algorithms. You can set the algorithm to use by changing `saturation_alg`'s value in the file `config.properties` to either:
+
+- `gsat` (default) corresponding to `ExbDR` in the article
+- `skolem_sat` corresponding to `SkolemDR` 
+- `hyper_sat` corresponding to `HyperDR`
+- `ordered_skolem_sat` also called `KAON3`
+- `simple_sat` a naive saturation algorithm
+
 ## Getting Started (Installation and Usage)
 
 ### Prerequisites
