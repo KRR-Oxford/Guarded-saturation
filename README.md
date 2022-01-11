@@ -40,8 +40,9 @@ This project implements different saturation algorithms. You can set the algorit
 - `gsat` (default) corresponding to `ExbDR` in the article
 - `skolem_sat` corresponding to `SkolemDR` 
 - `hyper_sat` corresponding to `HyperDR`
+- `simple_sat` corresponding to `SimDR`
 - `ordered_skolem_sat` also called `KAON3`
-- `simple_sat` a naive saturation algorithm
+
 
 Additionally, Gsat can be use to get the saturation of the set of TGDs in a OWL file using the following command:
 ```bash
