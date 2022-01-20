@@ -185,17 +185,16 @@ public class Configuration {
                                             Configuration.prop.getProperty("ordered_skolemsat_select_skolem_body_atom"))
                                     : false;
 
+                    unificationIndexType = Configuration.prop.containsKey("optimization.unification_index_type")
+                            ? UnificationIndexType.valueOf(prop.getProperty("optimization.unification_index_type"))
+                            : null;
+
+                    applyStructuralTransformation = Configuration.prop
+                            .containsKey("optimization.apply_structural_transformation")
+                                    ? Boolean.parseBoolean(Configuration.prop
+                                            .getProperty("optimization.apply_structural_transformation"))
+                                    : false;
                 }
-
-                unificationIndexType = Configuration.prop.containsKey("optimization.unification_index_type")
-                    ? UnificationIndexType.valueOf(prop.getProperty("optimization.unification_index_type"))
-                    : null;
-
-                applyStructuralTransformation = Configuration.prop.containsKey("optimization.apply_structural_transformation") ?
-                    Boolean.parseBoolean(Configuration.prop.getProperty("optimization.apply_structural_transformation"))
-                    : false;
-
-
             }
     }
 
