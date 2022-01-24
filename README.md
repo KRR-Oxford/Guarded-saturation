@@ -44,7 +44,7 @@ This project implements different saturation algorithms. You can set the algorit
 - `ordered_skolem_sat` also called `KAON3`
 
 
-Additionally, Gsat can be use to get the saturation of the set of TGDs in a OWL file using the following command:
+Additionally, KAON2 can be use to get the saturation of the set of TGDs in a OWL file using the following command:
 ```bash
 java -cp guarded-saturation-1.0.0-jar-with-dependencies.jar "uk.ac.ox.cs.gsat.ExecutorOWL" <OWL file> <timeout>
 ```
