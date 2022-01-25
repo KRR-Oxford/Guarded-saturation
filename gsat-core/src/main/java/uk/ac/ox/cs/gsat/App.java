@@ -11,6 +11,8 @@ import java.util.logging.Handler;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+import uk.ac.ox.cs.gsat.api.io.Serializer;
+import uk.ac.ox.cs.gsat.io.DLGPSerializer;
 import uk.ac.ox.cs.pdq.fol.Atom;
 import uk.ac.ox.cs.pdq.fol.Dependency;
 
@@ -246,8 +248,12 @@ public class App {
 					? executionSteps.getBaseOutputPath().replaceFirst("[.][^.]+$", "") + ".rul"
 					: baseOutputPath + "datalog.rul";
                 App.logger.info("Writing the saturation in the Datalog file " + datalogFile);
-                IO.writeDatalogRules(executionOutput.getFullTGDSaturation(), datalogFile);
-            } catch (IOException e) {
+                // IO.writeDatalogRules(executionOutput.getFullTGDSaturation(), datalogFile);
+                Serializer serializer = new DLGPSerializer(datalogFile);
+                serializer.open();
+                serializer.writeTGDs(executionOutput.getFullTGDSaturation());
+                serializer.close();
+            } catch (Exception e) {
                 System.out.println("datalog writing failed");
 				e.printStackTrace();
                 System.exit(1);

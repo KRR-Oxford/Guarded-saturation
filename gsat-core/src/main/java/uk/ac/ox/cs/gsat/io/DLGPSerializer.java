@@ -20,7 +20,7 @@ public class DLGPSerializer implements Serializer {
     }
 
     @Override
-    public void writeTGDs(Collection<TGD> tgds) throws IOException {
+    public void writeTGDs(Collection<? extends TGD> tgds) throws IOException {
         for (TGD tgd : tgds) 
             this.writer.write(GraalFactory.createRule(tgd));
     }

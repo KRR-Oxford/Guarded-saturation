@@ -29,7 +29,7 @@ class GraalFactory {
             body[bi] = createAtom(tgd.getBodyAtom(bi));
         }
 
-        for (int hi = 0; hi < bodyLength; hi++) {
+        for (int hi = 0; hi < headLength; hi++) {
             head[hi] = createAtom(tgd.getHeadAtom(hi));
         }
         

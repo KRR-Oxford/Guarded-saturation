@@ -10,7 +10,7 @@ public interface Serializer extends AutoCloseable {
 
     public void open() throws IOException;
 
-    public void writeTGDs(Collection<TGD> tgds) throws IOException;
+    public void writeTGDs(Collection<? extends TGD> tgds) throws IOException;
 
     public void writeAtoms(Collection<Atom> atoms);
 }
