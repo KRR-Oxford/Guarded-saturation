@@ -25,7 +25,7 @@ import uk.ac.ox.cs.pdq.fol.Variable;
 
 public class SimpleSat {
 
-    private static TGDFactory<TGD> FACTORY = TGDFactory.getTGDInstance();
+    private static TGDFactory<TGD> FACTORY = TGDFactory.getTGDInstance(Configuration.isSortedVNF());
     private final Long TIME_OUT = Configuration.getTimeout();
     
     // New variable name for Universally Quantified Variables

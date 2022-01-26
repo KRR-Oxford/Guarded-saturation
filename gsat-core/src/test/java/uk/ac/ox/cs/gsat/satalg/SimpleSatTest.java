@@ -33,7 +33,7 @@ public class SimpleSatTest {
     private static final Variable z2 = Variable.create("z2");
     private static final Variable z3 = Variable.create("z3");
 
-    private static final TGDFactory<TGD> FACTORY = TGDFactory.getTGDInstance();
+    private static final TGDFactory<TGD> FACTORY = TGDFactory.getTGDInstance(true);
 
     @BeforeAll
     static void initAll() {

@@ -24,9 +24,7 @@ import fr.lirmm.graphik.graal.io.dlp.DlgpParser;
 import fr.lirmm.graphik.util.Prefix;
 import fr.lirmm.graphik.util.stream.CloseableIterator;
 import fr.lirmm.graphik.util.stream.IteratorException;
-import uk.ac.ox.cs.gsat.App;
-import uk.ac.ox.cs.gsat.Configuration;
-import uk.ac.ox.cs.gsat.ExecutionSteps;
+import uk.ac.ox.cs.gsat.api.ExecutionSteps;
 import uk.ac.ox.cs.gsat.fol.GTGD;
 import uk.ac.ox.cs.pdq.fol.Dependency;
 import uk.ac.ox.cs.pdq.fol.TGD;
@@ -38,8 +36,6 @@ import uk.ac.ox.cs.pdq.fol.Variable;
  */
 public class DLGPIO implements ExecutionSteps {
 
-    protected static final boolean NEGATIVE_CONSTRAINT = Configuration.includeNegativeConstraint();
-
     protected String path;
     protected boolean saturationOnly;
     protected HashSet<Atom> atoms;
@@ -47,10 +43,12 @@ public class DLGPIO implements ExecutionSteps {
     protected HashSet<Rule> rules;
     protected HashSet<Query> queries;
 	protected Map<String, String> prefixes = new HashMap<>();
+    protected boolean includeNegativeConstraints;
 
-    public DLGPIO(String path, boolean saturationOnly) {
+    public DLGPIO(String path, boolean saturationOnly, boolean includeNegativeConstraints) {
         this.path = path;
         this.saturationOnly = saturationOnly;
+        this.includeNegativeConstraints = includeNegativeConstraints;
     }
 
     @Override
@@ -78,21 +76,21 @@ public class DLGPIO implements ExecutionSteps {
             }
             
             if (o instanceof Atom && !saturationOnly) {
-                App.logger.fine("Atom: " + ((Atom) o));
+                // App.logger.fine("Atom: " + ((Atom) o));
                 atoms.add((Atom) o);
             } else if (o instanceof AtomSet && !saturationOnly) {
-                App.logger.fine("Atom Set: " + (AtomSet) o);
+                // App.logger.fine("Atom Set: " + (AtomSet) o);
                 atomSets.add((AtomSet) o);
             } else if (o instanceof Rule) {
-                App.logger.fine("Rule: " + ((Rule) o));
-                if (!((Rule) o).getHead().iterator().next().getPredicate().equals(Predicate.BOTTOM) || NEGATIVE_CONSTRAINT)
+                // App.logger.fine("Rule: " + ((Rule) o));
+                if (!((Rule) o).getHead().iterator().next().getPredicate().equals(Predicate.BOTTOM) || includeNegativeConstraints)
                     rules.add((Rule) o);
             } else if (o instanceof ConjunctiveQuery) {
-                App.logger.fine("Conjunctive Query: " + ((Query) o));
+                // App.logger.fine("Conjunctive Query: " + ((Query) o));
                 queries.add((Query) o);
             } else if (o instanceof NegativeConstraint) {
-                App.logger.fine("Negative Constraint: " + ((NegativeConstraint) o));
-                if (NEGATIVE_CONSTRAINT)
+                // App.logger.fine("Negative Constraint: " + ((NegativeConstraint) o));
+                if (includeNegativeConstraints)
                     rules.add((NegativeConstraint) o);
             }
         }

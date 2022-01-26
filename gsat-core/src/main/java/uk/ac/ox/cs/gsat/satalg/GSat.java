@@ -11,6 +11,7 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 import uk.ac.ox.cs.gsat.App;
+import uk.ac.ox.cs.gsat.Configuration;
 import uk.ac.ox.cs.gsat.fol.GTGD;
 import uk.ac.ox.cs.gsat.fol.Logic;
 import uk.ac.ox.cs.gsat.fol.TGDFactory;
@@ -29,7 +30,7 @@ import uk.ac.ox.cs.pdq.fol.Variable;
  */
 public class GSat extends EvolveBasedSat<GTGD> {
 
-    protected static final TGDFactory<GTGD> FACTORY = TGDFactory.getGTGDInstance();
+    protected static final TGDFactory<GTGD> FACTORY = TGDFactory.getGTGDInstance(Configuration.isSortedVNF());
     private static final String NAME = "GSat";
     private static final GSat INSTANCE = new GSat();
 

@@ -15,6 +15,7 @@
 
   <modules>
     <module>gsat-core</module>
+    <module>gsat-commons</module>
   </modules>
 
   <dependencies>

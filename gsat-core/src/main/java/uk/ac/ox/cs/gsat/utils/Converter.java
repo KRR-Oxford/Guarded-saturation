@@ -10,6 +10,7 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import uk.ac.ox.cs.gsat.App;
+import uk.ac.ox.cs.gsat.Configuration;
 import uk.ac.ox.cs.gsat.fol.GTGD;
 import uk.ac.ox.cs.gsat.io.IO;
 import uk.ac.ox.cs.gsat.io.OWLIO;
@@ -65,7 +66,7 @@ public class Converter {
 	}
 
 	private static void toChaseBench(String input_path, String output_path) {
-		OWLIO owlio = new OWLIO(input_path, true);
+		OWLIO owlio = new OWLIO(input_path, true, Configuration.includeNegativeConstraint());
 		try {
 			Collection<Dependency> rules = owlio.getRules();
 			Collection<GTGD> TGDRules = discardNonTGDRules(rules);

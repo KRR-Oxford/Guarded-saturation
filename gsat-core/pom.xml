@@ -16,6 +16,11 @@
 
   <dependencies>
     <dependency>
+      <groupId>uk.ac.ox.cs.gsat</groupId>
+      <artifactId>gsat-commons</artifactId>
+      <version>${project.parent.version}</version>
+    </dependency>
+    <dependency>
       <groupId>net.sourceforge.owlapi</groupId>
       <artifactId>owlapi-apibinding</artifactId>
       <version>4.0.1</version>

@@ -10,6 +10,7 @@ import java.util.logging.Handler;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+import uk.ac.ox.cs.gsat.api.ExecutionSteps;
 import uk.ac.ox.cs.gsat.api.io.Serializer;
 import uk.ac.ox.cs.gsat.fol.Logic;
 import uk.ac.ox.cs.gsat.io.ChaseBenchIO;
@@ -18,7 +19,9 @@ import uk.ac.ox.cs.gsat.io.DLGPSerializer;
 import uk.ac.ox.cs.gsat.io.IO;
 import uk.ac.ox.cs.gsat.io.OWLIO;
 import uk.ac.ox.cs.gsat.kaon2.KAON2StructuralTransformationIO;
+import uk.ac.ox.cs.gsat.kaon2.Kaon2IO;
 import uk.ac.ox.cs.gsat.mat.SolverOutput;
+import uk.ac.ox.cs.gsat.mat.Utils;
 import uk.ac.ox.cs.gsat.satalg.GSat;
 import uk.ac.ox.cs.gsat.satalg.HyperResolutionBasedSat;
 import uk.ac.ox.cs.gsat.satalg.OrderedSkolemSat;
@@ -30,7 +33,7 @@ import uk.ac.ox.cs.pdq.fol.Dependency;
 public class App {
 
 	private static final Level level = Level.INFO;
-	public static final Logger logger = Logger.getLogger("Global Saturation");
+	public static final Logger logger = Log.GLOBAL;
 
 	public static void main(String[] args) throws Exception {
 		Handler handlerObj = new ConsoleHandler();
@@ -148,7 +151,7 @@ public class App {
 
 		System.out.println("Executing from DLGP files");
 
-		return executeAllSteps(new DLGPIO(path, Configuration.isSaturationOnly()));
+		return executeAllSteps(new DLGPIO(path, Configuration.isSaturationOnly(), Configuration.includeNegativeConstraint()));
 
 	}
 
@@ -156,7 +159,7 @@ public class App {
 
 		System.out.println("Executing from OWL files with structural transformation");
 
-		return executeAllSteps(new KAON2StructuralTransformationIO(path, false));
+		return executeAllSteps(new KAON2StructuralTransformationIO(path, false, Configuration.includeNegativeConstraint()));
 
 	}
     
@@ -170,7 +173,7 @@ public class App {
 
 		System.out.println("Executing from OWL files");
 
-		return executeAllSteps(new OWLIO(path, query, Configuration.isSaturationOnly()));
+		return executeAllSteps(new OWLIO(path, query, Configuration.isSaturationOnly(), Configuration.includeNegativeConstraint()));
 
 	}
 
@@ -297,14 +300,14 @@ public class App {
 					System.out.println("Performing the full grounding...");
 
 					executionOutput.setSolverOutput(
-							Logic.invokeSolver(Configuration.getSolverPath(), Configuration.getSolverOptionsGrounding(),
+                                                    Utils.invokeSolver(Configuration.getSolverPath(), Configuration.getSolverOptionsGrounding(),
 									Arrays.asList(baseOutputPath + "datalog.rul", baseOutputPath + "datalog.data")));
 
 					// System.out.println(solverOutput);
 					System.out.println("Output size: " + executionOutput.getSolverOutput().getOutput().length() + ", "
 							+ executionOutput.getSolverOutput().getErrors().length() + "; number of lines (atoms): "
 							+ executionOutput.getSolverOutput().getNumberOfLinesOutput());
-					IO.writeSolverOutput(executionOutput.getSolverOutput(),
+					Utils.writeSolverOutput(executionOutput.getSolverOutput(),
 							baseOutputPath + Configuration.getSolverName() + ".output");
 
 				}
@@ -320,7 +323,7 @@ public class App {
 
 						IO.writeDatalogQuery(query, baseOutputPath + "datalog.query");
 
-						SolverOutput solverOutputQuery = Logic.invokeSolver(Configuration.getSolverPath(),
+						SolverOutput solverOutputQuery = Utils.invokeSolver(Configuration.getSolverPath(),
 								Configuration.getSolverOptionsQuery(), Arrays.asList(baseOutputPath + "datalog.rul",
 										baseOutputPath + "datalog.data", baseOutputPath + "datalog.query"));
 
@@ -328,7 +331,7 @@ public class App {
 						System.out.println("Output size: " + solverOutputQuery.getOutput().length() + ", "
 								+ solverOutputQuery.getErrors().length() + "; number of lines (atoms): "
 								+ solverOutputQuery.getNumberOfLinesOutput());
-						IO.writeSolverOutput(solverOutputQuery, baseOutputPath + Configuration.getSolverName() + "."
+						Utils.writeSolverOutput(solverOutputQuery, baseOutputPath + Configuration.getSolverName() + "."
 								+ query.getPredicate() + ".output");
 
 					}

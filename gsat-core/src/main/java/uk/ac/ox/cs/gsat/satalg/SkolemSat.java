@@ -1,5 +1,6 @@
 package uk.ac.ox.cs.gsat.satalg;
 
+import uk.ac.ox.cs.gsat.Configuration;
 import uk.ac.ox.cs.gsat.fol.SkGTGD;
 import uk.ac.ox.cs.gsat.fol.TGDFactory;
 import uk.ac.ox.cs.pdq.fol.Atom;
@@ -16,7 +17,7 @@ import uk.ac.ox.cs.pdq.fol.Atom;
 
 public class SkolemSat extends AbstractSkolemSat<SkGTGD> {
 
-    private static final TGDFactory<SkGTGD> FACTORY = TGDFactory.getSkGTGDInstance();
+    private static final TGDFactory<SkGTGD> FACTORY = TGDFactory.getSkGTGDInstance(Configuration.isSortedVNF());
     private static final String NAME = "SkSat";
     private static final SkolemSat INSTANCE = new SkolemSat();
 

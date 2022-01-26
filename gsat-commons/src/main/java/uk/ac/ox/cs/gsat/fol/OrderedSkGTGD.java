@@ -6,7 +6,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import uk.ac.ox.cs.gsat.Configuration;
 import uk.ac.ox.cs.pdq.fol.Atom;
 import uk.ac.ox.cs.pdq.fol.Function;
 import uk.ac.ox.cs.pdq.fol.FunctionTerm;
@@ -47,9 +46,9 @@ public class OrderedSkGTGD extends SkGTGD {
                 // we compute the maximal atoms among all
                 List<Atom> maxAtoms;
 
-                if (Configuration.isOrderedSkolemSatSelectSkolemBodyAtom())
-                    maxAtoms = computeMaxAtom(this.getBodyAtoms());
-                else
+                // if (Configuration.isOrderedSkolemSatSelectSkolemBodyAtom())
+                    // maxAtoms = computeMaxAtom(this.getBodyAtoms());
+                // else
                     maxAtoms = computeMaxAtom(this.getAtoms());
 
                 // if the head's atom is maximal

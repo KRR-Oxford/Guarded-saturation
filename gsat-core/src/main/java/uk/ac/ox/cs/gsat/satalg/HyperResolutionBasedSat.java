@@ -30,7 +30,7 @@ import uk.ac.ox.cs.pdq.fol.Variable;
 
 public class HyperResolutionBasedSat<Q extends SkGTGD> extends AbstractSaturation<Q> {
 
-    private static final TGDFactory<SkGTGD> FACTORY = TGDFactory.getSkGTGDInstance();
+    private static final TGDFactory<SkGTGD> FACTORY = TGDFactory.getSkGTGDInstance(Configuration.isSortedVNF());
     private static final SaturationStatisticsFactory<SkGTGD> STAT_FACTORY = HyperResolutionStatistics.getFactory();
     private static final String NAME = "HyperSat";
     private static final HyperResolutionBasedSat<SkGTGD> INSTANCE = createInstance();

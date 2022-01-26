@@ -124,7 +124,7 @@ public class ExecutorOWL {
 		System.out.println("Full TGD saturation: (" + runKAON2.size() + " dependecies)");
 
         System.out.println("\n====================");
-		runKAON2.forEach(rule -> IO.getDatalogRules(rule).forEach(System.out::println));
+		runKAON2.forEach(rule -> Kaon2IO.getDatalogRules(rule).forEach(System.out::println));
 		System.out.println("====================");
 
 		System.exit(0); // needed because sometimes the program does not terminate

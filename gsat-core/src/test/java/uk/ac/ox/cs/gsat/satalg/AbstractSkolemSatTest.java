@@ -15,6 +15,7 @@ import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
 import uk.ac.ox.cs.gsat.App;
+import uk.ac.ox.cs.gsat.Configuration;
 import uk.ac.ox.cs.gsat.fol.SkGTGD;
 import uk.ac.ox.cs.gsat.fol.TGD;
 import uk.ac.ox.cs.pdq.fol.Atom;

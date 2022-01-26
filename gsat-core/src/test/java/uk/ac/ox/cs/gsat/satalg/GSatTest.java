@@ -155,7 +155,7 @@ public class GSatTest {
 	@Test
 	public void HNFTest() {
 		System.out.println("HNF tests");
-        TGDFactory<GTGD> factory = TGDFactory.getGTGDInstance();
+        TGDFactory<GTGD> factory = TGDFactory.getGTGDInstance(true);
 		// 1. Split non-full and full parts
 		// ∀ x1,x2 B(x1,x2) → ∃ y1 H1(x1,y1) ∧ H2(x2)
 		Set<Atom> body = Set.of(B_x1x2);
@@ -208,7 +208,7 @@ public class GSatTest {
 	@Test
 	public void VNFsTest() {
 		GSat gsat = GSat.getInstance();
-        TGDFactory<GTGD> factory = TGDFactory.getGTGDInstance();
+        TGDFactory<GTGD> factory = TGDFactory.getGTGDInstance(true);
 		// ∀ x2,x1,x3 B(x2,x1,x3) → ∃ z1,y1,y2 H1(x1,z1,y1,y2) & H2(y1,y2)
 		GTGD tgd = new GTGD(Set.of(B_x2x1x3), Set.of(H1_x1z1y1y2, H2_y1y2));
 		System.out.println("Original TGD: " + tgd);
@@ -230,7 +230,7 @@ public class GSatTest {
 	@Test
 	public void VNFTest() {
         GSat gsat = GSat.getInstance();
-        TGDFactory<GTGD> factory = TGDFactory.getGTGDInstance();
+        TGDFactory<GTGD> factory = TGDFactory.getGTGDInstance(true);
 		// ∀ x2,x1,x3 B(x2,x1,x3) → ∃ z1,y1,y2 H1(x1,z1,y1,y2) & H2(y1,y2)
 		GTGD tgd = new GTGD(Set.of(B_x2x1x3), Set.of(H1_x1z1y1y2, H2_y1y2));
 		System.out.println("Original TGD: " + tgd);

@@ -24,7 +24,7 @@ public class AtomPathUnificationIndexTest {
     private TGDFactory<SkGTGD> factory;
 
     public AtomPathUnificationIndexTest() {
-        this.factory = TGDFactory.getSkGTGDInstance();
+        this.factory = TGDFactory.getSkGTGDInstance(true);
     }
 
     // Variables

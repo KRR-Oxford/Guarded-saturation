@@ -51,8 +51,8 @@ import uk.ac.ox.cs.pdq.fol.Variable;
 
 public class KAON2StructuralTransformationIO extends DLGPIO {
 
-    public KAON2StructuralTransformationIO(String path, boolean saturationOnly) {
-        super(path, saturationOnly);
+    public KAON2StructuralTransformationIO(String path, boolean saturationOnly, boolean includeNegativeConstraints) {
+        super(path, saturationOnly, includeNegativeConstraints);
     }
 
 

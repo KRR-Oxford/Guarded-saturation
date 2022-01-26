@@ -20,6 +20,7 @@ import uk.ac.ox.cs.gsat.fol.GTGD;
 import uk.ac.ox.cs.gsat.fol.Logic;
 import uk.ac.ox.cs.gsat.io.IO;
 import uk.ac.ox.cs.gsat.mat.SolverOutput;
+import uk.ac.ox.cs.gsat.mat.Utils;
 import uk.ac.ox.cs.gsat.satalg.GSat;
 import uk.ac.ox.cs.pdq.fol.Atom;
 import uk.ac.ox.cs.pdq.fol.ConjunctiveQuery;
@@ -95,7 +96,7 @@ public class IRISPMTest {
 			for (ConjunctiveQuery q : allQueries) {
 
 				IO.writeDatalogQueries(Arrays.asList(q), baseOutputPath + "query.rul");
-				SolverOutput output = Logic.invokeSolver(Configuration.getSolverPath(),
+				SolverOutput output = Utils.invokeSolver(Configuration.getSolverPath(),
 						Configuration.getSolverOptionsQuery(), Arrays.asList(baseOutputPath + "rules.rul",
 								baseOutputPath + "facts.data", baseOutputPath + "query.rul"));
 				System.out.println(output);

@@ -8,8 +8,6 @@ import java.util.Collection;
 
 import fr.lirmm.graphik.graal.io.owl.OWL2Parser;
 import fr.lirmm.graphik.graal.io.sparql.SparqlConjunctiveQueryParser;
-import uk.ac.ox.cs.gsat.io.DLGPIO;
-import uk.ac.ox.cs.gsat.io.IO;
 import uk.ac.ox.cs.pdq.fol.Dependency;
 
 /**
@@ -19,12 +17,12 @@ public class OWLIO extends DLGPIO {
 
     private String query;
 
-    public OWLIO(String path, boolean saturationOnly) {
-        this(path, "", saturationOnly);
+    public OWLIO(String path, boolean saturationOnly, boolean includeNegativeConstraints) {
+        this(path, "", saturationOnly, includeNegativeConstraints);
     }
 
-    public OWLIO(String path, String query, boolean saturationOnly) {
-        super(path, saturationOnly);
+    public OWLIO(String path, String query, boolean saturationOnly, boolean includeNegativeConstraints) {
+        super(path, saturationOnly, includeNegativeConstraints);
         this.query = query;
     }
 

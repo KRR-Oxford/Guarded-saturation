@@ -10,8 +10,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import uk.ac.ox.cs.gsat.App;
-import uk.ac.ox.cs.gsat.Configuration;
+import uk.ac.ox.cs.gsat.Log;
 import uk.ac.ox.cs.pdq.fol.Atom;
 import uk.ac.ox.cs.pdq.fol.Function;
 import uk.ac.ox.cs.pdq.fol.FunctionTerm;
@@ -20,13 +19,6 @@ import uk.ac.ox.cs.pdq.fol.Term;
 import uk.ac.ox.cs.pdq.fol.Variable;
 
 public class TGDFactory<Q extends TGD> {
-
-    private static final TGDFactory<TGD> TGDINSTANCE = new TGDFactory<TGD>(new TGDConstructor());
-    private static final TGDFactory<GTGD> GTGDINSTANCE = new TGDFactory<GTGD>(new GTGDConstructor());
-    private static final TGDFactory<SkGTGD> SKGTGDINSTANCE = new TGDFactory<SkGTGD>(new SkGTGDConstructor());
-    private static final TGDFactory<OrderedSkGTGD> ORDEREDSKGTGDINSTANCE = new TGDFactory<>(
-            new OrderedSkGTGDConstructor());
-
     private static final String SKOLEM_PREFIX = "f";
     private static int skolemIndex = 0;
 
@@ -34,25 +26,27 @@ public class TGDFactory<Q extends TGD> {
     private static int SHNFIndex = 0;
 
     private Constructor<Q> constructor;
+    private boolean useSortedVNF;
 
-    private TGDFactory(Constructor<Q> constructor) {
+    private TGDFactory(Constructor<Q> constructor, boolean useSortedVNF) {
         this.constructor = constructor;
+        this.useSortedVNF = useSortedVNF;
     }
 
-    public static TGDFactory<TGD> getTGDInstance() {
-        return TGDINSTANCE;
+    public static TGDFactory<TGD> getTGDInstance(boolean useSortedVNF) {
+        return new TGDFactory<TGD>(new TGDConstructor(), useSortedVNF);
     }
 
-    public static TGDFactory<GTGD> getGTGDInstance() {
-        return GTGDINSTANCE;
+    public static TGDFactory<GTGD> getGTGDInstance(boolean useSortedVNF) {
+        return new TGDFactory<GTGD>(new GTGDConstructor(), useSortedVNF);
     }
 
-    public static TGDFactory<SkGTGD> getSkGTGDInstance() {
-        return SKGTGDINSTANCE;
+    public static TGDFactory<SkGTGD> getSkGTGDInstance(boolean useSortedVNF) {
+        return new TGDFactory<SkGTGD>(new SkGTGDConstructor(), useSortedVNF);
     }
 
-    public static TGDFactory<OrderedSkGTGD> getOrderedSkGTGDInstance() {
-        return ORDEREDSKGTGDINSTANCE;
+    public static TGDFactory<OrderedSkGTGD> getOrderedSkGTGDInstance(boolean useSortedVNF) {
+        return new TGDFactory<>(new OrderedSkGTGDConstructor(), useSortedVNF);
     }
 
     public Q create(Set<Atom> body, Set<Atom> head) {
@@ -69,7 +63,7 @@ public class TGDFactory<Q extends TGD> {
      * @return Variable Normal Form of tgd
      */
     public Q computeVNF(Q tgd, String eVariable, String uVariable) {
-        if (Configuration.isSortedVNF()) {
+        if (useSortedVNF) {
             return computeVNFAfterSortingByPredicates(tgd, eVariable, uVariable);
         } else {
             return computeVNFWithoutSorting(tgd, eVariable, uVariable);
@@ -100,10 +94,10 @@ public class TGDFactory<Q extends TGD> {
         for (Variable v : eVariables)
             substitution.put(v, Variable.create(eVariable + counter++));
 
-        App.logger.fine("VNF substitution:\n" + substitution);
+        Log.GLOBAL.fine("VNF substitution:\n" + substitution);
 
         Q applySubstitution = (Q) Logic.applySubstitution(tgd, substitution);
-        App.logger.fine("VNF: " + tgd + "===>>>" + applySubstitution);
+        Log.GLOBAL.fine("VNF: " + tgd + "===>>>" + applySubstitution);
         return applySubstitution;
 
     }
@@ -163,13 +157,13 @@ public class TGDFactory<Q extends TGD> {
             }
         }
 
-        App.logger.fine("VNF substitution:\n" + substitution);
+        Log.GLOBAL.fine("VNF substitution:\n" + substitution);
 
         if (isIdentitySub)
             return tgd;
 
         Q applySubstitution = (Q) Logic.applySubstitution(tgd, substitution);
-        App.logger.fine("VNF: " + tgd + "===>>>" + applySubstitution);
+        Log.GLOBAL.fine("VNF: " + tgd + "===>>>" + applySubstitution);
         return applySubstitution;
 
     }

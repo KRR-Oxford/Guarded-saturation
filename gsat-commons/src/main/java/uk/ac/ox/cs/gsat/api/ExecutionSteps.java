@@ -1,4 +1,4 @@
-package uk.ac.ox.cs.gsat;
+package uk.ac.ox.cs.gsat.api;
 
 import java.io.IOException;
 import java.util.Collection;

@@ -28,6 +28,7 @@ import org.semanticweb.kaon2.api.owl.elements.ObjectSome;
 import org.semanticweb.kaon2.api.reasoner.Reasoner;
 
 import uk.ac.ox.cs.gsat.App;
+import uk.ac.ox.cs.gsat.Configuration;
 import uk.ac.ox.cs.gsat.fol.GTGD;
 import uk.ac.ox.cs.gsat.fol.TGDFactory;
 import uk.ac.ox.cs.gsat.io.DLGPIO;
@@ -83,7 +84,7 @@ public class Executor {
 	}
 
 	private static void compare(String input_file) {
-		DLGPIO dlgpio = new DLGPIO(input_file, true);
+		DLGPIO dlgpio = new DLGPIO(input_file, true, Configuration.includeNegativeConstraint());
 		try {
 			Collection<Dependency> rules = dlgpio.getRules();
 			Collection<GTGD> TGDRules = discardNonTGDRules(rules);
@@ -143,7 +144,7 @@ public class Executor {
 
 		Collection<TGD> selectedTGDs = new HashSet<>();
 
-        TGDFactory<GTGD> factory = TGDFactory.getGTGDInstance();
+        TGDFactory<GTGD> factory = TGDFactory.getGTGDInstance(Configuration.isSortedVNF());
 		tGDRules.forEach(tgd -> selectedTGDs.addAll(factory.computeHNF(tgd)));
 
 		final long stopTime = System.nanoTime();

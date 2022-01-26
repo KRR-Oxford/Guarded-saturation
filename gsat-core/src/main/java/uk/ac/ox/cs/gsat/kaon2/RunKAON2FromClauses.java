@@ -52,7 +52,7 @@ public class RunKAON2FromClauses {
         Atom C_x = Atom.create(Predicate.create("C", 1), x);
         
         // a TGD input
-        TGDFactory<SkGTGD> factory = TGDFactory.getSkGTGDInstance();
+        TGDFactory<SkGTGD> factory = TGDFactory.getSkGTGDInstance(true);
         List<SkGTGD> tgds = new ArrayList<>();
         tgds.addAll(factory.computeSingleHeadSkolemizedOnFrontierVariable(new SkGTGD(Set.of( A_x ), Set.of( R_x_y, B_y ))));
         tgds.addAll(factory.computeSingleHeadSkolemizedOnFrontierVariable(new SkGTGD(Set.of( R_x_y, B_y ), Set.of( C_x))));

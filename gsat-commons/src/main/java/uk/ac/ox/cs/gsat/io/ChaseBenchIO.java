@@ -15,8 +15,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 
-import uk.ac.ox.cs.gsat.App;
-import uk.ac.ox.cs.gsat.ExecutionSteps;
+import uk.ac.ox.cs.gsat.api.ExecutionSteps;
 import uk.ac.ox.cs.gsat.fol.Logic;
 import uk.ac.ox.cs.pdq.db.Relation;
 import uk.ac.ox.cs.pdq.db.Schema;
@@ -42,7 +41,7 @@ public class ChaseBenchIO implements ExecutionSteps {
     @Override
     public Collection<Dependency> getRules() {
 
-        App.logger.info("Reading from: '" + basePath + "'");
+        // App.logger.info("Reading from: '" + basePath + "'");
 
         Dependency[] allDependencies = null;
         Collection<Dependency> allRules = new LinkedList<>();
@@ -50,12 +49,12 @@ public class ChaseBenchIO implements ExecutionSteps {
         schema = readSchemaAndDependenciesChaseBench(basePath, scenario);
         allDependencies = schema.getAllDependencies();
 
-        App.logger.info("# Dependencies: " + allDependencies.length);
-        App.logger.finest(schema.toString());
+        // App.logger.info("# Dependencies: " + allDependencies.length);
+        // App.logger.finest(schema.toString());
 
         queriesRules = readQueriesChaseBench(basePath, fact_querySize, schema);
-        App.logger.info("# Queries: " + queriesRules.size());
-        App.logger.fine(queriesRules.toString());
+        // App.logger.info("# Queries: " + queriesRules.size());
+        // App.logger.fine(queriesRules.toString());
 
         allRules.addAll(Arrays.asList(allDependencies));
         // allRules.addAll(queriesRules); FIXME
@@ -151,7 +150,7 @@ public class ChaseBenchIO implements ExecutionSteps {
             if (listFiles != null)
                 for (File f : listFiles)
                     if (f.getName().endsWith(".txt")) {
-                        App.logger.fine("Parsing: " + f.getAbsolutePath());
+                        // App.logger.fine("Parsing: " + f.getAbsolutePath());
                         queries.addAll(CommonToPDQTranslator.parseDependencies(relations2, f.getAbsolutePath()));
                         // queries.add(CommonToPDQTranslator.parseQuery(relations2,
                         // f.getAbsolutePath()));
@@ -163,8 +162,9 @@ public class ChaseBenchIO implements ExecutionSteps {
                 result.add((TGD) d);
                 if (!Logic.isFull((TGD) d))
                     System.err.println(d + "is not full!!");
-            } else
-                App.logger.warning("We accept only Guarded TGDs. Error with query " + d);
+            } else {
+                // App.logger.warning("We accept only Guarded TGDs. Error with query " + d);
+            }
         }
         return result;
     }
