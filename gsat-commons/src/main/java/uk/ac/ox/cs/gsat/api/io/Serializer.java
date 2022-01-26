@@ -8,7 +8,7 @@ import uk.ac.ox.cs.pdq.fol.Atom;
 
 public interface Serializer extends AutoCloseable {
 
-    public void open() throws IOException;
+    public void open(String filePath) throws IOException;
 
     public void writeTGDs(Collection<? extends TGD> tgds) throws IOException;
 

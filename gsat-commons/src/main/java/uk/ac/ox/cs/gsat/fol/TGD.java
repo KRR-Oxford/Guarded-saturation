@@ -31,7 +31,7 @@ public class TGD extends uk.ac.ox.cs.pdq.fol.TGD {
 	private final Set<Atom> headSet;
 	private int[] bodyHashes = null, headHashes = null;
 
-	private TGD(Atom[] body, Atom[] head) {
+	public TGD(Atom[] body, Atom[] head) {
 
 		super(body, head);
 
@@ -40,7 +40,7 @@ public class TGD extends uk.ac.ox.cs.pdq.fol.TGD {
 
 	}
 
-	public TGD(Set<Atom> body, Set<Atom> head) {
+	public TGD(Collection<Atom> body, Collection<Atom> head) {
 		this(body.toArray(new Atom[body.size()]), head.toArray(new Atom[head.size()]));
 
 	}

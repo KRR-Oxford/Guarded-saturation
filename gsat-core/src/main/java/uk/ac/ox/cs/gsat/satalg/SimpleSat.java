@@ -12,6 +12,7 @@ import java.util.Set;
 
 import uk.ac.ox.cs.gsat.App;
 import uk.ac.ox.cs.gsat.Configuration;
+import uk.ac.ox.cs.gsat.api.SaturationAlgorithm;
 import uk.ac.ox.cs.gsat.fol.GTGD;
 import uk.ac.ox.cs.gsat.fol.Logic;
 import uk.ac.ox.cs.gsat.fol.TGD;
@@ -23,7 +24,7 @@ import uk.ac.ox.cs.pdq.fol.Predicate;
 import uk.ac.ox.cs.pdq.fol.Term;
 import uk.ac.ox.cs.pdq.fol.Variable;
 
-public class SimpleSat {
+public class SimpleSat implements SaturationAlgorithm {
 
     private static TGDFactory<TGD> FACTORY = TGDFactory.getTGDInstance(Configuration.isSortedVNF());
     private final Long TIME_OUT = Configuration.getTimeout();
@@ -54,7 +55,7 @@ public class SimpleSat {
      * @param allDependencies the Guarded TGDs to process
      * @return the Guarded Saturation of allDependencies
      */
-    public Collection<TGD> run(Collection<Dependency> allDependencies) {
+    public Collection<TGD> run(Collection<? extends Dependency> allDependencies) {
 
         final long startTime = System.nanoTime();
         boolean timeoutReached = false;

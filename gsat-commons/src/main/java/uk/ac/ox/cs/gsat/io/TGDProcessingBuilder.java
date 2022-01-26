@@ -57,19 +57,11 @@ public class TGDProcessingBuilder {
         }
 
         @Override
-        public Collection<TGD> getTGDs() {
-            Collection<TGD> result = new HashSet<>();
+        public Collection<TGD> getTGDs() throws Exception {
+            Collection<TGD> result = parser.getTGDs();
 
-            for(TGD tgd : parser.getTGDs()) {
-                boolean isKept = true;
-                for (TGDFilter<TGD> filter : filters) {
-                    isKept = filter.isKept(tgd);
-                    if (!isKept)
-                        break;
-                }
-
-                if (isKept)
-                    result.add(tgd);
+            for(TGDFilter<TGD> filter : filters) {
+                result = filter.filter(result);
             }
 
             return result;

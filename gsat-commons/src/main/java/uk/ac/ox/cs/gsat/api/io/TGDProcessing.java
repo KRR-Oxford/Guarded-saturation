@@ -6,6 +6,6 @@ import uk.ac.ox.cs.gsat.fol.TGD;
 
 public interface TGDProcessing {
 
-    public Collection<TGD> getTGDs();
+    public Collection<TGD> getTGDs() throws Exception;
 
 }

@@ -12,11 +12,10 @@ import uk.ac.ox.cs.pdq.fol.Atom;
 
 public class DLGPSerializer implements Serializer {
 
-    protected final String filePath;
+    protected String filePath;
     protected DlgpWriter writer;
 
-    public DLGPSerializer(String filePath) {
-        this.filePath = filePath;
+    public DLGPSerializer() {
     }
 
     @Override
@@ -36,7 +35,8 @@ public class DLGPSerializer implements Serializer {
     }
 
     @Override
-    public void open() throws IOException {
+    public void open(String filePath) throws IOException {
+        this.filePath = filePath;
         this.writer = new DlgpWriter(filePath);
     }
 }

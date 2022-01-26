@@ -7,6 +7,7 @@ import java.util.Properties;
 
 import uk.ac.ox.cs.gsat.fol.TGD;
 import uk.ac.ox.cs.gsat.satalg.AbstractSkolemSat;
+import uk.ac.ox.cs.gsat.satalg.SaturationAlgorithmType;
 import uk.ac.ox.cs.gsat.satalg.AbstractSkolemSat.SkolemizationType;
 import uk.ac.ox.cs.gsat.unification.UnificationIndexType;
 
@@ -226,6 +227,10 @@ public class Configuration {
 
         String value = Configuration.prop.getProperty("saturation_alg");
         return (value != null) ? value : "gsat";
+    }
+
+    public static SaturationAlgorithmType getSaturatonAlgType() {
+        return SaturationAlgorithmType.valueOf(Configuration.getSaturationAlg().toUpperCase());
     }
 
     public static void setSaturationAlg(String value) {

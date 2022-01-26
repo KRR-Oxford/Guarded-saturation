@@ -12,6 +12,7 @@ import java.util.TreeSet;
 
 import uk.ac.ox.cs.gsat.App;
 import uk.ac.ox.cs.gsat.Configuration;
+import uk.ac.ox.cs.gsat.api.SaturationAlgorithm;
 import uk.ac.ox.cs.gsat.fol.GTGD;
 import uk.ac.ox.cs.gsat.fol.Logic;
 import uk.ac.ox.cs.gsat.fol.TGDFactory;
@@ -34,7 +35,7 @@ import uk.ac.ox.cs.pdq.fol.Variable;
  * should unify the head atoms of the left tgds with the body atoms of the right tgds to 
  * derive new tgds.
  */
-public abstract class AbstractSaturation<Q extends GTGD> {
+public abstract class AbstractSaturation<Q extends GTGD> implements SaturationAlgorithm {
     protected final boolean DEBUG_MODE = Configuration.isDebugMode();
     protected final Long TIME_OUT = Configuration.getTimeout();
     protected final String saturationName;
@@ -79,7 +80,7 @@ public abstract class AbstractSaturation<Q extends GTGD> {
     /**
      * Main method to run the saturation algorithm
      */
-    public Collection<Q> run(Collection<Dependency> allDependencies) {
+    public Collection<Q> run(Collection<? extends Dependency> allDependencies) {
 
         System.out.println(String.format("Running %s...", this.saturationName));
         SaturationStatistics<Q> stats = this.statFactory.create(saturationName);

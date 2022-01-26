@@ -138,17 +138,17 @@
                  </goals> -->
           </execution>
           <execution>
-            <id>jar-with-dependencies-ExecutorOWL</id>
+            <id>jar-with-dependencies-Saturator</id>
             <configuration>
               <archive>
                 <manifest>
-                  <mainClass>uk.ac.ox.cs.gsat.ExecutorOWL</mainClass>
+                  <mainClass>uk.ac.ox.cs.gsat.Saturator</mainClass>
                 </manifest>
               </archive>
               <descriptorRefs>
                 <descriptorRef>jar-with-dependencies</descriptorRef>
               </descriptorRefs>
-              <finalName>ExecutorOWL-${project.version}</finalName>
+              <finalName>Saturator-${project.version}</finalName>
             </configuration>
             <phase>package</phase>
             <goals>

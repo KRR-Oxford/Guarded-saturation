@@ -9,5 +9,4 @@ public interface TGDFilter<T extends TGD> {
 
     public Set<T> filter(Collection<T> tgds);
 
-    public boolean isKept(T tgd);
 }
