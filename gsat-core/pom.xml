@@ -1,28 +1,20 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
   <modelVersion>4.0.0</modelVersion>
+
+  <parent>
+    <groupId>uk.ac.ox.cs.gsat</groupId>
+    <artifactId>gsat</artifactId>
+    <version>1.0.0</version>
+    <relativePath>..</relativePath>
+  </parent>
+  
   <groupId>uk.ac.ox.cs.gsat</groupId>
-  <artifactId>guarded-saturation</artifactId>
-  <version>1.0.0</version>
-  <name>guarded-saturation</name>
+  <artifactId>gsat-core</artifactId>
+  <name>gsat-core</name>
   <url>https://github.com/stefanogermano/Guarded-saturation/</url>
-  <properties>
-    <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-    <maven.compiler.source>11</maven.compiler.source>
-    <maven.compiler.target>11</maven.compiler.target>
-  </properties>
+
   <dependencies>
-    <dependency>
-      <groupId>org.junit.jupiter</groupId>
-      <artifactId>junit-jupiter-engine</artifactId>
-      <version>5.7.0</version>
-      <scope>test</scope>
-    </dependency>
-    <dependency>
-      <groupId>uk.ac.ox.cs.pdq</groupId>
-      <artifactId>pdq-common</artifactId>
-      <version>1.0.0</version>
-    </dependency>
     <dependency>
       <groupId>net.sourceforge.owlapi</groupId>
       <artifactId>owlapi-apibinding</artifactId>
@@ -70,20 +62,20 @@
         <artifactId>maven-compiler-plugin</artifactId>
         <version>3.8.1</version>
         <!-- <configuration>
-            <forceJavacCompilerUse>true</forceJavacCompilerUse>
-          </configuration> -->
+             <forceJavacCompilerUse>true</forceJavacCompilerUse>
+             </configuration> -->
       </plugin>
       <plugin>
         <artifactId>maven-surefire-plugin</artifactId>
         <version>3.0.0-M5</version>
         <!-- <configuration>
-            <systemProperties>
-              <property>
-                <name>java.util.logging.config.file</name>
-                <value>src/test/resources/logging.properties</value>
-              </property>
-            </systemProperties>
-          </configuration> -->
+             <systemProperties>
+             <property>
+             <name>java.util.logging.config.file</name>
+             <value>src/test/resources/logging.properties</value>
+             </property>
+             </systemProperties>
+             </configuration> -->
       </plugin>
       <plugin>
         <artifactId>maven-jar-plugin</artifactId>
@@ -126,19 +118,19 @@
               </descriptorRefs>
               <finalName>Executor</finalName>
               <!-- <fileSets>
-                <fileSet>
-                  <directory>${project.build.directory}</directory>
-                  <outputDirectory>/</outputDirectory>
-                  <includes>
-                    <include>*.jar</include>
-                  </includes>
-                </fileSet>
-              </fileSets> -->
+                   <fileSet>
+                   <directory>${project.build.directory}</directory>
+                   <outputDirectory>/</outputDirectory>
+                   <includes>
+                   <include>*.jar</include>
+                   </includes>
+                   </fileSet>
+                   </fileSets> -->
             </configuration>
             <!-- <phase>package</phase>
-            <goals>
-              <goal>single</goal>
-            </goals> -->
+                 <goals>
+                 <goal>single</goal>
+                 </goals> -->
           </execution>
           <execution>
             <id>jar-with-dependencies-ExecutorOWL</id>
@@ -172,16 +164,16 @@
               <finalName>OWLSanitiser</finalName>
             </configuration>
             <!-- <phase>package</phase>
-            <goals>
-              <goal>single</goal>
-            </goals> -->
+                 <goals>
+                 <goal>single</goal>
+                 </goals> -->
           </execution>
           <!-- <execution>
-            <phase>package</phase>
-            <goals>
-              <goal>single</goal>
-            </goals>
-          </execution> -->
+               <phase>package</phase>
+               <goals>
+               <goal>single</goal>
+               </goals>
+               </execution> -->
         </executions>
       </plugin>
       <plugin>
@@ -232,10 +224,10 @@
         <version>3.2.0</version>
       </plugin>
       <!-- jar-with-dependencies did NOT work without this 
-      <plugin>
-        <groupId>org.apache.maven.plugins</groupId>
-        <artifactId>maven-assembly-plugin</artifactId>
-      </plugin> -->
+           <plugin>
+           <groupId>org.apache.maven.plugins</groupId>
+           <artifactId>maven-assembly-plugin</artifactId>
+           </plugin> -->
     </plugins>
   </build>
 </project>
