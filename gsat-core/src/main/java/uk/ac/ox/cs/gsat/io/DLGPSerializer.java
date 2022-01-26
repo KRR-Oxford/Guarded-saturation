@@ -6,8 +6,8 @@ import java.util.Collection;
 import org.apache.commons.lang3.NotImplementedException;
 
 import fr.lirmm.graphik.graal.io.dlp.DlgpWriter;
-import uk.ac.ox.cs.gsat.TGD;
 import uk.ac.ox.cs.gsat.api.io.Serializer;
+import uk.ac.ox.cs.gsat.fol.TGD;
 import uk.ac.ox.cs.pdq.fol.Atom;
 
 public class DLGPSerializer implements Serializer {

@@ -2,7 +2,7 @@ package uk.ac.ox.cs.gsat.filters;
 
 import java.util.Collection;
 
-import uk.ac.ox.cs.gsat.TGD;
+import uk.ac.ox.cs.gsat.fol.TGD;
 
 /**
  * Stores and operates on a set of tgds S. Allows adding / removing elements

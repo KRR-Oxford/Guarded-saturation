@@ -1,7 +1,6 @@
 package uk.ac.ox.cs.gsat;
 
 import java.io.File;
-import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.Arrays;
@@ -12,14 +11,26 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import uk.ac.ox.cs.gsat.api.io.Serializer;
+import uk.ac.ox.cs.gsat.fol.Logic;
+import uk.ac.ox.cs.gsat.io.ChaseBenchIO;
+import uk.ac.ox.cs.gsat.io.DLGPIO;
 import uk.ac.ox.cs.gsat.io.DLGPSerializer;
+import uk.ac.ox.cs.gsat.io.IO;
+import uk.ac.ox.cs.gsat.io.OWLIO;
+import uk.ac.ox.cs.gsat.kaon2.KAON2StructuralTransformationIO;
+import uk.ac.ox.cs.gsat.mat.SolverOutput;
+import uk.ac.ox.cs.gsat.satalg.GSat;
+import uk.ac.ox.cs.gsat.satalg.HyperResolutionBasedSat;
+import uk.ac.ox.cs.gsat.satalg.OrderedSkolemSat;
+import uk.ac.ox.cs.gsat.satalg.SimpleSat;
+import uk.ac.ox.cs.gsat.satalg.SkolemSat;
 import uk.ac.ox.cs.pdq.fol.Atom;
 import uk.ac.ox.cs.pdq.fol.Dependency;
 
 public class App {
 
 	private static final Level level = Level.INFO;
-	static final Logger logger = Logger.getLogger("Global Saturation");
+	public static final Logger logger = Logger.getLogger("Global Saturation");
 
 	public static void main(String[] args) throws Exception {
 		Handler handlerObj = new ConsoleHandler();

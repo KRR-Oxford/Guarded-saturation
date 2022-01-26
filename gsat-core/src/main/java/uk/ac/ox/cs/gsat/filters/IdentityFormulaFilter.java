@@ -3,7 +3,7 @@ package uk.ac.ox.cs.gsat.filters;
 import java.util.Collection;
 import java.util.HashSet;
 
-import uk.ac.ox.cs.gsat.TGD;
+import uk.ac.ox.cs.gsat.fol.TGD;
 
 /**
  * A FormulaFilter that simply returns the whole set S. Equivalent to not having

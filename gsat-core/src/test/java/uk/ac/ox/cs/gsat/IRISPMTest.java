@@ -16,6 +16,11 @@ import java.util.logging.Level;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
+import uk.ac.ox.cs.gsat.fol.GTGD;
+import uk.ac.ox.cs.gsat.fol.Logic;
+import uk.ac.ox.cs.gsat.io.IO;
+import uk.ac.ox.cs.gsat.mat.SolverOutput;
+import uk.ac.ox.cs.gsat.satalg.GSat;
 import uk.ac.ox.cs.pdq.fol.Atom;
 import uk.ac.ox.cs.pdq.fol.ConjunctiveQuery;
 import uk.ac.ox.cs.pdq.fol.Dependency;

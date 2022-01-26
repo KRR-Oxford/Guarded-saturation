@@ -4,7 +4,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashSet;
 
-import uk.ac.ox.cs.gsat.TGD;
+import uk.ac.ox.cs.gsat.fol.TGD;
 
 public class DisabledSubsumer<Q extends TGD> implements Subsumer<Q> {
 

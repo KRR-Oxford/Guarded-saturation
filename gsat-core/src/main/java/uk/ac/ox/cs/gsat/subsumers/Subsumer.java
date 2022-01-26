@@ -2,7 +2,7 @@ package uk.ac.ox.cs.gsat.subsumers;
 
 import java.util.Collection;
 
-import uk.ac.ox.cs.gsat.TGD;
+import uk.ac.ox.cs.gsat.fol.TGD;
 
 /**
  * A class to encapsulate subsumption methods for tgds. It stores a set of tgds

@@ -2,6 +2,9 @@ package uk.ac.ox.cs.gsat;
 
 import java.util.Collection;
 
+import uk.ac.ox.cs.gsat.fol.TGD;
+import uk.ac.ox.cs.gsat.mat.SolverOutput;
+
 public class ExecutionOutput {
 
     protected Collection<? extends TGD> fullTGDSaturation;

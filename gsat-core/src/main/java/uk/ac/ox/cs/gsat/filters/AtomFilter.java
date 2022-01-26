@@ -4,7 +4,8 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
-import uk.ac.ox.cs.gsat.TGD;
+
+import uk.ac.ox.cs.gsat.fol.TGD;
 import uk.ac.ox.cs.pdq.fol.Atom;
 
 /**

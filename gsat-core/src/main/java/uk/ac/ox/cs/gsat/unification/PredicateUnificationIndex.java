@@ -6,7 +6,7 @@ import java.util.HashSet;
 import java.util.Set;
 import java.util.TreeSet;
 
-import uk.ac.ox.cs.gsat.GTGD;
+import uk.ac.ox.cs.gsat.fol.GTGD;
 import uk.ac.ox.cs.pdq.fol.Atom;
 import uk.ac.ox.cs.pdq.fol.Predicate;
 

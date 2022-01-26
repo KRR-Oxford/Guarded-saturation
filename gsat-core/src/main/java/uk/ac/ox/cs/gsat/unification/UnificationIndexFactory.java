@@ -2,7 +2,7 @@ package uk.ac.ox.cs.gsat.unification;
 
 import java.util.Comparator;
 
-import uk.ac.ox.cs.gsat.GTGD;
+import uk.ac.ox.cs.gsat.fol.GTGD;
 
 public class UnificationIndexFactory {
 

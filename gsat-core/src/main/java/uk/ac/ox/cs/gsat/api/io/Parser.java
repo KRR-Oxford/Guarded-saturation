@@ -2,7 +2,7 @@ package uk.ac.ox.cs.gsat.api.io;
 
 import java.util.Set;
 
-import uk.ac.ox.cs.gsat.TGD;
+import uk.ac.ox.cs.gsat.fol.TGD;
 import uk.ac.ox.cs.pdq.fol.Atom;
 import uk.ac.ox.cs.pdq.fol.ConjunctiveQuery;
 import uk.ac.ox.cs.pdq.fol.Dependency;

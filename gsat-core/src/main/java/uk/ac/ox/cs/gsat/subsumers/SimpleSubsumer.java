@@ -3,9 +3,9 @@ package uk.ac.ox.cs.gsat.subsumers;
 import java.util.Collection;
 import java.util.HashSet;
 
-import uk.ac.ox.cs.gsat.TGD;
 import uk.ac.ox.cs.gsat.filters.FormulaFilter;
 import uk.ac.ox.cs.gsat.filters.TreePredicateFilter;
+import uk.ac.ox.cs.gsat.fol.TGD;
 
 /**
  * A subsumer that uses an index to filter out only candidates for subsumption,

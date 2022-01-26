@@ -8,8 +8,8 @@ import java.util.Set;
 
 import org.junit.jupiter.api.Test;
 
-import uk.ac.ox.cs.gsat.SkGTGD;
-import uk.ac.ox.cs.gsat.TGDFactory;
+import uk.ac.ox.cs.gsat.fol.SkGTGD;
+import uk.ac.ox.cs.gsat.fol.TGDFactory;
 import uk.ac.ox.cs.pdq.fol.Atom;
 import uk.ac.ox.cs.pdq.fol.Constant;
 import uk.ac.ox.cs.pdq.fol.Function;

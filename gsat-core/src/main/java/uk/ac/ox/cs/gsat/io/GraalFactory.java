@@ -13,7 +13,7 @@ import fr.lirmm.graphik.graal.core.factory.DefaultAtomFactory;
 import fr.lirmm.graphik.graal.core.factory.DefaultPredicateFactory;
 import fr.lirmm.graphik.graal.core.factory.DefaultRuleFactory;
 import fr.lirmm.graphik.graal.core.term.DefaultTermFactory;
-import uk.ac.ox.cs.gsat.TGD;
+import uk.ac.ox.cs.gsat.fol.TGD;
 
 
 class GraalFactory {

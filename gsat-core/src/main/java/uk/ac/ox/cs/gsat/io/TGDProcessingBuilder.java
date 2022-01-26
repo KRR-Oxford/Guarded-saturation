@@ -4,10 +4,10 @@ import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
 
-import uk.ac.ox.cs.gsat.TGD;
 import uk.ac.ox.cs.gsat.api.io.Parser;
 import uk.ac.ox.cs.gsat.api.io.TGDFilter;
 import uk.ac.ox.cs.gsat.api.io.TGDProcessing;
+import uk.ac.ox.cs.gsat.fol.TGD;
 
 public class TGDProcessingBuilder {
 

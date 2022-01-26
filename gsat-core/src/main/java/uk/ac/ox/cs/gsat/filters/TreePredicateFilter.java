@@ -4,7 +4,6 @@ import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collection;
 import java.util.Comparator;
 import java.util.HashMap;
@@ -20,7 +19,7 @@ import java.util.TreeMap;
 import java.util.TreeSet;
 
 import uk.ac.ox.cs.gsat.Configuration;
-import uk.ac.ox.cs.gsat.TGD;
+import uk.ac.ox.cs.gsat.fol.TGD;
 import uk.ac.ox.cs.pdq.fol.Atom;
 import uk.ac.ox.cs.pdq.fol.Function;
 import uk.ac.ox.cs.pdq.fol.FunctionTerm;

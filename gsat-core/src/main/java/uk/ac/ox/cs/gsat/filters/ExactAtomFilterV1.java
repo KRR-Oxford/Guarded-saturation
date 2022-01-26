@@ -8,7 +8,7 @@ import java.util.Stack;
 import java.util.TreeMap;
 import java.util.TreeSet;
 
-import uk.ac.ox.cs.gsat.TGD;
+import uk.ac.ox.cs.gsat.fol.TGD;
 import uk.ac.ox.cs.pdq.fol.Atom;
 
 public class ExactAtomFilterV1<Q extends TGD> implements FormulaFilter<Q> {
