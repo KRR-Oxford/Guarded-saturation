@@ -343,7 +343,7 @@ public class Executor {
 		Collection<GTGD> selectedTGDs = new HashSet<>();
 		for (Dependency d : allDependencies)
 			if (d instanceof TGD && ((TGD) d).isGuarded())
-				selectedTGDs.add(new GTGD(Set.of(d.getBodyAtoms()), Set.of(d.getHeadAtoms())));
+				selectedTGDs.add(GTGD.create(d.getBodyAtoms(), d.getHeadAtoms()));
 			else
 				discarded++;
 

@@ -114,9 +114,10 @@ class SaturationUtils {
         if (tgd1.equals(tgd2))
             return 0;
 
-        int compareTo = tgd1.toString().compareTo(tgd2.toString());
+        int compareTo = tgd1.hashCode() - tgd2.hashCode();
         if (compareTo != 0)
             return compareTo;
+
         throw new RuntimeException();
 
     };

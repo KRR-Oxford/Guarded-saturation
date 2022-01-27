@@ -4,7 +4,7 @@ import java.util.Set;
 
 import uk.ac.ox.cs.gsat.fol.TGD;
 import uk.ac.ox.cs.pdq.fol.Atom;
-import uk.ac.ox.cs.pdq.fol.ConjunctiveQuery;
+
 
 public interface Parser {
 
@@ -12,8 +12,8 @@ public interface Parser {
 
     public Set<TGD> getTGDs() throws Exception;
 
-    public Set<Atom> getAtoms();
+    public Set<Atom> getAtoms() throws Exception;
 
-    public Set<ConjunctiveQuery> getConjunctiveQueries();
+    public Set<Atom> getConjunctiveQueries() throws Exception;
 
 }

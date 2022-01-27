@@ -64,7 +64,7 @@ public class SimpleSat implements SaturationAlgorithm {
         Collection<TGD> selectedTGDs = new HashSet<>();
         for (Dependency d : allDependencies)
             if (SaturationUtils.isSupportedRule(d))
-                selectedTGDs.add(new TGD(Set.of(d.getBodyAtoms()), Set.of(d.getHeadAtoms())));
+                selectedTGDs.add(TGD.create(Set.of(d.getBodyAtoms()), Set.of(d.getHeadAtoms())));
             else
                 discarded++;
 
@@ -226,7 +226,7 @@ public class SimpleSat implements SaturationAlgorithm {
         // if the ftgd is guarded it is sufficient to all unify the guard
         Collection<Atom> bodyAtomsToUnify;
         if (ftgd.isGuarded()) {
-            ftgd = new GTGD(ftgd.getBodySet(), ftgd.getHeadSet());
+            ftgd = GTGD.create(ftgd.getBodySet(), ftgd.getHeadSet());
             bodyAtomsToUnify = List.of(((GTGD) ftgd).getGuard());
         } else {
             bodyAtomsToUnify = Arrays.asList(ftgd.getBodyAtoms());
@@ -340,7 +340,7 @@ public class SimpleSat implements SaturationAlgorithm {
     	}
     
     	if(!new_head.isEmpty()) {
-    		return FACTORY.computeVNF(new TGD(body, new_head), eVariable, uVariable);
+    		return FACTORY.computeVNF(TGD.create(body, new_head), eVariable, uVariable);
     	} else {
     		return null;
     	}
@@ -436,7 +436,7 @@ public class SimpleSat implements SaturationAlgorithm {
         body.addAll(Logic.applyMGU(t1.getBodySet(), unifier));
         Set<Atom> head = Logic.applyMGU(t2.getHeadSet(), unifier);
 
-        return new TGD(body, head);
+        return TGD.create(body, head);
     }
 
 	/**

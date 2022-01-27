@@ -15,7 +15,7 @@ public class SkGTGD extends GTGD {
     protected final boolean isFunctional;
     protected final Atom[] functionalBodyAtoms;
 
-	public SkGTGD(Set<Atom> body, Set<Atom> head) {
+	protected SkGTGD(Set<Atom> body, Set<Atom> head) {
         super(body, head);
 
         this.functionalBodyAtoms = getFunctionalAtoms(this.getBodyAtoms());
@@ -24,6 +24,10 @@ public class SkGTGD extends GTGD {
         this.isFunctional = this.functionalBodyAtoms.length > 0 || isHeadFunctional;
     }
 
+    public static SkGTGD create(Set<Atom> body, Set<Atom> head) {
+        return Cache.skgtgd.retrieve(new SkGTGD(body, head));
+    }
+    
 	public boolean isNonFull() {
         return isNonFull;
     }

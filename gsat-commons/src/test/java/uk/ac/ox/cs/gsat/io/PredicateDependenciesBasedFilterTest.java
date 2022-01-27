@@ -23,9 +23,9 @@ public class PredicateDependenciesBasedFilterTest {
     @Test
     public void basicTest () {
 
-        TGD R_to_S = new TGD(Set.of(R_x1), Set.of(S_x1));
-        TGD S_to_T = new TGD(Set.of(S_x1), Set.of(T_x1));
-        TGD R_to_U = new TGD(Set.of(R_x1), Set.of(U_x1));
+        TGD R_to_S = TGD.create(Set.of(R_x1), Set.of(S_x1));
+        TGD S_to_T = TGD.create(Set.of(S_x1), Set.of(T_x1));
+        TGD R_to_U = TGD.create(Set.of(R_x1), Set.of(U_x1));
 
         Set<Predicate> wantedPredicate = Set.of(Predicate.create("T", 1));
         PredicateDependenciesBasedFilter<TGD> filter = new PredicateDependenciesBasedFilter<TGD>(wantedPredicate);

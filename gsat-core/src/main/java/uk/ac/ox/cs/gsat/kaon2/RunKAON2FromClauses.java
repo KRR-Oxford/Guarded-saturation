@@ -54,8 +54,8 @@ public class RunKAON2FromClauses {
         // a TGD input
         TGDFactory<SkGTGD> factory = TGDFactory.getSkGTGDInstance(true);
         List<SkGTGD> tgds = new ArrayList<>();
-        tgds.addAll(factory.computeSingleHeadSkolemizedOnFrontierVariable(new SkGTGD(Set.of( A_x ), Set.of( R_x_y, B_y ))));
-        tgds.addAll(factory.computeSingleHeadSkolemizedOnFrontierVariable(new SkGTGD(Set.of( R_x_y, B_y ), Set.of( C_x))));
+        tgds.addAll(factory.computeSingleHeadSkolemizedOnFrontierVariable(SkGTGD.create(Set.of( A_x ), Set.of( R_x_y, B_y ))));
+        tgds.addAll(factory.computeSingleHeadSkolemizedOnFrontierVariable(SkGTGD.create(Set.of( R_x_y, B_y ), Set.of( C_x))));
         // tgds.addAll(factory.computeSingleHeadSkolemizedOnFrontierVariable(new SkGTGD(Set.of( R_x_y ), Set.of(B_y))));
         // tgds.addAll(factory.computeSingleHeadSkolemizedOnFrontierVariable(new SkGTGD(Set.of( invR_y_x, B_y ), Set.of( C_x))));
         // tgds.addAll(factory.computeSingleHeadSkolemizedOnFrontierVariable(new SkGTGD(Set.of( R_x_y ), Set.of( invR_y_x ))));

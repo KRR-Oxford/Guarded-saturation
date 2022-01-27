@@ -9,6 +9,7 @@ import java.util.Set;
 
 import fr.lirmm.graphik.graal.api.core.Atom;
 import fr.lirmm.graphik.graal.api.core.AtomSet;
+import fr.lirmm.graphik.graal.api.core.ConjunctiveQuery;
 import fr.lirmm.graphik.graal.api.core.NegativeConstraint;
 import fr.lirmm.graphik.graal.api.core.Predicate;
 import fr.lirmm.graphik.graal.api.core.Query;
@@ -33,9 +34,9 @@ public class GraalConvertor {
 
             if (!body.isEmpty())
                 if (rule instanceof NegativeConstraint)
-                    tgds.add(new TGD(body, List.of(GTGD.Bottom)));
+                    tgds.add(TGD.create(body, List.of(GTGD.Bottom)));
                 else if (!head.isEmpty())
-                    tgds.add(new TGD(body, head));
+                    tgds.add(TGD.create(body, head));
         }
 
         return tgds;
@@ -144,9 +145,20 @@ public class GraalConvertor {
 
     }
 
-    public static Collection<uk.ac.ox.cs.pdq.fol.Atom> getPDQAtomsFromGraalQueries(HashSet<Query> queries) {
-        // TODO
-        return null;
+    public static Set<uk.ac.ox.cs.pdq.fol.Atom> getPDQAtomsFromGraalQueries(HashSet<ConjunctiveQuery> queries, Map<String, String> prefixes) throws IteratorException {
+
+        Set<uk.ac.ox.cs.pdq.fol.Atom> atoms = new HashSet<>();
+        
+        for(ConjunctiveQuery query : queries) {
+            Collection<uk.ac.ox.cs.pdq.fol.Atom> queryAtoms = getPDQAtomsFromGraalAtomSet(query.getAtomSet(), prefixes);
+
+            if (queryAtoms.size() > 1 && !query.isBoolean())
+                throw new IllegalStateException(String.format("Query has to be atomic: %s", query));
+
+            atoms.addAll(queryAtoms);
+        }
+        
+        return atoms;
     }
 
 }

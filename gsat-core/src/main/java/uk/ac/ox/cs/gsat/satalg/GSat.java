@@ -78,7 +78,7 @@ public class GSat extends EvolveBasedSat<GTGD> {
 
         App.logger.fine("Composing:\n" + nftgd + "\nand\n" + ftgd);
 
-        Atom guard = new GTGD(ftgd.getBodySet(), ftgd.getHeadSet()).getGuard();
+        Atom guard = GTGD.create(ftgd.getBodySet(), ftgd.getHeadSet()).getGuard();
         Collection<GTGD> results = new HashSet<>();
 
         for (Atom H : nftgd.getHeadAtoms()) {
@@ -117,7 +117,7 @@ public class GSat extends EvolveBasedSat<GTGD> {
                     // the new non full TGD head, since the resulting TGD is u(B1) -> u(H1)
                     // which is subsumed by the non full TGD
                     if (Sbody.isEmpty() && !(new_ftgd_body_atoms.size() == 1 && isNewHeadNFTGDHead)) {
-						for (GTGD hnf : FACTORY.computeHNF(new GTGD(new_body, new_head)))
+						for (GTGD hnf : FACTORY.computeHNF(GTGD.create(new_body, new_head)))
 							results.add(FACTORY.computeVNF(hnf, eVariable, uVariable));
 					}
                     // no matching head atom for some atom in Sbody -> continue
@@ -140,7 +140,7 @@ public class GSat extends EvolveBasedSat<GTGD> {
 
                     if (mgu.isEmpty())
                         // no need to apply the MGU
-						for (GTGD hnf : FACTORY.computeHNF(new GTGD(new_body, new_head)))
+						for (GTGD hnf : FACTORY.computeHNF(GTGD.create(new_body, new_head)))
 							results.add(FACTORY.computeVNF(hnf, eVariable, uVariable));
                     else
 						for (GTGD hnf : FACTORY.computeHNF(Logic.applyMGU(new_body, new_head, mgu)))

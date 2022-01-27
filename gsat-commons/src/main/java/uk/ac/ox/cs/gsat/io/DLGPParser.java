@@ -1,16 +1,15 @@
 package uk.ac.ox.cs.gsat.io;
 
 import java.io.File;
-import java.io.FileNotFoundException;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
 import fr.lirmm.graphik.graal.api.core.AtomSet;
+import fr.lirmm.graphik.graal.api.core.ConjunctiveQuery;
 import fr.lirmm.graphik.graal.api.core.NegativeConstraint;
 import fr.lirmm.graphik.graal.api.core.Predicate;
-import fr.lirmm.graphik.graal.api.core.Query;
 import fr.lirmm.graphik.graal.api.core.Rule;
 import fr.lirmm.graphik.graal.api.io.ParseException;
 import fr.lirmm.graphik.graal.io.dlp.DlgpParser;
@@ -19,7 +18,6 @@ import fr.lirmm.graphik.util.stream.IteratorException;
 import uk.ac.ox.cs.gsat.api.io.Parser;
 import uk.ac.ox.cs.gsat.fol.TGD;
 import uk.ac.ox.cs.pdq.fol.Atom;
-import uk.ac.ox.cs.pdq.fol.ConjunctiveQuery;
 
 public class DLGPParser implements Parser {
 
@@ -27,7 +25,7 @@ public class DLGPParser implements Parser {
     protected HashSet<Atom> atoms;
     protected HashSet<AtomSet> atomSets;
     protected HashSet<Rule> rules;
-    protected HashSet<Query> queries;
+    protected HashSet<ConjunctiveQuery> queries;
 	protected Map<String, String> prefixes = new HashMap<>();
     private boolean skipFacts;
     protected boolean includeNegativeConstraints;
@@ -46,8 +44,8 @@ public class DLGPParser implements Parser {
     }
 
     @Override
-    public Set<ConjunctiveQuery> getConjunctiveQueries() {
-        return null;
+    public Set<Atom> getConjunctiveQueries() throws IteratorException {
+        return GraalConvertor.getPDQAtomsFromGraalQueries(queries, prefixes);
     }
 
     protected void parseInput(fr.lirmm.graphik.graal.api.io.Parser<Object> parser) throws ParseException {
@@ -78,7 +76,7 @@ public class DLGPParser implements Parser {
                     rules.add((Rule) o);
             } else if (o instanceof ConjunctiveQuery) {
                 // App.logger.fine("Conjunctive Query: " + ((Query) o));
-                queries.add((Query) o);
+                queries.add((ConjunctiveQuery) o);
             } else if (o instanceof NegativeConstraint) {
                 // App.logger.fine("Negative Constraint: " + ((NegativeConstraint) o));
                 if (includeNegativeConstraints)

@@ -343,7 +343,7 @@ public class TGDFactory<Q extends TGD> {
 
         @Override
         public TGD create(Set<Atom> bodyAtoms, Set<Atom> headAtoms) {
-            return new TGD(bodyAtoms, headAtoms);
+            return TGD.create(bodyAtoms, headAtoms);
         }
     }
 
@@ -351,7 +351,7 @@ public class TGDFactory<Q extends TGD> {
 
         @Override
         public GTGD create(Set<Atom> bodyAtoms, Set<Atom> headAtoms) {
-            return new GTGD(bodyAtoms, headAtoms);
+            return GTGD.create(bodyAtoms, headAtoms);
         }
     }
 
@@ -359,7 +359,7 @@ public class TGDFactory<Q extends TGD> {
 
         @Override
         public SkGTGD create(Set<Atom> bodyAtoms, Set<Atom> headAtoms) {
-            return new SkGTGD(bodyAtoms, headAtoms);
+            return SkGTGD.create(bodyAtoms, headAtoms);
         }
     }
 
@@ -367,7 +367,7 @@ public class TGDFactory<Q extends TGD> {
 
         @Override
         public OrderedSkGTGD create(Set<Atom> bodyAtoms, Set<Atom> headAtoms) {
-            return new OrderedSkGTGD(bodyAtoms, headAtoms);
+            return OrderedSkGTGD.create(bodyAtoms, headAtoms);
         }
     }
 }

@@ -16,7 +16,13 @@ public class GTGD extends TGD {
 
 	private final Atom guard;
 
-    public GTGD(Set<Atom> body, Set<Atom> head) {
+    protected GTGD(Set<Atom> body, Set<Atom> head) {
+        super(body, head);
+
+        this.guard = computeGuard();
+    }
+
+    protected GTGD(Atom[] body, Atom[] head) {
         super(body, head);
 
         this.guard = computeGuard();
@@ -44,5 +50,13 @@ public class GTGD extends TGD {
 
     public Atom getGuard() {
         return guard;
+    }
+
+    public static GTGD create(Set<Atom> body, Set<Atom> head) {
+        return Cache.gtgd.retrieve(new GTGD(body, head));
+    }
+
+    public static GTGD create(Atom[] body, Atom[] head) {
+        return Cache.gtgd.retrieve(new GTGD(body, head));
     }
 }

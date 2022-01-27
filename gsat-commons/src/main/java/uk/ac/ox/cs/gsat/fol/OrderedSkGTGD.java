@@ -19,8 +19,12 @@ public class OrderedSkGTGD extends SkGTGD {
     private Atom[] maxAtoms;
     private Boolean areMaxAtomsInBody;
 
-    public OrderedSkGTGD(Set<Atom> body, Set<Atom> head) {
+    private OrderedSkGTGD(Set<Atom> body, Set<Atom> head) {
         super(body, head);
+    }
+
+    public static OrderedSkGTGD create(Set<Atom> body, Set<Atom> head) {
+        return Cache.ordskgtgd.retrieve(new OrderedSkGTGD(body, head));
     }
 
     public Atom[] getMaxOrSelectedAtoms() {

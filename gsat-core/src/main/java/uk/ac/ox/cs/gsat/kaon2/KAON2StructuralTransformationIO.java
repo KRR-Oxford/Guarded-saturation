@@ -132,7 +132,7 @@ public class KAON2StructuralTransformationIO extends DLGPIO {
         if (head.isEmpty()) {
             head.add(GTGD.Bottom);
         }
-        return new SkGTGD(body, head);
+        return SkGTGD.create(body, head);
     }
 
     public static Term createTerm(STerm term, TermFactory termFactory) {

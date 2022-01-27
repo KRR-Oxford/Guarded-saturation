@@ -31,7 +31,7 @@ public class TGD extends uk.ac.ox.cs.pdq.fol.TGD {
 	private final Set<Atom> headSet;
 	private int[] bodyHashes = null, headHashes = null;
 
-	public TGD(Atom[] body, Atom[] head) {
+	protected TGD(Atom[] body, Atom[] head) {
 
 		super(body, head);
 
@@ -40,10 +40,18 @@ public class TGD extends uk.ac.ox.cs.pdq.fol.TGD {
 
 	}
 
-	public TGD(Collection<Atom> body, Collection<Atom> head) {
+	protected TGD(Collection<Atom> body, Collection<Atom> head) {
 		this(body.toArray(new Atom[body.size()]), head.toArray(new Atom[head.size()]));
 
 	}
+
+    public static TGD create(Collection<Atom> body, Collection<Atom> head) {
+        return Cache.tgd.retrieve(new TGD(body, head));
+    }
+
+    public static TGD create(Atom[] body, Atom[] head) {
+        return Cache.tgd.retrieve(new TGD(body, head));
+    }
 
 	public Set<Atom> getBodySet() {
 		return bodySet;
@@ -59,18 +67,22 @@ public class TGD extends uk.ac.ox.cs.pdq.fol.TGD {
 		if (!(obj instanceof TGD))
 			return false;
 
-		TGD tgd2 = (TGD) obj;
+        TGD other = (TGD) obj;
 
-		return this.getBodySet().equals(tgd2.getBodySet()) && this.getHeadSet().equals(tgd2.getHeadSet());
-
+        // the optimization below uses the fact that, with the class manager in Cache
+        // we know that two object of the same class are not equal when they are different objects
+        return (!other.getClass().equals(this.getClass()) || this == other)
+            && other.getBodySet().equals(this.getBodySet())
+            && other.getHeadSet().equals(this.getHeadSet());
 	}
 
-	@Override
-	public int hashCode() {
-
-		return Objects.hash(this.getBodySet(), this.getHeadSet());
-
-	}
+    @Override
+    public int hashCode() {
+        // we need to define a hashCode that is coherent across the subclass of TGD
+        // in other words, even with class managers in Cache, two TGDs may be different objects and be equals
+        // if they have different classes e.g. TGD and GTGD
+        return Objects.hash(this.getBodySet(), this.getHeadSet());
+    }
 
 	public Collection<String> getAllTermSymbols() {
 

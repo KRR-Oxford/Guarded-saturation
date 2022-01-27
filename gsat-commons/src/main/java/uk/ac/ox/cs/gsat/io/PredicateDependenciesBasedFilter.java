@@ -53,7 +53,9 @@ public class PredicateDependenciesBasedFilter<T extends TGD> implements TGDFilte
                     if (predicatesGraph.containsKey(ha.getPredicate())) {
                         predicatesGraph.get(ha.getPredicate()).add(ba.getPredicate());
                     } else {
-                        predicatesGraph.put(ha.getPredicate(), Set.of(ba.getPredicate()));
+                        Set<Predicate> targets = new HashSet<>();
+                        targets.add(ba.getPredicate());
+                        predicatesGraph.put(ha.getPredicate(), targets);
                     }
                 }
             }

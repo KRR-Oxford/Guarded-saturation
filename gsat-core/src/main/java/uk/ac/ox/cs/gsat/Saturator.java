@@ -3,6 +3,10 @@ package uk.ac.ox.cs.gsat;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collection;
+import java.util.List;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 import com.beust.jcommander.JCommander;
 import com.beust.jcommander.Parameter;
@@ -11,12 +15,16 @@ import com.beust.jcommander.ParameterException;
 import uk.ac.ox.cs.gsat.api.SaturationAlgorithm;
 import uk.ac.ox.cs.gsat.api.io.Parser;
 import uk.ac.ox.cs.gsat.api.io.Serializer;
+import uk.ac.ox.cs.gsat.api.io.TGDFilter;
 import uk.ac.ox.cs.gsat.api.io.TGDProcessing;
+import uk.ac.ox.cs.gsat.fol.TGD;
 import uk.ac.ox.cs.gsat.io.ParserFactory;
+import uk.ac.ox.cs.gsat.io.PredicateDependenciesBasedFilter;
 import uk.ac.ox.cs.gsat.io.SerializerFactory;
 import uk.ac.ox.cs.gsat.io.TGDProcessingBuilder;
 import uk.ac.ox.cs.gsat.satalg.SaturationAlgorithmFactory;
 import uk.ac.ox.cs.gsat.satalg.SaturationAlgorithmType;
+import uk.ac.ox.cs.pdq.fol.Predicate;
 
 public class Saturator {
 
@@ -32,6 +40,9 @@ public class Saturator {
 
     @Parameter(names = { "-o", "--output" }, required = true, description = "Path to the output file.")
     private String outputFile;
+
+    @Parameter(names = { "-q", "--queries" }, required = false, description = "Path to the queries file used to filter the input.")
+    private String queriesFile;
 
     private Saturator(String... args) throws Exception {
         JCommander jc = new JCommander(this);
@@ -69,9 +80,19 @@ public class Saturator {
 
         parser.parse(inputFile, Configuration.isSaturationOnly(), Configuration.includeNegativeConstraint());
 
+        List<TGDFilter<TGD>> filters = new ArrayList<>();
+
+        if (this.queriesFile != null) {
+            Parser queryParser = ParserFactory.instance().create(TGDFileFormat.DLGP);
+            queryParser.parse(queriesFile, true, false);
+            Set<Predicate> wantedPredicates = queryParser.getConjunctiveQueries().stream()
+                .map(a -> a.getPredicate()).collect(Collectors.toSet());
+            filters.add(new PredicateDependenciesBasedFilter<>(wantedPredicates));
+        }
+        
         TGDProcessing tgdProcessing = TGDProcessingBuilder.instance()
             .setParser(parser)
-            .setFilters(new ArrayList<>())
+            .setFilters(filters)
             .build();
 
         SaturationAlgorithmType algorithmType = Configuration.getSaturatonAlgType();
@@ -79,8 +100,9 @@ public class Saturator {
 
         Serializer serializer = SerializerFactory.instance().create(outputFormat);
 
+        Collection<TGD> processedTGDs = tgdProcessing.getTGDs();
         serializer.open(this.outputFile);
-        serializer.writeTGDs(algorithm.run(tgdProcessing.getTGDs()));
+        serializer.writeTGDs(algorithm.run(processedTGDs));
         serializer.close();
     }
 
