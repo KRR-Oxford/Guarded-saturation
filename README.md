@@ -5,12 +5,14 @@ for running the resulting Datalog rules.
 
 <!-- Description: A description of your project follows. A good description is clear, short, and to the point. Describe the importance of your project, and what it does. -->
 
-## Saturating 
+## Saturating
 
 The main functionality of GSat is to compute the saturation of a set of GTGDs. To do this, download the JAR file available with the [releases](https://github.com/KRR-Oxford/Guarded-saturation/releases) and use the command line:
+
 ```bash
 java -jar guarded-saturation-1.0.0-jar-with-dependencies.jar <syntax> <TGD file>
 ```
+
 where `<syntax>` is the one of the syntax `dlgp`, `owl` and `<TGD file>` is a file containing the input GTGDs in the syntax `<syntax>`.
 
 By default, the output saturation is printed in the console, it can be written to a file instead by setting `write_output` to `true` in the file `config.properties`.
@@ -18,16 +20,20 @@ By default, the output saturation is printed in the console, it can be written t
 ### Example
 
 Consider a DLGP file `example.dlgp` that contains the following two TGDs:
+
 ```
 b(X, Y), c(Y) :-  a(X).
 d(X) :- b(X, Y), c(Y).
 ```
 
 Calling:
+
 ```bash
 java -jar guarded-saturation-1.0.0-jar-with-dependencies.jar dlgp example.dlgp
 ```
+
 returns the saturation containing:
+
 ```
 b(X, Y), c(Y) :-  a(X).
 d(X) :- a(X).
@@ -43,11 +49,12 @@ This project implements different saturation algorithms. You can set the algorit
 - `simple_sat` corresponding to `SimDR`
 - `ordered_skolem_sat` also called `KAON3`
 
+Additionally, KAON2 can be used to get the saturation of the set of TGDs in an OWL file using the following command:
 
-Additionally, KAON2 can be use to get the saturation of the set of TGDs in a OWL file using the following command:
 ```bash
 java -cp guarded-saturation-1.0.0-jar-with-dependencies.jar "uk.ac.ox.cs.gsat.ExecutorOWL" <OWL file> <timeout>
 ```
+
 where the `<timeout>` is expressed in seconds.
 
 ## Compilation (For developers)
@@ -72,7 +79,8 @@ Kaon2 is only relevant for some experiments, and is not part of the delivered pr
 
 #### Installing KAON 2
 
-Install the JAR of KAON2 using 
+Install the JAR of KAON2 using:
+
 ```
 mvn install:install-file -Dfile=./src/main/resources/kaon2.jar -DgroupId=org.semanticweb.kaon2 -DartifactId=kaon2 -Dversion=2008-06-29 -Dpackaging=jar -DgeneratePom=true
 ```
@@ -136,17 +144,20 @@ mvn javadoc:javadoc
 ## Experiments
 
 Experiments are available in a submodule, which may be large. You can initialize the experiments folder using:
+
 ```sh
 git submodule init
 ```
 
 ## Credits
 
-**[Information Systems Group](https://www.cs.ox.ac.uk/isg) - [Department of Computer Science](http://www.cs.ox.ac.uk) - [University of Oxford](www.ox.ac.uk)**
+**[Information Systems Group](https://www.cs.ox.ac.uk/isg) — [Department of Computer Science](http://www.cs.ox.ac.uk) — [University of Oxford](www.ox.ac.uk)**
 
 - [Michael Benedikt](http://www.cs.ox.ac.uk/people/michael.benedikt/home.html)
+- [Maxime Buron](https://www.cs.ox.ac.uk/people/maxime.buron)
 - [Stefano Germano](https://www.cs.ox.ac.uk/people/stefano.germano)
 - [Kevin Kappelmann](https://www21.in.tum.de/team/kappelmk)
+- [Boris Motik](https://www.cs.ox.ac.uk/people/boris.motik)
 
 ## License
 
