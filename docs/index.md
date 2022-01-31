@@ -20,4 +20,4 @@ Resolution-based rewriting algorithm from Guarded Tuple Generating Dependencies 
 
 ## License
 
-This project is licensed under the [MIT License](../LICENSE)
+This project is licensed under the [MIT License](https://github.com/KRR-Oxford/Guarded-saturation/blob/master/LICENSE).
