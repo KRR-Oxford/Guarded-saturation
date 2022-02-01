@@ -26,7 +26,7 @@ import org.semanticweb.kaon2.api.logic.Rule;
 import org.semanticweb.kaon2.api.reasoner.Reasoner;
 
 import uk.ac.ox.cs.gsat.App;
-import uk.ac.ox.cs.gsat.io.IO;
+import uk.ac.ox.cs.gsat.io.DatalogSerializer;
 
 public class ExecutorOWL {
 

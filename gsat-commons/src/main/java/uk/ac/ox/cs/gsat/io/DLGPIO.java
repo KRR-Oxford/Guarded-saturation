@@ -109,7 +109,7 @@ public class DLGPIO implements ExecutionSteps {
         Collection<uk.ac.ox.cs.pdq.fol.Atom> pdqAtoms = getPDQAtomsFromGraalAtoms(atoms, new HashMap<>());
         System.out.println("# PDQ Atoms: " + pdqAtoms.size());
 
-        IO.writeDatalogFacts(pdqAtoms, path);
+        DatalogSerializer.writeDatalogFacts(pdqAtoms, path);
 
     }
 

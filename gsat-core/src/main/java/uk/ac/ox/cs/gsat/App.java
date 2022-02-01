@@ -15,7 +15,7 @@ import uk.ac.ox.cs.gsat.api.io.Serializer;
 import uk.ac.ox.cs.gsat.io.ChaseBenchIO;
 import uk.ac.ox.cs.gsat.io.DLGPIO;
 import uk.ac.ox.cs.gsat.io.DLGPSerializer;
-import uk.ac.ox.cs.gsat.io.IO;
+import uk.ac.ox.cs.gsat.io.DatalogSerializer;
 import uk.ac.ox.cs.gsat.io.OWLIO;
 import uk.ac.ox.cs.gsat.kaon2.KAON2StructuralTransformationIO;
 import uk.ac.ox.cs.gsat.mat.SolverOutput;
@@ -319,7 +319,7 @@ public class App {
 
 					for (Atom query : queries) {
 
-						IO.writeDatalogQuery(query, baseOutputPath + "datalog.query");
+						DatalogSerializer.writeDatalogQuery(query, baseOutputPath + "datalog.query");
 
 						SolverOutput solverOutputQuery = Utils.invokeSolver(Configuration.getSolverPath(),
 								Configuration.getSolverOptionsQuery(), Arrays.asList(baseOutputPath + "datalog.rul",

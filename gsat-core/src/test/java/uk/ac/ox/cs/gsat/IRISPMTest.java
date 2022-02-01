@@ -18,7 +18,7 @@ import org.junit.jupiter.api.Test;
 
 import uk.ac.ox.cs.gsat.fol.GTGD;
 import uk.ac.ox.cs.gsat.fol.Logic;
-import uk.ac.ox.cs.gsat.io.IO;
+import uk.ac.ox.cs.gsat.io.DatalogSerializer;
 import uk.ac.ox.cs.gsat.mat.SolverOutput;
 import uk.ac.ox.cs.gsat.mat.Utils;
 import uk.ac.ox.cs.gsat.satalg.GSat;
@@ -89,13 +89,13 @@ public class IRISPMTest {
 		String baseOutputPath = "test" + File.separator + "UnitTests" + File.separator + "IRISPM" + File.separator;
 		new File(baseOutputPath).mkdirs();
 		try {
-			IO.writeDatalogRules(guardedSaturation, baseOutputPath + "rules.rul");
-			IO.writeDatalogFacts(allFacts, baseOutputPath + "facts.data");
+			DatalogSerializer.writeDatalogRules(guardedSaturation, baseOutputPath + "rules.rul");
+			DatalogSerializer.writeDatalogFacts(allFacts, baseOutputPath + "facts.data");
 			int count = 0;
 			assertEquals(allQueries.size(), queryLenghts.length);
 			for (ConjunctiveQuery q : allQueries) {
 
-				IO.writeDatalogQueries(Arrays.asList(q), baseOutputPath + "query.rul");
+				DatalogSerializer.writeDatalogQueries(Arrays.asList(q), baseOutputPath + "query.rul");
 				SolverOutput output = Utils.invokeSolver(Configuration.getSolverPath(),
 						Configuration.getSolverOptionsQuery(), Arrays.asList(baseOutputPath + "rules.rul",
 								baseOutputPath + "facts.data", baseOutputPath + "query.rul"));

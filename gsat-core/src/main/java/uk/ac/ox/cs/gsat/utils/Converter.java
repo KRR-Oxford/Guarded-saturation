@@ -12,7 +12,7 @@ import java.util.logging.Logger;
 import uk.ac.ox.cs.gsat.App;
 import uk.ac.ox.cs.gsat.Configuration;
 import uk.ac.ox.cs.gsat.fol.GTGD;
-import uk.ac.ox.cs.gsat.io.IO;
+import uk.ac.ox.cs.gsat.io.DatalogSerializer;
 import uk.ac.ox.cs.gsat.io.OWLIO;
 import uk.ac.ox.cs.pdq.fol.Dependency;
 import uk.ac.ox.cs.pdq.fol.TGD;
@@ -70,7 +70,7 @@ public class Converter {
 		try {
 			Collection<Dependency> rules = owlio.getRules();
 			Collection<GTGD> TGDRules = discardNonTGDRules(rules);
-			IO.writeDatalogRules(TGDRules, output_path);
+			DatalogSerializer.writeDatalogRules(TGDRules, output_path);
 		} catch (Exception e) {
 			e.printStackTrace();
 		}

@@ -12,5 +12,5 @@ public interface Serializer extends AutoCloseable {
 
     public void writeTGDs(Collection<? extends TGD> tgds) throws IOException;
 
-    public void writeAtoms(Collection<Atom> atoms);
+    public void writeAtoms(Collection<Atom> atoms) throws IOException;
 }

@@ -21,7 +21,7 @@ import uk.ac.ox.cs.pdq.db.Relation;
 import uk.ac.ox.cs.pdq.db.Schema;
 import uk.ac.ox.cs.pdq.fol.Atom;
 import uk.ac.ox.cs.pdq.fol.Dependency;
-import uk.ac.ox.cs.pdq.fol.TGD;
+import uk.ac.ox.cs.gsat.fol.TGD;
 import uk.ac.ox.cs.pdq.io.CommonToPDQTranslator;
 
 public class ChaseBenchIO implements ExecutionSteps {
@@ -191,7 +191,7 @@ public class ChaseBenchIO implements ExecutionSteps {
                             Collection<String> datalogFacts = new LinkedList<>();
 
                             for (Atom atom : CommonToPDQTranslator.importFacts(schema, name, f.getAbsolutePath()))
-                                datalogFacts.add(IO.renameVariablesAndConstantsDatalog(atom).toString() + '.');
+                                datalogFacts.add(DatalogSerializer.renameVariablesAndConstantsDatalog(atom).toString() + '.');
 
                             Files.write(path, datalogFacts, StandardCharsets.UTF_8,
                                     Files.exists(path) ? StandardOpenOption.APPEND : StandardOpenOption.CREATE);
@@ -211,7 +211,7 @@ public class ChaseBenchIO implements ExecutionSteps {
             datalogQueries.add(getProjectedDatalogQuery(query));
         }
 
-        queriesRules2.forEach((tgd) -> datalogQueries.addAll(IO.getDatalogRules(tgd)));
+        queriesRules2.forEach((tgd) -> datalogQueries.addAll(DatalogSerializer.getDatalogRules(tgd)));
 
         Files.write(Paths.get(path), datalogQueries, StandardCharsets.UTF_8);
 
@@ -222,7 +222,7 @@ public class ChaseBenchIO implements ExecutionSteps {
         if (query.getHeadAtoms().length != 1)
             throw new IllegalArgumentException("The query is not atomic");
 
-        return IO.renameVariablesAndConstantsDatalog(query.getHeadAtom(0)).toString() + " ?";
+        return DatalogSerializer.renameVariablesAndConstantsDatalog(query.getHeadAtom(0)).toString() + " ?";
 
     }
 

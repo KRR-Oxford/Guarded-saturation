@@ -50,6 +50,11 @@
       <artifactId>kaon2</artifactId>
       <version>2008-06-29</version>
     </dependency>
+    <dependency>
+      <groupId>tech.oxfordsemantic.jrdfox</groupId>
+      <artifactId>jrdfox</artifactId>
+      <version>1.0</version>
+    </dependency>
   </dependencies>
   <build>
     <plugins>
@@ -156,29 +161,47 @@
             </goals>
           </execution>
           <execution>
-            <id>jar-with-dependencies-OWLSanitiser</id>
+            <id>jar-with-dependencies-Materialization</id>
             <configuration>
               <archive>
                 <manifest>
-                  <mainClass>uk.ac.ox.cs.gsat.OWLSanitiser</mainClass>
+                  <mainClass>uk.ac.ox.cs.gsat.Materialization</mainClass>
                 </manifest>
               </archive>
               <descriptorRefs>
                 <descriptorRef>jar-with-dependencies</descriptorRef>
               </descriptorRefs>
-              <finalName>OWLSanitiser</finalName>
+              <finalName>Materialization-${project.version}</finalName>
             </configuration>
-            <!-- <phase>package</phase>
-                 <goals>
-                 <goal>single</goal>
-                 </goals> -->
+            <phase>package</phase>
+            <goals>
+              <goal>single</goal>
+            </goals>
           </execution>
-          <!-- <execution>
-               <phase>package</phase>
-               <goals>
-               <goal>single</goal>
-               </goals>
-               </execution> -->
+        <!--   <execution> -->
+        <!--     <id>jar-with-dependencies-OWLSanitiser</id> -->
+        <!--     <configuration> -->
+        <!--       <archive> -->
+        <!--         <manifest> -->
+        <!--           <mainClass>uk.ac.ox.cs.gsat.OWLSanitiser</mainClass> -->
+        <!--         </manifest> -->
+        <!--       </archive> -->
+        <!--       <descriptorRefs> -->
+        <!--         <descriptorRef>jar-with-dependencies</descriptorRef> -->
+        <!--       </descriptorRefs> -->
+        <!--       <finalName>OWLSanitiser</finalName> -->
+        <!--     </configuration> -->
+        <!--     <!-\- <phase>package</phase> -->
+        <!--          <goals> -->
+        <!--          <goal>single</goal> -->
+        <!--          </goals> -\-> -->
+        <!--   </execution> -->
+        <!--   <!-\- <execution> -->
+        <!--        <phase>package</phase> -->
+        <!--        <goals> -->
+        <!--        <goal>single</goal> -->
+        <!--        </goals> -->
+        <!--        </execution> -\-> -->
         </executions>
       </plugin>
       <plugin>

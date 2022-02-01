@@ -9,24 +9,48 @@ import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.Map;
 
+import uk.ac.ox.cs.gsat.api.io.Serializer;
 import uk.ac.ox.cs.gsat.fol.GTGD;
 import uk.ac.ox.cs.gsat.fol.Logic;
+import uk.ac.ox.cs.gsat.fol.TGD;
 import uk.ac.ox.cs.pdq.fol.Atom;
 import uk.ac.ox.cs.pdq.fol.ConjunctiveQuery;
 import uk.ac.ox.cs.pdq.fol.Constant;
 import uk.ac.ox.cs.pdq.fol.Formula;
 import uk.ac.ox.cs.pdq.fol.Predicate;
-import uk.ac.ox.cs.pdq.fol.TGD;
 import uk.ac.ox.cs.pdq.fol.Term;
 import uk.ac.ox.cs.pdq.fol.UntypedConstant;
 import uk.ac.ox.cs.pdq.fol.Variable;
 
 /**
- * Helper functions for I/O operations
+ * Datalog helper functions for I/O operations
  * 
  * @author Stefano
  */
-public class IO {
+public class DatalogSerializer implements Serializer {
+
+    protected String filePath;
+    
+    @Override
+    public void close() throws Exception {
+
+    }
+
+    @Override
+    public void open(String filePath) throws IOException {
+        this.filePath = filePath;
+    }
+
+    @Override
+    public void writeTGDs(Collection<? extends TGD> tgds) throws IOException {
+        writeDatalogRules(tgds, this.filePath);
+
+    }
+
+    @Override
+    public void writeAtoms(Collection<Atom> atoms) throws IOException {
+        writeDatalogFacts(atoms, this.filePath);
+    }
 
     public static void writeDatalogRules(Collection<? extends TGD> guardedSaturation, String path) throws IOException {
 
@@ -70,7 +94,6 @@ public class IO {
 
     }
 
-
     public static Atom renameVariablesAndConstantsDatalog(Atom atom) {
         // App.logger.info(atom);
         // App.logger.info(atom.getTypedAndUntypedConstants());
@@ -94,7 +117,8 @@ public class IO {
                 // App.logger.fine("URL as predicate name. Adding angle brackets." + name);
                 name = '<' + name + '>';
             } else if (name.length() > 0 && name.substring(0, 1).matches("[A-Z]")) { // First char to Lower Case
-                // App.logger.fine("Predicate starting with an upper-case letter. Transforming it to lower-case.");
+                // App.logger.fine("Predicate starting with an upper-case letter. Transforming
+                // it to lower-case.");
                 name = name.substring(0, 1).toLowerCase() + name.substring(1);
             }
             // // URL in angle bracket
@@ -180,6 +204,5 @@ public class IO {
         Files.write(Paths.get(path), datalogQueries, StandardCharsets.UTF_8);
 
     }
-
 
 }

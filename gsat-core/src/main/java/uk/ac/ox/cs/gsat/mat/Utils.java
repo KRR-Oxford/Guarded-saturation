@@ -1,7 +1,9 @@
 package uk.ac.ox.cs.gsat.mat;
 
 import java.io.BufferedReader;
+import java.io.BufferedWriter;
 import java.io.File;
+import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
@@ -9,12 +11,21 @@ import java.io.PrintWriter;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Paths;
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collection;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Locale;
+import java.util.Set;
 
-import uk.ac.ox.cs.gsat.Configuration;
+import tech.oxfordsemantic.jrdfox.Prefixes;
+import tech.oxfordsemantic.jrdfox.logic.expression.IRI;
+import tech.oxfordsemantic.jrdfox.logic.sparql.pattern.TriplePattern;
 import uk.ac.ox.cs.gsat.Log;
+import uk.ac.ox.cs.gsat.fol.TGD;
+import uk.ac.ox.cs.pdq.fol.Atom;
+import uk.ac.ox.cs.pdq.fol.Predicate;
 
 public class Utils {
      
@@ -54,7 +65,7 @@ public class Utils {
 
 		stringBuffer.append(exe_path).append(" ").append(options).append(" ").append(files_paths);
 
-		Log.GLOBAL.fine(stringBuffer.toString());
+		Log.GLOBAL.info(stringBuffer.toString());
 
 		final Process solver_process = Runtime.getRuntime().exec(stringBuffer.toString());
 
@@ -130,15 +141,65 @@ public class Utils {
 
 	}
 
-    public static void writeSolverOutput(SolverOutput solverOutput, String path) throws IOException {
+    public static void writeSolverOutput(SolverOutput solverOutput, String outputPath) throws IOException {
 
-        if (!
-            Configuration.isSolverOutputToFile())
-            return;
-
-        Files.write(Paths.get(path), Arrays.asList(solverOutput.getOutput(), solverOutput.getErrors()),
+        Files.write(Paths.get(outputPath), Arrays.asList(solverOutput.getOutput(), solverOutput.getErrors()),
                     StandardCharsets.UTF_8);
 
     }
 
+
+    /**
+     * write a Ntriple files containing triples of the following forms 
+     * c rdf:type P or c P c whether the predicate P is unary or binary
+     * with c being a fixed IRI 
+     * The used predicates P are those in the body of the tgd but in their head 
+     */
+    public static int generateNTriplesFromTGDs(Collection<TGD> tgds, String fileName) throws IOException {
+
+        Set<Predicate> bodyPredicates = new HashSet<>();
+        Set<Predicate> headPredicates = new HashSet<>();
+        for (TGD tgd : tgds) {
+            for (Atom atom : tgd.getBodyAtoms()) {
+                bodyPredicates.add(atom.getPredicate());
+            }
+
+            for (Atom atom : tgd.getHeadAtoms()) {
+                headPredicates.add(atom.getPredicate());
+            }
+        }
+
+        // we consider only the predicates that appear in TGD bodies but in heads
+        bodyPredicates.removeAll(headPredicates);
+
+        Collection<TriplePattern> triples = new ArrayList<>();
+        IRI constant = IRI.create("http://example.com/c");
+        for (Predicate predicate : bodyPredicates) {
+            TriplePattern triple;
+            if (predicate.getArity() == 1) {
+                triple = TriplePattern.create(constant, IRI.RDF_TYPE, RDFoxFactory.predicateAsIRI(predicate));
+            } else if (predicate.getArity() == 2) {
+                triple = TriplePattern.create(constant, RDFoxFactory.predicateAsIRI(predicate), constant);
+            } else {
+                String message = String.format("The predicate %s is neither unary nor binary", predicate);
+                throw new IllegalStateException(message);
+            }
+            triples.add(triple);
+        }
+
+        // write the triples to a file
+        File file = new File(fileName);
+        file.delete();
+        file.createNewFile();
+
+        BufferedWriter writer = new BufferedWriter(new FileWriter(fileName));
+
+        for (TriplePattern triple : triples) {
+            writer.write(triple.toString(Prefixes.s_emptyPrefixes) + " .");
+            writer.write("\n");
+        }
+
+        writer.close();
+        return triples.size();
+    }
 }

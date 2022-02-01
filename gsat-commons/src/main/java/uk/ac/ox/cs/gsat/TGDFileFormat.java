@@ -1,32 +1,43 @@
 package uk.ac.ox.cs.gsat;
 
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.List;
 import java.util.stream.Collectors;
 
 public enum TGDFileFormat {
-    DLGP("dlgp"),
+    DLGP(List.of("dlgp", "dlp")),
     OWL("owl");
 
-    private final String fileExt;
+    private final Collection<String> fileExts;
 
     private TGDFileFormat(String fileExt) {
-        this.fileExt = fileExt;
+        this.fileExts = List.of(fileExt);
     }
 
-    public String getFileExt() {
-        return fileExt;
+    private TGDFileFormat(Collection<String> fileExts) {
+        this.fileExts = fileExts;
+    }
+
+    public Collection<String> getFileExts() {
+        return fileExts;
     }
 
     public static TGDFileFormat getFormatFromPath(String path) {
         for (TGDFileFormat format : TGDFileFormat.values()) {
-            if (path.matches(".*\\." + format.getFileExt()))
+            if (format.getFileExts().stream().anyMatch(f -> path.matches(".*\\." + f)))
                 return format;
         }
         return null;
     }
 
     public static List<String> getExtensions() {
-        return Arrays.stream(TGDFileFormat.values()).map(f -> f.getFileExt()).collect(Collectors.toList());
+        List<String> result = new ArrayList<>();
+
+        Arrays.stream(TGDFileFormat.values()).forEach(f -> result.addAll(f.getFileExts()));
+
+        return result;
     }
+
 }

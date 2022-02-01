@@ -44,7 +44,7 @@ public class OWLIO extends DLGPIO {
         Collection<uk.ac.ox.cs.pdq.fol.Atom> pdqAtoms = getPDQAtomsFromGraalAtomSets(atomSets, this.prefixes);
         System.out.println("# PDQ Atoms: " + pdqAtoms.size());
 
-        IO.writeDatalogFacts(pdqAtoms, path);
+        DatalogSerializer.writeDatalogFacts(pdqAtoms, path);
 
     }
 
