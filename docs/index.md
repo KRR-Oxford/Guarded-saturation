@@ -6,7 +6,10 @@ Resolution-based rewriting algorithm from Guarded Tuple Generating Dependencies 
 
 ## [👩‍💻 Developer Guide](developer_guide.md)
 
-## [🧪 Experiments](experiments.md)
+## [Experiment Results](experiments_results/)
+
+## [🧪 Reproduce the Experiments](experiments.md)
+
 
 ## Credits
 
