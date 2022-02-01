@@ -1,7 +1,16 @@
 # 🧪 Experiments
 
-Experiments are available in the `experiments` submodule, which may be large.
-You can initialize the experiments folder using:
+Experiments are available in the `experiments` submodule.
+
+Here we provide a detailed analysis of the results and some instructions for reproducing these experiments.
+
+## [📊 Experiments Results](experiments_results/)
+
+## Reproduce the Experiments
+
+The data from experiments can be large, so they are not included directly in the repository but as an additional submodule.
+
+If you did not clone the repository with the `--recurse-submodules` option, you can initialize the experiments folder using:
 
 ```sh
 git submodule init
