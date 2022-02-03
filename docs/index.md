@@ -12,7 +12,7 @@ Resolution-based rewriting algorithm from Guarded Tuple Generating Dependencies 
 
 ## Credits
 
-**[Information Systems Group](https://www.cs.ox.ac.uk/isg) — [Department of Computer Science](http://www.cs.ox.ac.uk) — [University of Oxford](www.ox.ac.uk)**
+**[Information Systems Group](https://www.cs.ox.ac.uk/isg) — [Department of Computer Science](https://www.cs.ox.ac.uk) — [University of Oxford](https://www.ox.ac.uk)**
 
 - [Michael Benedikt](http://www.cs.ox.ac.uk/people/michael.benedikt/home.html)
 - [Maxime Buron](https://www.cs.ox.ac.uk/people/maxime.buron)

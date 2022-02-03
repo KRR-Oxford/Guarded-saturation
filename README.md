@@ -64,7 +64,7 @@ where the `<timeout>` is expressed in seconds.
 To build the software we require
 
 - [Java](https://www.oracle.com/java)
-- [Apache Maven](http://maven.apache.org)
+- [Apache Maven](https://maven.apache.org)
 - [PDQ](https://github.com/ProofDrivenQuerying/pdq)
 - [KAON 2](http://kaon2.semanticweb.org)
 
@@ -151,7 +151,7 @@ git submodule init
 
 ## Credits
 
-**[Information Systems Group](https://www.cs.ox.ac.uk/isg) — [Department of Computer Science](http://www.cs.ox.ac.uk) — [University of Oxford](www.ox.ac.uk)**
+**[Information Systems Group](https://www.cs.ox.ac.uk/isg) — [Department of Computer Science](http://www.cs.ox.ac.uk) — [University of Oxford](https://www.ox.ac.uk)**
 
 - [Michael Benedikt](http://www.cs.ox.ac.uk/people/michael.benedikt/home.html)
 - [Maxime Buron](https://www.cs.ox.ac.uk/people/maxime.buron)
