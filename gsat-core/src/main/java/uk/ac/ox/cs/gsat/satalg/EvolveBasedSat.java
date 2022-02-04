@@ -8,7 +8,6 @@ import java.util.Set;
 import java.util.TreeSet;
 
 import uk.ac.ox.cs.gsat.App;
-import uk.ac.ox.cs.gsat.Configuration;
 import uk.ac.ox.cs.gsat.fol.GTGD;
 import uk.ac.ox.cs.gsat.fol.TGDFactory;
 import uk.ac.ox.cs.gsat.satalg.stats.EvolveStatistics;
@@ -36,15 +35,15 @@ import uk.ac.ox.cs.pdq.fol.Predicate;
  */
 public abstract class EvolveBasedSat<Q extends GTGD> extends AbstractSaturation<Q> {
 
-    protected EvolveBasedSat(String saturationName, TGDFactory<Q> factory, SaturationStatisticsFactory<Q> statFactory) {
+    protected EvolveBasedSat(String saturationName, TGDFactory<Q> factory, SaturationStatisticsFactory<Q> statFactory, SaturationConfig config) {
 
         this(saturationName, factory, UnificationIndexType.PREDICATE_INDEX, UnificationIndexType.PREDICATE_INDEX,
-                statFactory);
+             statFactory, config);
     }
 
     protected EvolveBasedSat(String saturationName, TGDFactory<Q> factory, UnificationIndexType leftIndexType,
-            UnificationIndexType rightIndexType, SaturationStatisticsFactory<Q> statFactory) {
-        super(saturationName, factory, leftIndexType, rightIndexType, statFactory);
+            UnificationIndexType rightIndexType, SaturationStatisticsFactory<Q> statFactory, SaturationConfig config) {
+        super(saturationName, factory, leftIndexType, rightIndexType, statFactory, config);
     }
 
     @Override
@@ -146,11 +145,11 @@ public abstract class EvolveBasedSat<Q extends GTGD> extends AbstractSaturation<
         final long startTime = System.nanoTime();
         Collection<Q> evolvedTGDs = evolveNew(leftTGD, rightTGD);
         stats.incrEvolveTime(System.nanoTime() - startTime);
-        if (Configuration.isStopEvolvingIfSubsumedEnabled()) {
+        if (this.config.isStopEvolvingIfSubsumedEnabled()) {
             boolean subsumed = false;
             for (Q newTGD : evolvedTGDs) {
                 if (!currentTGD.equals(newTGD)) {
-                    if (!Configuration.isDiscardUselessTGDEnabled()
+                    if (!this.config.isDiscardUselessTGDEnabled()
                             || isEvolvedTGDIsUseful(newTGD, rightTGD, bodyPredicates)) {
                         toAdd.add(newTGD);
                         subsumed = subsumed || SaturationUtils.subsumed(currentTGD, newTGD);
@@ -194,7 +193,7 @@ public abstract class EvolveBasedSat<Q extends GTGD> extends AbstractSaturation<
 
         Set<Q> result = new HashSet<>();
 
-        if (Configuration.isEvolvingTGDOrderingEnabled())
+        if (this.config.isEvolvingTGDOrderingEnabled())
             result = new TreeSet<>(SaturationUtils.comparator);
 
         for (Atom atom : leftTGD.getHeadSet()) {

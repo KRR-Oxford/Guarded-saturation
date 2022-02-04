@@ -4,6 +4,6 @@ import uk.ac.ox.cs.gsat.fol.SkGTGD;
 
 public class SkolemSatTest extends AbstractSkolemSatTest<SkGTGD> {
     public SkolemSatTest() {
-        super(SkolemSat.getInstance());
+        super(new SkolemSat(new SaturationConfig()));
     }
 }

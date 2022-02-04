@@ -37,7 +37,6 @@ import uk.ac.ox.cs.pdq.fol.Variable;
  */
 public abstract class AbstractSaturation<Q extends GTGD> implements SaturationAlgorithm {
     protected final boolean DEBUG_MODE = Configuration.isDebugMode();
-    protected final Long TIME_OUT = Configuration.getTimeout();
     protected final String saturationName;
     protected final TGDFactory<Q> factory;
     // New variable name for Universally Quantified Variables
@@ -52,24 +51,26 @@ public abstract class AbstractSaturation<Q extends GTGD> implements SaturationAl
     protected final UnificationIndexType rightIndexType;
     // factory of the statistics record
     protected final SaturationStatisticsFactory<Q> statFactory;
+    protected final SaturationConfig config;
 
-    protected AbstractSaturation(String saturationName, TGDFactory<Q> factory, SaturationStatisticsFactory<Q> statFactory) {
+    protected AbstractSaturation(String saturationName, TGDFactory<Q> factory, SaturationStatisticsFactory<Q> statFactory, SaturationConfig config) {
 
         this(saturationName, factory, UnificationIndexType.PREDICATE_INDEX, UnificationIndexType.PREDICATE_INDEX,
-                statFactory);
+                statFactory, config);
     }
 
     protected AbstractSaturation(String saturationName, TGDFactory<Q> factory, UnificationIndexType leftIndexType,
-            UnificationIndexType rightIndexType, SaturationStatisticsFactory<Q> statFactory) {
+                                 UnificationIndexType rightIndexType, SaturationStatisticsFactory<Q> statFactory, SaturationConfig config) {
         this.saturationName = saturationName;
         this.uVariable = saturationName + "_u";
         this.eVariable = saturationName + "_e";
         this.zVariable = saturationName + "_z";
         this.factory = factory;
+        this.config = config;
         // in case the unification index type is configurated forces the configuration choice
-        if (Configuration.getUnificationIndexType() != null) {
-            this.leftIndexType = Configuration.getUnificationIndexType();
-            this.rightIndexType = Configuration.getUnificationIndexType();
+        if (config.getUnificationIndexType() != null) {
+            this.leftIndexType = config.getUnificationIndexType();
+            this.rightIndexType = config.getUnificationIndexType();
         } else {
             this.leftIndexType = leftIndexType;
             this.rightIndexType = rightIndexType;
@@ -117,7 +118,7 @@ public abstract class AbstractSaturation<Q extends GTGD> implements SaturationAl
         Collection<Q> newRightTGDs;
         Collection<Q> newLeftTGDs;
 
-        switch (Configuration.getNewTGDStrusture()) {
+        switch (config.getNewTGDStrusture()) {
         case ORDERED_BY_ATOMS_NB:
             newRightTGDs = new TreeSet<>(SaturationUtils.comparator);
             newLeftTGDs = new TreeSet<>(SaturationUtils.comparator);
@@ -136,7 +137,7 @@ public abstract class AbstractSaturation<Q extends GTGD> implements SaturationAl
 
         UnificationIndex<Q> leftIndex = UnificationIndexFactory.getInstance().create(this.leftIndexType);
         UnificationIndex<Q> rightIndex;
-        if (Configuration.isEvolvingTGDOrderingEnabled())
+        if (config.isEvolvingTGDOrderingEnabled())
             rightIndex = UnificationIndexFactory.getInstance().create(this.rightIndexType, SaturationUtils.comparator);
         else
             rightIndex = UnificationIndexFactory.getInstance().create(this.rightIndexType);
@@ -147,17 +148,17 @@ public abstract class AbstractSaturation<Q extends GTGD> implements SaturationAl
         // initialization of the structures
         initialization(selectedTGDs, rightTGDsSet, newLeftTGDs, rightIndex);
 
-        App.logger.info("Subsumption method : " + Configuration.getSubsumptionMethod());
+        App.logger.info("Subsumption method : " + config.getSubsumptionMethod());
 
         // hack
         Set<Q> allTGDSet = new HashSet<>();
         allTGDSet.addAll(rightTGDsSet);
         allTGDSet.addAll(newLeftTGDs);
-        Subsumer<Q> rightTGDsSubsumer = SaturationUtils.createSubsumer(allTGDSet, newLeftTGDs);
-        Subsumer<Q> leftTGDsSubsumer = SaturationUtils.createSubsumer(allTGDSet, rightTGDsSet);
+        Subsumer<Q> rightTGDsSubsumer = SaturationUtils.createSubsumer(allTGDSet, newLeftTGDs, config);
+        Subsumer<Q> leftTGDsSubsumer = SaturationUtils.createSubsumer(allTGDSet, rightTGDsSet, config);
 
         Set<Predicate> bodyPredicates = new HashSet<>();
-        if (Configuration.isDiscardUselessTGDEnabled()) {
+        if (config.isDiscardUselessTGDEnabled()) {
             bodyPredicates.addAll(SaturationUtils.getBodyPredicates(leftTGDsSet));
             bodyPredicates.addAll(SaturationUtils.getBodyPredicates(rightTGDsSet));
         }
@@ -274,7 +275,7 @@ public abstract class AbstractSaturation<Q extends GTGD> implements SaturationAl
             UnificationIndex<Q> unificationIndex, Set<Q> TGDsSet, SaturationStatistics<Q> stats) {
 
         // discard if the newTGD is a tautology
-        if (Configuration.isTautologyDiscarded() && newTGD.getBodySet().containsAll(newTGD.getHeadSet())) {
+        if (config.isTautologyDiscarded() && newTGD.getBodySet().containsAll(newTGD.getHeadSet())) {
             stats.incrDiscardedTautologyCount();
             return;
         }
@@ -303,7 +304,7 @@ public abstract class AbstractSaturation<Q extends GTGD> implements SaturationAl
             }
         }
 
-        if (Configuration.getNewTGDStrusture().equals(Configuration.newTGDStructure.STACK) && newTGDs.contains(newTGD))
+        if (config.getNewTGDStrusture().equals(Configuration.newTGDStructure.STACK) && newTGDs.contains(newTGD))
             return;
         newTGDs.add(newTGD);
         TGDsSubsumer.add(newTGD);
@@ -358,7 +359,7 @@ public abstract class AbstractSaturation<Q extends GTGD> implements SaturationAl
 
     protected boolean isTimeout(long startTime) {
         // from seconds to nano seconds
-        Long timeout = (TIME_OUT != null) ? (long) (1000 * 1000 * 1000 * TIME_OUT) : null;
+        Long timeout = (config.getTimeout() != null) ? (long) (1000 * 1000 * 1000 * config.getTimeout()) : null;
 
         if (timeout != null && timeout < (System.nanoTime() - startTime))
             return true;

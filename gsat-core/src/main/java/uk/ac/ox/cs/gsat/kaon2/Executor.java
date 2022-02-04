@@ -144,7 +144,7 @@ public class Executor {
 
 		Collection<TGD> selectedTGDs = new HashSet<>();
 
-        TGDFactory<GTGD> factory = TGDFactory.getGTGDInstance(Configuration.isSortedVNF());
+        TGDFactory<GTGD> factory = TGDFactory.getGTGDInstance(true);
 		tGDRules.forEach(tgd -> selectedTGDs.addAll(factory.computeHNF(tgd)));
 
 		final long stopTime = System.nanoTime();

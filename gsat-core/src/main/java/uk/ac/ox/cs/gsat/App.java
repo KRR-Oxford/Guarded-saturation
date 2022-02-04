@@ -20,11 +20,8 @@ import uk.ac.ox.cs.gsat.io.OWLIO;
 import uk.ac.ox.cs.gsat.kaon2.KAON2StructuralTransformationIO;
 import uk.ac.ox.cs.gsat.mat.SolverOutput;
 import uk.ac.ox.cs.gsat.mat.Utils;
-import uk.ac.ox.cs.gsat.satalg.GSat;
-import uk.ac.ox.cs.gsat.satalg.HyperResolutionBasedSat;
-import uk.ac.ox.cs.gsat.satalg.OrderedSkolemSat;
-import uk.ac.ox.cs.gsat.satalg.SimpleSat;
-import uk.ac.ox.cs.gsat.satalg.SkolemSat;
+import uk.ac.ox.cs.gsat.satalg.SaturationAlgorithmFactory;
+import uk.ac.ox.cs.gsat.satalg.SaturationAlgorithmType;
 import uk.ac.ox.cs.pdq.fol.Atom;
 import uk.ac.ox.cs.pdq.fol.Dependency;
 
@@ -201,26 +198,27 @@ public class App {
 
 		try {
 
+            SaturationAlgorithmFactory factory = SaturationAlgorithmFactory.instance();
             if (Configuration.getSaturationAlg().equals("gsat")) {
 
                 System.out.println("Full TGD saturation algorithm: GSat");
-                executionOutput.setFullTGDSaturation(GSat.getInstance().run(rules));
+                executionOutput.setFullTGDSaturation(factory.create(SaturationAlgorithmType.GSAT).run(rules));
             } else if (Configuration.getSaturationAlg().equals("skolem_sat")) {
 
                 System.out.println("Full TGD saturation algorithm: Skolem Sat");
-                executionOutput.setFullTGDSaturation(SkolemSat.getInstance().run(rules));
+                executionOutput.setFullTGDSaturation(factory.create(SaturationAlgorithmType.SKOLEM_SAT).run(rules));
             } else if (Configuration.getSaturationAlg().equals("ordered_skolem_sat")) {
 
                 System.out.println("Full TGD saturation algorithm: ordered skolemized Sat");
-                executionOutput.setFullTGDSaturation(OrderedSkolemSat.getInstance().run(rules));
+                executionOutput.setFullTGDSaturation(factory.create(SaturationAlgorithmType.ORDERED_SKOLEM_SAT).run(rules));
             } else if (Configuration.getSaturationAlg().equals("hyper_sat")) {
 
                 System.out.println("Full TGD saturation algorithm: hyperresolution Sat");
-                executionOutput.setFullTGDSaturation(HyperResolutionBasedSat.getInstance().run(rules));
+                executionOutput.setFullTGDSaturation(factory.create(SaturationAlgorithmType.HYPER_SAT).run(rules));
             } else if (Configuration.getSaturationAlg().equals("simple_sat")) {
 
                 System.out.println("Full TGD saturation algorithm: Simple Sat");
-                executionOutput.setFullTGDSaturation(SimpleSat.getInstance().run(rules));
+                executionOutput.setFullTGDSaturation(factory.create(SaturationAlgorithmType.SIMPLE_SAT).run(rules));
             } else {
                 throw new IllegalStateException("The saturation algorithm (saturation_alg) " + Configuration.getSaturationAlg() + " is not supported.");
             }

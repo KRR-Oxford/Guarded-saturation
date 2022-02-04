@@ -11,7 +11,6 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 import uk.ac.ox.cs.gsat.App;
-import uk.ac.ox.cs.gsat.Configuration;
 import uk.ac.ox.cs.gsat.fol.GTGD;
 import uk.ac.ox.cs.gsat.fol.Logic;
 import uk.ac.ox.cs.gsat.fol.TGDFactory;
@@ -28,25 +27,12 @@ import uk.ac.ox.cs.pdq.fol.Variable;
  * - left: a non full TGD
  * - right: a full TGD
  */
-public class GSat extends EvolveBasedSat<GTGD> {
+class GSat extends EvolveBasedSat<GTGD> {
 
-    protected static final TGDFactory<GTGD> FACTORY = TGDFactory.getGTGDInstance(Configuration.isSortedVNF());
     private static final String NAME = "GSat";
-    private static final GSat INSTANCE = new GSat();
 
-    /**
-     * Private construtor, we want this class to be a Singleton
-     */
-    private GSat() {
-        super(NAME, FACTORY, EvolveStatistics.getFactory());
-    }
-
-    /**
-     *
-     * @return Singleton instace of GSat
-     */
-    public static GSat getInstance() {
-        return INSTANCE;
+    public GSat(SaturationConfig config) {
+        super(NAME, TGDFactory.getGTGDInstance(config.isSortedVNF()), EvolveStatistics.getFactory(), config);
     }
 
     @Override
@@ -54,8 +40,8 @@ public class GSat extends EvolveBasedSat<GTGD> {
         Collection<GTGD> result = new ArrayList<>();
 
         for(GTGD tgd : inputTGDs)
-            for (GTGD hnf : FACTORY.computeHNF(tgd))
-                result.add(FACTORY.computeVNF(hnf, eVariable, uVariable));
+            for (GTGD hnf : this.factory.computeHNF(tgd))
+                result.add(this.factory.computeVNF(hnf, eVariable, uVariable));
 
         return result;
     }
@@ -117,8 +103,8 @@ public class GSat extends EvolveBasedSat<GTGD> {
                     // the new non full TGD head, since the resulting TGD is u(B1) -> u(H1)
                     // which is subsumed by the non full TGD
                     if (Sbody.isEmpty() && !(new_ftgd_body_atoms.size() == 1 && isNewHeadNFTGDHead)) {
-						for (GTGD hnf : FACTORY.computeHNF(GTGD.create(new_body, new_head)))
-							results.add(FACTORY.computeVNF(hnf, eVariable, uVariable));
+						for (GTGD hnf : this.factory.computeHNF(GTGD.create(new_body, new_head)))
+							results.add(this.factory.computeVNF(hnf, eVariable, uVariable));
 					}
                     // no matching head atom for some atom in Sbody -> continue
                     continue;
@@ -140,11 +126,11 @@ public class GSat extends EvolveBasedSat<GTGD> {
 
                     if (mgu.isEmpty())
                         // no need to apply the MGU
-						for (GTGD hnf : FACTORY.computeHNF(GTGD.create(new_body, new_head)))
-							results.add(FACTORY.computeVNF(hnf, eVariable, uVariable));
+						for (GTGD hnf : this.factory.computeHNF(GTGD.create(new_body, new_head)))
+							results.add(this.factory.computeVNF(hnf, eVariable, uVariable));
                     else
-						for (GTGD hnf : FACTORY.computeHNF(Logic.applyMGU(new_body, new_head, mgu)))
-							results.add(FACTORY.computeVNF(hnf, eVariable, uVariable));
+						for (GTGD hnf : this.factory.computeHNF(Logic.applyMGU(new_body, new_head, mgu)))
+							results.add(this.factory.computeVNF(hnf, eVariable, uVariable));
 
                 }
             }

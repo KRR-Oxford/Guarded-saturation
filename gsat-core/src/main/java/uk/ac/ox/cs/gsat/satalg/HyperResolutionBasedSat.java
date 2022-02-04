@@ -12,7 +12,6 @@ import java.util.Set;
 import java.util.logging.Level;
 
 import uk.ac.ox.cs.gsat.App;
-import uk.ac.ox.cs.gsat.Configuration;
 import uk.ac.ox.cs.gsat.fol.Logic;
 import uk.ac.ox.cs.gsat.fol.SkGTGD;
 import uk.ac.ox.cs.gsat.fol.TGDFactory;
@@ -28,36 +27,27 @@ import uk.ac.ox.cs.pdq.fol.Predicate;
 import uk.ac.ox.cs.pdq.fol.Term;
 import uk.ac.ox.cs.pdq.fol.Variable;
 
-public class HyperResolutionBasedSat<Q extends SkGTGD> extends AbstractSaturation<Q> {
+public class HyperResolutionBasedSat extends AbstractSaturation<SkGTGD> {
 
-    private static final TGDFactory<SkGTGD> FACTORY = TGDFactory.getSkGTGDInstance(Configuration.isSortedVNF());
     private static final SaturationStatisticsFactory<SkGTGD> STAT_FACTORY = HyperResolutionStatistics.getFactory();
     private static final String NAME = "HyperSat";
-    private static final HyperResolutionBasedSat<SkGTGD> INSTANCE = createInstance();
 
-    private static HyperResolutionBasedSat<SkGTGD> createInstance() {
-        return new HyperResolutionBasedSat<SkGTGD>(NAME, FACTORY, UnificationIndexType.ATOM_PATH_INDEX,
-                UnificationIndexType.ATOM_PATH_INDEX, STAT_FACTORY);
-    }
 
-    public static HyperResolutionBasedSat<SkGTGD> getInstance() {
-        return INSTANCE;
-    }
+    private Map<SkGTGD, SkGTGD> renamingCache = new HashMap<>();
 
-    private Map<Q, Q> renamingCache = new HashMap<>();
-
-    protected HyperResolutionBasedSat(String saturationName, TGDFactory<Q> factory, UnificationIndexType leftIndexType,
-            UnificationIndexType rightIndexType, SaturationStatisticsFactory<Q> statFactory) {
-        super(saturationName, factory, leftIndexType, rightIndexType, statFactory);
+    protected HyperResolutionBasedSat(SaturationConfig config) {
+        super(NAME, TGDFactory.getSkGTGDInstance(config.isSortedVNF()),
+              UnificationIndexType.ATOM_PATH_INDEX,
+              UnificationIndexType.ATOM_PATH_INDEX, STAT_FACTORY, config);
     }
 
     @Override
-    protected void process(Set<Q> leftTGDsSet, Set<Q> rightTGDsSet, Collection<Q> newLeftTGDs,
-            Collection<Q> newRightTGDs, UnificationIndex<Q> leftIndex, UnificationIndex<Q> rightIndex,
-            Subsumer<Q> leftTGDsSubsumer, Subsumer<Q> rightTGDsSubsumer, Set<Predicate> bodyPredicates,
-            SaturationStatistics<Q> s) {
+    protected void process(Set<SkGTGD> leftTGDsSet, Set<SkGTGD> rightTGDsSet, Collection<SkGTGD> newLeftTGDs,
+            Collection<SkGTGD> newRightTGDs, UnificationIndex<SkGTGD> leftIndex, UnificationIndex<SkGTGD> rightIndex,
+            Subsumer<SkGTGD> leftTGDsSubsumer, Subsumer<SkGTGD> rightTGDsSubsumer, Set<Predicate> bodyPredicates,
+            SaturationStatistics<SkGTGD> s) {
 
-        HyperResolutionStatistics<Q> stats = (HyperResolutionStatistics<Q>) s;
+        HyperResolutionStatistics<SkGTGD> stats = (HyperResolutionStatistics<SkGTGD>) s;
 
         while (!newLeftTGDs.isEmpty() || !newRightTGDs.isEmpty()) {
 
@@ -66,12 +56,12 @@ public class HyperResolutionBasedSat<Q extends SkGTGD> extends AbstractSaturatio
                 break;
             }
 
-            Collection<Q> resolved = new HashSet<>();
+            Collection<SkGTGD> resolved = new HashSet<>();
 
             if (!newRightTGDs.isEmpty()) {
 
-                Iterator<Q> iterator = newRightTGDs.iterator();
-                Q rightTGD = iterator.next();
+                Iterator<SkGTGD> iterator = newRightTGDs.iterator();
+                SkGTGD rightTGD = iterator.next();
                 iterator.remove();
                 addRightTGD(rightTGD, rightIndex, rightTGDsSet);
 
@@ -82,8 +72,8 @@ public class HyperResolutionBasedSat<Q extends SkGTGD> extends AbstractSaturatio
                 resolved.addAll(hyperresolveWithNewFullTGD(leftTGDsSet, leftIndex, rightTGD, stats));
                 stats.incrHyperResolutionTime(System.nanoTime() - startTime);
             } else if (!newLeftTGDs.isEmpty()) {
-                Iterator<Q> iterator = newLeftTGDs.iterator();
-                Q leftTGD = iterator.next();
+                Iterator<SkGTGD> iterator = newLeftTGDs.iterator();
+                SkGTGD leftTGD = iterator.next();
                 iterator.remove();
                 addLeftTGD(leftTGD, leftIndex, leftTGDsSet);
 
@@ -96,7 +86,7 @@ public class HyperResolutionBasedSat<Q extends SkGTGD> extends AbstractSaturatio
             }
 
             // we update the structures with the TGDs to add
-            for (Q newTGD : resolved) {
+            for (SkGTGD newTGD : resolved) {
                 if (App.logger.isLoggable(Level.FINE))
                     App.logger.fine("newTGD: " + newTGD);
 
@@ -122,13 +112,13 @@ public class HyperResolutionBasedSat<Q extends SkGTGD> extends AbstractSaturatio
      * a body atom of full TGDs is resolvable with the non-full TGD's head. This body atom is not necessary a guard, so we have to retrieve the non-full TGDs to resolve the guard first.
      * There is an optimization to reduce the number of these last non-full TGDs using the new one.
      */    
-    private Collection<? extends Q> hyperresolveWithNewNonFullTGD(Set<Q> nonFullTGDsSet,
-            UnificationIndex<Q> nonFullTGDsIndex, UnificationIndex<Q> fullTGDsIndex, Q nonFullTGD,
-            HyperResolutionStatistics<Q> stats) {
+    private Collection<? extends SkGTGD> hyperresolveWithNewNonFullTGD(Set<SkGTGD> nonFullTGDsSet,
+            UnificationIndex<SkGTGD> nonFullTGDsIndex, UnificationIndex<SkGTGD> fullTGDsIndex, SkGTGD nonFullTGD,
+            HyperResolutionStatistics<SkGTGD> stats) {
     
-        Collection<Q> resolved = new HashSet<>();
+        Collection<SkGTGD> resolved = new HashSet<>();
     
-        for (Q fullTGD : fullTGDsIndex.get(nonFullTGD.getHeadAtom(0))) {
+        for (SkGTGD fullTGD : fullTGDsIndex.get(nonFullTGD.getHeadAtom(0))) {
             Set<Variable> fullTGDVariables = Set.of(fullTGD.getUniversal());
             for (Atom bodyAtom : fullTGD.getBodyAtoms()) {
                 // two cases whether bodyAtom is a guard or not
@@ -141,12 +131,12 @@ public class HyperResolutionBasedSat<Q extends SkGTGD> extends AbstractSaturatio
                                                              fullTGD, bodyAtom, stats));
                 } else {
                     // 2. bodyAtom is not a guard, so resolving on this atom will leave some Skolem functions
-                    Q resolvedRightTGD = resolveOn(nonFullTGD, fullTGD, bodyAtom);
+                    SkGTGD resolvedRightTGD = resolveOn(nonFullTGD, fullTGD, bodyAtom);
                     if (resolvedRightTGD != null) {
                         resolvedRightTGD = factory.computeVNF(resolvedRightTGD, eVariable, uVariable);
                         Atom resolvedGuard = resolvedRightTGD.getGuard();
     
-                        for (Q nonFullTGDForGuard : nonFullTGDsIndex.get(resolvedGuard)) {
+                        for (SkGTGD nonFullTGDForGuard : nonFullTGDsIndex.get(resolvedGuard)) {
                             // check if the head is compatible meaning it covers the skolem function of the resolved guard
                             // this initialisation is necessary in the case where the unification index is disabled.
                             boolean isCompatible = resolvedGuard.getPredicate().equals(nonFullTGDForGuard.getHeadAtom(0).getPredicate());
@@ -178,11 +168,11 @@ public class HyperResolutionBasedSat<Q extends SkGTGD> extends AbstractSaturatio
     /**
      * hyperresolution with a new full TGD gathering the non-full TGDs to resolve a guard of the full TGD
      */
-    private Collection<? extends Q> hyperresolveWithNewFullTGD(Set<Q> nonFullTGDsSet,
-            UnificationIndex<Q> nonFullTGDsIndex, Q fullTGD, HyperResolutionStatistics<Q> stats) {
+    private Collection<? extends SkGTGD> hyperresolveWithNewFullTGD(Set<SkGTGD> nonFullTGDsSet,
+            UnificationIndex<SkGTGD> nonFullTGDsIndex, SkGTGD fullTGD, HyperResolutionStatistics<SkGTGD> stats) {
 
-        Collection<Q> resolved = new HashSet<>();
-        for (Q nonFullTGD : nonFullTGDsIndex.get(fullTGD.getGuard()))
+        Collection<SkGTGD> resolved = new HashSet<>();
+        for (SkGTGD nonFullTGD : nonFullTGDsIndex.get(fullTGD.getGuard()))
             resolved.addAll(hyperresolveStartingWith(nonFullTGDsSet, nonFullTGDsIndex, nonFullTGD, fullTGD, fullTGD.getGuard(), stats));
 
         return resolved;
@@ -194,10 +184,10 @@ public class HyperResolutionBasedSat<Q extends SkGTGD> extends AbstractSaturatio
      * 2. hyperresolving the resulting TGD, if it contains Skolem in body, otherwise return the resulting full TGD
      */
 
-    private Collection<Q> hyperresolveStartingWith(Set<Q> nonFullTGDsSet, UnificationIndex<Q> nonFullTGDsIndex, Q nonFullTGD,
-                                                   Q fullTGD, Atom fullTGDGuard, HyperResolutionStatistics<Q> stats) {
-        Collection<Q> resolvedTGDs = new HashSet<>();
-        Q resolvedRightTGD = resolveOn(nonFullTGD, fullTGD, fullTGDGuard);
+    private Collection<SkGTGD> hyperresolveStartingWith(Set<SkGTGD> nonFullTGDsSet, UnificationIndex<SkGTGD> nonFullTGDsIndex, SkGTGD nonFullTGD,
+                                                   SkGTGD fullTGD, Atom fullTGDGuard, HyperResolutionStatistics<SkGTGD> stats) {
+        Collection<SkGTGD> resolvedTGDs = new HashSet<>();
+        SkGTGD resolvedRightTGD = resolveOn(nonFullTGD, fullTGD, fullTGDGuard);
         if (App.logger.isLoggable(Level.FINE)) {
             App.logger.fine("first resolved TGD: " + "\nnon full: " + nonFullTGD + "\nfull: " + fullTGD + "\nresolved: " + resolvedRightTGD);
         }
@@ -209,18 +199,18 @@ public class HyperResolutionBasedSat<Q extends SkGTGD> extends AbstractSaturatio
             if (skolemAtoms.size() > 0) {
                 // the resolved TGD contains Skolem functions in its body 
 
-                List<List<Q>> nonFullTGDcandidatesForSkolemAtoms = computeCandidatesForSkolemAtoms(nonFullTGDsIndex, skolemAtoms);
+                List<List<SkGTGD>> nonFullTGDcandidatesForSkolemAtoms = computeCandidatesForSkolemAtoms(nonFullTGDsIndex, skolemAtoms);
                 if (App.logger.isLoggable(Level.FINE)) {
                     App.logger.fine("skolem atom candidates: " + nonFullTGDcandidatesForSkolemAtoms);
                 }
 
-                for (List<Q> candidateList : nonFullTGDcandidatesForSkolemAtoms) {
+                for (List<SkGTGD> candidateList : nonFullTGDcandidatesForSkolemAtoms) {
                     stats.incrHyperResolutionCount();
 
                     List<Atom> headAtoms = new ArrayList<>();
                     List<Map<Term, Term>> candidateRenaming = new ArrayList<>();
                     int pos = 1;
-                    for (Q candidate : candidateList) {
+                    for (SkGTGD candidate : candidateList) {
                         Map<Term, Term> renaming = getRenameVariableSubstitution(candidate, zVariable + pos);
                         candidateRenaming.add(renaming);
                         headAtoms.add((Atom) Logic.applySubstitution(candidate.getHeadAtom(0), renaming));
@@ -238,7 +228,7 @@ public class HyperResolutionBasedSat<Q extends SkGTGD> extends AbstractSaturatio
                     Set<Atom> newBody = new HashSet<>(resolvedRightTGD.getBodySet());
                     newBody.removeAll(skolemAtoms);
                     pos = 0;
-                    for (Q candidate : candidateList) {
+                    for (SkGTGD candidate : candidateList) {
                         Map<Term, Term> renaming = candidateRenaming.get(pos);
                         pos++;
                         for (Atom atom : candidate.getBodySet())
@@ -248,7 +238,7 @@ public class HyperResolutionBasedSat<Q extends SkGTGD> extends AbstractSaturatio
                     Set<Atom> newHead = new HashSet<>();
                     newHead.add(resolvedRightTGD.getHeadAtom(0));
 
-                    Q newTGD = factory.computeVNF(factory.create(Logic.applyMGU(newBody, mgu), Logic.applyMGU(newHead, mgu)), eVariable, uVariable);
+                    SkGTGD newTGD = factory.computeVNF(factory.create(Logic.applyMGU(newBody, mgu), Logic.applyMGU(newHead, mgu)), eVariable, uVariable);
 
                     resolvedTGDs.add(newTGD);
 
@@ -268,13 +258,13 @@ public class HyperResolutionBasedSat<Q extends SkGTGD> extends AbstractSaturatio
         return resolvedTGDs;
     }
 
-    private List<List<Q>> computeCandidatesForSkolemAtoms(UnificationIndex<Q> nonFullTGDsIndex,
+    private List<List<SkGTGD>> computeCandidatesForSkolemAtoms(UnificationIndex<SkGTGD> nonFullTGDsIndex,
             List<Atom> skolemAtoms) {
 
-        List<Collection<Q>> candidatesPerBodyAtoms = new ArrayList<>();
+        List<Collection<SkGTGD>> candidatesPerBodyAtoms = new ArrayList<>();
 
         for (Atom atom : skolemAtoms) {
-            Collection<Q> candidates = nonFullTGDsIndex.get(atom);
+            Collection<SkGTGD> candidates = nonFullTGDsIndex.get(atom);
             if (!candidates.isEmpty())
                 candidatesPerBodyAtoms.add(candidates);
             else
@@ -289,7 +279,7 @@ public class HyperResolutionBasedSat<Q extends SkGTGD> extends AbstractSaturatio
      * @param rightTGD rule in VNF
      * @param B        - an atom in rightTGD's body
      */
-    private Q resolveOn(Q leftTGD, Q rightTGD, Atom B) {
+    private SkGTGD resolveOn(SkGTGD leftTGD, SkGTGD rightTGD, Atom B) {
 
         Atom H = leftTGD.getHeadAtom(0);
 
@@ -301,7 +291,7 @@ public class HyperResolutionBasedSat<Q extends SkGTGD> extends AbstractSaturatio
         Map<Term, Term> mgu = Logic.getMGU(B, (Atom) Logic.applySubstitution(H, renamingSubstitution));
 
         if (!renamingCache.containsKey(leftTGD))
-            renamingCache.put(leftTGD, (Q) Logic.applySubstitution(leftTGD, renamingSubstitution));
+            renamingCache.put(leftTGD, (SkGTGD) Logic.applySubstitution(leftTGD, renamingSubstitution));
 
         leftTGD = renamingCache.get(leftTGD);
 
@@ -321,7 +311,7 @@ public class HyperResolutionBasedSat<Q extends SkGTGD> extends AbstractSaturatio
             for (Atom hatom : rightTGD.getHeadSet())
                 new_head.add((Atom) Logic.applySubstitution(hatom, mgu));
 
-            Q new_tgd = factory.create(new_body, new_head);
+            SkGTGD new_tgd = factory.create(new_body, new_head);
 
             return new_tgd;
         } else {
@@ -330,11 +320,11 @@ public class HyperResolutionBasedSat<Q extends SkGTGD> extends AbstractSaturatio
     }
 
     @Override
-    protected Collection<Q> getOutput(Collection<Q> rightTGDs) {
+    protected Collection<SkGTGD> getOutput(Collection<SkGTGD> rightTGDs) {
         // ugly copy from AbstractSkolemSat
-        Collection<Q> output = new HashSet<>();
+        Collection<SkGTGD> output = new HashSet<>();
 
-        for (Q tgd : rightTGDs)
+        for (SkGTGD tgd : rightTGDs)
             if (!tgd.isFunctional())
                 output.add(tgd);
 
@@ -343,14 +333,14 @@ public class HyperResolutionBasedSat<Q extends SkGTGD> extends AbstractSaturatio
     }
 
     @Override
-    protected Collection<Q> transformInputTGDs(Collection<Q> inputTGDs) {
+    protected Collection<SkGTGD> transformInputTGDs(Collection<SkGTGD> inputTGDs) {
         // ugly copy from AbstractSkolemSat
-        Collection<Q> result = new ArrayList<>();
+        Collection<SkGTGD> result = new ArrayList<>();
 
-        for (Q tgd : inputTGDs) {
+        for (SkGTGD tgd : inputTGDs) {
 
-            Collection<Q> singleSkolemizedTGDs;
-            switch (Configuration.getSkolemizationType()) {
+            Collection<SkGTGD> singleSkolemizedTGDs;
+            switch (config.getSkolemizationType()) {
             case NAIVE:
                 singleSkolemizedTGDs = factory.computeSingleHeadedSkolemized(tgd);
                 break;
@@ -359,11 +349,11 @@ public class HyperResolutionBasedSat<Q extends SkGTGD> extends AbstractSaturatio
                 break;
             default:
                 String message = String.format("the skolemization type %s is not supported",
-                        Configuration.getSkolemizationType());
+                        config.getSkolemizationType());
                 throw new IllegalStateException(message);
             }
 
-            for (Q shnf : singleSkolemizedTGDs) {
+            for (SkGTGD shnf : singleSkolemizedTGDs) {
                 result.add(factory.computeVNF(shnf, eVariable, uVariable));
             }
         }
@@ -371,17 +361,17 @@ public class HyperResolutionBasedSat<Q extends SkGTGD> extends AbstractSaturatio
     }
 
     @Override
-    protected boolean isLeftTGD(Q newTGD) {
+    protected boolean isLeftTGD(SkGTGD newTGD) {
         return newTGD.isNonFull();
     }
 
     @Override
-    protected boolean isRightTGD(Q newTGD) {
+    protected boolean isRightTGD(SkGTGD newTGD) {
         return !newTGD.isNonFull();
     }
 
     @Override
-    protected Atom[] getUnifiableBodyAtoms(Q rightTGD) {
+    protected Atom[] getUnifiableBodyAtoms(SkGTGD rightTGD) {
         return rightTGD.getBodyAtoms();
     }
 

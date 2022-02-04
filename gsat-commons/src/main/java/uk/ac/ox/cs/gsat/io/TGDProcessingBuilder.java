@@ -1,7 +1,6 @@
 package uk.ac.ox.cs.gsat.io;
 
 import java.util.Collection;
-import java.util.HashSet;
 import java.util.List;
 
 import uk.ac.ox.cs.gsat.api.io.Parser;

@@ -6,7 +6,6 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
-import uk.ac.ox.cs.gsat.Configuration;
 import uk.ac.ox.cs.gsat.fol.Logic;
 import uk.ac.ox.cs.gsat.fol.SkGTGD;
 import uk.ac.ox.cs.gsat.fol.TGDFactory;
@@ -17,8 +16,8 @@ import uk.ac.ox.cs.pdq.fol.Term;
 
 public abstract class AbstractSkolemSat<Q extends SkGTGD> extends EvolveBasedSat<Q> {
 
-    protected AbstractSkolemSat(TGDFactory<Q> factory, String name) {
-        super(name, factory, UnificationIndexType.ATOM_PATH_INDEX, UnificationIndexType.ATOM_PATH_INDEX, SkolemStatistics.getSkFactory());
+    protected AbstractSkolemSat(TGDFactory<Q> factory, String name, SaturationConfig config) {
+        super(name, factory, UnificationIndexType.ATOM_PATH_INDEX, UnificationIndexType.ATOM_PATH_INDEX, SkolemStatistics.getSkFactory(), config);
     }
 
     @Override
@@ -28,7 +27,7 @@ public abstract class AbstractSkolemSat<Q extends SkGTGD> extends EvolveBasedSat
         for (Q tgd : inputTGDs) {
 
             Collection<Q> singleSkolemizedTGDs;
-            switch (Configuration.getSkolemizationType()) {
+            switch (config.getSkolemizationType()) {
             case NAIVE:
                 singleSkolemizedTGDs = factory.computeSingleHeadedSkolemized(tgd);
                 break;
@@ -37,7 +36,7 @@ public abstract class AbstractSkolemSat<Q extends SkGTGD> extends EvolveBasedSat
                 break;
             default:
                 String message = String.format("the skolemization type %s is not supported",
-                        Configuration.getSkolemizationType());
+                        config.getSkolemizationType());
                 throw new IllegalStateException(message);
             }
 

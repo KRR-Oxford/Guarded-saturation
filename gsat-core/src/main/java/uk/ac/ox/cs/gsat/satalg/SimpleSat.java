@@ -11,7 +11,6 @@ import java.util.Map;
 import java.util.Set;
 
 import uk.ac.ox.cs.gsat.App;
-import uk.ac.ox.cs.gsat.Configuration;
 import uk.ac.ox.cs.gsat.api.SaturationAlgorithm;
 import uk.ac.ox.cs.gsat.fol.GTGD;
 import uk.ac.ox.cs.gsat.fol.Logic;
@@ -24,11 +23,8 @@ import uk.ac.ox.cs.pdq.fol.Predicate;
 import uk.ac.ox.cs.pdq.fol.Term;
 import uk.ac.ox.cs.pdq.fol.Variable;
 
-public class SimpleSat implements SaturationAlgorithm {
+class SimpleSat implements SaturationAlgorithm {
 
-    private static TGDFactory<TGD> FACTORY = TGDFactory.getTGDInstance(Configuration.isSortedVNF());
-    private final Long TIME_OUT = Configuration.getTimeout();
-    
     // New variable name for Universally Quantified Variables
     public String uVariable = "GSat_u";
     // New variable name for Existentially Quantified Variables
@@ -36,16 +32,15 @@ public class SimpleSat implements SaturationAlgorithm {
     // New variable name for renamed Variables
     public String zVariable = "GSat_z";
 
-    private static final SimpleSat INSTANCE = new SimpleSat();
-
-    public static SimpleSat getInstance() {
-        return INSTANCE;
-    }
+    protected final SaturationConfig config;
+    protected final TGDFactory<TGD> factory;
 
     /**
      * Private construtor, we want this class to be a Singleton
      */
-    private SimpleSat() {
+    public SimpleSat(SaturationConfig config) {
+        this.config = config;
+        this.factory = TGDFactory.getTGDInstance(config.isSortedVNF());
     }
 
     /**
@@ -72,15 +67,15 @@ public class SimpleSat implements SaturationAlgorithm {
                 + String.format(Locale.UK, "%.3f", (float) discarded / allDependencies.size() * 100) + "%");
 
         // compute the set of full and non-full tgds in normal forms
-        Subsumer<TGD> fullTGDSubsumer = SaturationUtils.createSubsumer(new HashSet<>());
+        Subsumer<TGD> fullTGDSubsumer = SaturationUtils.createSubsumer(new HashSet<>(), config);
         Collection<TGD> fullTGDs = new HashSet<>();
         List<TGD> nonfullTGDs = new ArrayList<>();
         Collection<Predicate> nfTGDHeadPredicate = new HashSet<>();
         int width = 0;
 
         for (TGD tgd : selectedTGDs) {
-            for (TGD hnf : FACTORY.computeHNF(tgd)) {
-				TGD currentTGD = FACTORY.computeVNF(hnf, eVariable, uVariable);
+            for (TGD hnf : factory.computeHNF(tgd)) {
+				TGD currentTGD = factory.computeVNF(hnf, eVariable, uVariable);
                 width = Math.max(currentTGD.getWidth(), width);
                 if (Logic.isFull(currentTGD) && !fullTGDSubsumer.subsumed(tgd)) {
                     fullTGDs.add(currentTGD);
@@ -161,7 +156,7 @@ public class SimpleSat implements SaturationAlgorithm {
      */
     private Collection<TGD> filterFullTGDByBodyPredicate(Collection<TGD> fullTGDs, Collection<Predicate> predicates) {
 
-        if (!Configuration.isSimpleSatPredicateFilterEnabled()) {
+        if (!config.isSimpleSatPredicateFilter()) {
             return fullTGDs;
         }
 
@@ -340,7 +335,7 @@ public class SimpleSat implements SaturationAlgorithm {
     	}
     
     	if(!new_head.isEmpty()) {
-    		return FACTORY.computeVNF(TGD.create(body, new_head), eVariable, uVariable);
+    		return factory.computeVNF(TGD.create(body, new_head), eVariable, uVariable);
     	} else {
     		return null;
     	}
@@ -411,10 +406,10 @@ public class SimpleSat implements SaturationAlgorithm {
                         // if the composition contains more universal variables
                         // than the width, we need to form partitions of the variables having $width parts.
                         for (Map<Term, Term> unifier : getPartitionUnifiers(variables, width)) {
-							resultingFullTGDs.add(FACTORY.computeVNF(((TGD) Logic.applySubstitution(composition, unifier)), eVariable, uVariable));
+							resultingFullTGDs.add(factory.computeVNF(((TGD) Logic.applySubstitution(composition, unifier)), eVariable, uVariable));
                         }
                     } else {
-                        resultingFullTGDs.add(FACTORY.computeVNF(composition, eVariable, uVariable));
+                        resultingFullTGDs.add(factory.computeVNF(composition, eVariable, uVariable));
                     }
                 }
             }
@@ -533,7 +528,7 @@ public class SimpleSat implements SaturationAlgorithm {
 
     private boolean isTimeout(long startTime) {
         // from seconds to nano seconds
-        Long timeout = (TIME_OUT != null) ? (long) (1000 * 1000 * 1000 * TIME_OUT) : null;
+        Long timeout = (config.getTimeout() != null) ? (long) (1000 * 1000 * 1000 * config.getTimeout()) : null;
 
         if (timeout != null && timeout < (System.nanoTime() - startTime))
             return true;

@@ -12,19 +12,23 @@ public class SaturationAlgorithmFactory {
     public static SaturationAlgorithmFactory instance() {
         return INSTANCE;
     }
-    
+
     public SaturationAlgorithm create(SaturationAlgorithmType type) {
+        return create(type, new SaturationConfig());
+    }
+
+    public SaturationAlgorithm create(SaturationAlgorithmType type, SaturationConfig config) {
         switch(type) {
         case GSAT:
-            return GSat.getInstance();
+            return new GSat(config);
         case HYPER_SAT:
-            return HyperResolutionBasedSat.getInstance();
+            return new HyperResolutionBasedSat(config);
         case ORDERED_SKOLEM_SAT:
-            return OrderedSkolemSat.getInstance();
+            return new OrderedSkolemSat(config);
         case SIMPLE_SAT:
-            return SimpleSat.getInstance();
+            return new SimpleSat(config);
         case SKOLEM_SAT:
-            return SkolemSat.getInstance();
+            return new SkolemSat(config);
         default:
             String message = String.format("Unsupported saturation algorithm type %s", type);
             throw new IllegalStateException(message);

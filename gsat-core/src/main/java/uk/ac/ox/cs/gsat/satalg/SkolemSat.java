@@ -1,6 +1,5 @@
 package uk.ac.ox.cs.gsat.satalg;
 
-import uk.ac.ox.cs.gsat.Configuration;
 import uk.ac.ox.cs.gsat.fol.SkGTGD;
 import uk.ac.ox.cs.gsat.fol.TGDFactory;
 import uk.ac.ox.cs.pdq.fol.Atom;
@@ -15,18 +14,12 @@ import uk.ac.ox.cs.pdq.fol.Atom;
  * - right: any TGD is either full or contains at least one function term in its body
  */
 
-public class SkolemSat extends AbstractSkolemSat<SkGTGD> {
+class SkolemSat extends AbstractSkolemSat<SkGTGD> {
 
-    private static final TGDFactory<SkGTGD> FACTORY = TGDFactory.getSkGTGDInstance(Configuration.isSortedVNF());
     private static final String NAME = "SkSat";
-    private static final SkolemSat INSTANCE = new SkolemSat();
 
-    private SkolemSat() {
-        super(FACTORY, NAME);
-    }
-
-    public static SkolemSat getInstance() {
-        return INSTANCE;
+    SkolemSat(SaturationConfig config) {
+        super(TGDFactory.getSkGTGDInstance(config.isSortedVNF()), NAME, config);
     }
 
     @Override

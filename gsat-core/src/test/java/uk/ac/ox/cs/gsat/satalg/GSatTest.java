@@ -34,6 +34,7 @@ import uk.ac.ox.cs.pdq.fol.Variable;
  */
 public class GSatTest {
 
+    private static final GSat gsat = new GSat(new SaturationConfig());
 	// Variables
 	private static final Variable x1 = Variable.create("x1");
 	private static final Variable x2 = Variable.create("x2");
@@ -70,18 +71,18 @@ public class GSatTest {
 	private static final Atom H1_x1z1y1y2 = Atom.create(Predicate.create("H1", 4), x1, z1, y1, y2);
 	private static final Atom H2_y1y2 = Atom.create(Predicate.create("H2", 2), y1, y2);
 	private static final Atom B_u1u2u3 = Atom.create(Predicate.create("B", 3),
-			Variable.create(GSat.getInstance().uVariable + "1"), Variable.create(GSat.getInstance().uVariable + "2"),
-			Variable.create(GSat.getInstance().uVariable + "3"));
+			Variable.create(gsat.uVariable + "1"), Variable.create(gsat.uVariable + "2"),
+			Variable.create(gsat.uVariable + "3"));
 	private static final Atom H1_u2e1e2e3 = Atom.create(Predicate.create("H1", 4),
-			Variable.create(GSat.getInstance().uVariable + "2"), Variable.create(GSat.getInstance().eVariable + "1"),
-			Variable.create(GSat.getInstance().eVariable + "2"), Variable.create(GSat.getInstance().eVariable + "3"));
+			Variable.create(gsat.uVariable + "2"), Variable.create(gsat.eVariable + "1"),
+			Variable.create(gsat.eVariable + "2"), Variable.create(gsat.eVariable + "3"));
 	private static final Atom H2_e2e3 = Atom.create(Predicate.create("H2", 2),
-			Variable.create(GSat.getInstance().eVariable + "2"), Variable.create(GSat.getInstance().eVariable + "3"));
+			Variable.create(gsat.eVariable + "2"), Variable.create(gsat.eVariable + "3"));
 	private static final Atom H2_e1e2 = Atom.create(Predicate.create("H2", 2),
-			Variable.create(GSat.getInstance().eVariable + "1"), Variable.create(GSat.getInstance().eVariable + "2"));
+			Variable.create(gsat.eVariable + "1"), Variable.create(gsat.eVariable + "2"));
 	private static final Atom H1_u2e3e1e2 = Atom.create(Predicate.create("H1", 4),
-			Variable.create(GSat.getInstance().uVariable + "2"), Variable.create(GSat.getInstance().eVariable + "3"),
-			Variable.create(GSat.getInstance().eVariable + "1"), Variable.create(GSat.getInstance().eVariable + "2"));
+			Variable.create(gsat.uVariable + "2"), Variable.create(gsat.eVariable + "3"),
+			Variable.create(gsat.eVariable + "1"), Variable.create(gsat.eVariable + "2"));
 
 	@BeforeAll
 	static void initAll() {
@@ -98,7 +99,7 @@ public class GSatTest {
 	@Test
 	public void runGSatTest() {
 		System.out.println("runGSat tests");
-		GSat gsat = GSat.getInstance();
+		// GSat gsat = gsat;
 		// Example 1
 		// ∀ x1 R(x1) → ∃ y1,y2 T(x1,y1,y2)
 		// ∀ x1,x2,x3 T(x1,x2,x3) → ∃ y1 U(x1,x2,y1)
@@ -207,7 +208,7 @@ public class GSatTest {
 
 	@Test
 	public void VNFsTest() {
-		GSat gsat = GSat.getInstance();
+		// GSat gsat = gsat;
         TGDFactory<GTGD> factory = TGDFactory.getGTGDInstance(true);
 		// ∀ x2,x1,x3 B(x2,x1,x3) → ∃ z1,y1,y2 H1(x1,z1,y1,y2) & H2(y1,y2)
 		GTGD tgd = GTGD.create(Set.of(B_x2x1x3), Set.of(H1_x1z1y1y2, H2_y1y2));
@@ -229,7 +230,7 @@ public class GSatTest {
 
 	@Test
 	public void VNFTest() {
-        GSat gsat = GSat.getInstance();
+        // GSat gsat = gsat;
         TGDFactory<GTGD> factory = TGDFactory.getGTGDInstance(true);
 		// ∀ x2,x1,x3 B(x2,x1,x3) → ∃ z1,y1,y2 H1(x1,z1,y1,y2) & H2(y1,y2)
 		GTGD tgd = GTGD.create(Set.of(B_x2x1x3), Set.of(H1_x1z1y1y2, H2_y1y2));
@@ -260,7 +261,7 @@ public class GSatTest {
 	// System.out.println("Original TGD: " + tgd);
 
 	// assertThrows(IllegalArgumentException.class, () ->
-	// GSat.getInstance().evolveRename(tgd),
+	// gsat.evolveRename(tgd),
 	// "Expected evolveRename to throw IllegalArgumentException, but it didn't");
 
 	// // ∀ u1,u2,u3 B(u1,u2,u3) → H1(u2,u1)
@@ -268,7 +269,7 @@ public class GSatTest {
 	// H1_u2u1 }));
 	// System.out.println("Original TGD: " + tgd2);
 
-	// TGD tgdsEvolveRename = GSat.getInstance().evolveRename(tgd2);
+	// TGD tgdsEvolveRename = gsat.evolveRename(tgd2);
 	// System.out.println("TGDs in evolveRename: " + tgdsEvolveRename);
 
 	// // ∀ z1,z2,z3 B(z1,z2,z3) → ∃ z1,z2 H1(z2,z1)
@@ -283,9 +284,9 @@ public class GSatTest {
 	// public void getMGUTest() {
 
 	// Collection<Variable> existentials = new HashSet<>();
-	// existentials.add(Variable.create(GSat.getInstance().eVariable + "1"));
+	// existentials.add(Variable.create(gsat.eVariable + "1"));
 
-	// Map<Term, Term> mgu = GSat.getInstance().getMGU(Set.of( U_u1u2u3 ), new
+	// Map<Term, Term> mgu = gsat.getMGU(Set.of( U_u1u2u3 ), new
 	// Atom[] { U_z1z2z3 },
 	// Arrays.asList(U_z1z2z3), existentials);
 
@@ -299,10 +300,10 @@ public class GSatTest {
 	public void equalsTGDs() {
 
 		Atom OWL1 = Atom.create(Predicate.create("http://www.daml.org/2001/03/daml+oil#Nothing", 1),
-				Variable.create(GSat.getInstance().uVariable + "1"));
+				Variable.create(gsat.uVariable + "1"));
 		Atom OWL2 = Atom.create(Predicate.create("http://www.w3.org/2000/01/rdf-schema#Resource", 1),
-				Variable.create(GSat.getInstance().eVariable + "1"));
-		Atom OWL3 = Atom.create(Predicate.create("true", 1), Variable.create(GSat.getInstance().eVariable + "1"));
+				Variable.create(gsat.eVariable + "1"));
+		Atom OWL3 = Atom.create(Predicate.create("true", 1), Variable.create(gsat.eVariable + "1"));
 		GTGD tgd1 = GTGD.create(Set.of(OWL1), Set.of(OWL2, OWL3));
 
 		GTGD tgd2 = GTGD.create(Set.of(OWL1), Set.of(OWL2, OWL3));
@@ -310,7 +311,7 @@ public class GSatTest {
 		assertEquals(tgd1, tgd2);
 		assertTrue(tgd1.equals(tgd2));
 
-		GSat gsat = GSat.getInstance();
+		// GSat gsat = gsat;
 		Variable x1 = Variable.create(gsat.uVariable + "1");
 		Variable y1 = Variable.create(gsat.eVariable + "1");
 
@@ -338,7 +339,7 @@ public class GSatTest {
 	public void evolveNewTest() {
 
 		System.out.println("Evolve (new) tests");
-		GSat gsat = GSat.getInstance();
+		// GSat gsat = gsat;
 		Variable x1 = Variable.create(gsat.uVariable + "1");
 		Variable x2 = Variable.create(gsat.uVariable + "2");
 		Variable x3 = Variable.create(gsat.uVariable + "3");
@@ -572,7 +573,7 @@ public class GSatTest {
 	// System.out.println("MGU tests:");
 
 	// // ****** MGU tests: *******
-	// GSat gsat = GSat.getInstance();
+	// GSat gsat = gsat;
 	// Variable x1 = Variable.create(gsat.uVariable + "1");
 	// Variable y1 = Variable.create(gsat.eVariable + "1");
 	// Variable y2 = Variable.create(gsat.eVariable + "2");
@@ -582,14 +583,14 @@ public class GSatTest {
 	// Atom Rx = Atom.create(Predicate.create("R", 2), x1, y1);
 	// Atom Rz = Atom.create(Predicate.create("R", 2), z1, z1);
 	// // expect null since x1 is mapped to y1, conflicting with the evc
-	// checkMGUTest(null, GSat.getInstance().getGuardMGU(Rz, Rx));
+	// checkMGUTest(null, gsat.getGuardMGU(Rz, Rx));
 
 	// // 4.
 	// Rx = Atom.create(Predicate.create("R", 2), y1, y2);
 	// Rz = Atom.create(Predicate.create("R", 2), z1, z1);
 	// // expect null since z1 can't be mapped to both, y1 and y2 (y1 and y2 need to
 	// // stay constant)
-	// checkMGUTest(null, GSat.getInstance().getGuardMGU(Rz, Rx));
+	// checkMGUTest(null, gsat.getGuardMGU(Rz, Rx));
 
 	// }
 

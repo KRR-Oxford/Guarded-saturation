@@ -4,6 +4,6 @@ import uk.ac.ox.cs.gsat.fol.SkGTGD;
 
 public class HyperResolutionBasedSatTest extends AbstractSkolemSatTest<SkGTGD> {
     public HyperResolutionBasedSatTest() {
-        super(HyperResolutionBasedSat.getInstance());
+        super(new HyperResolutionBasedSat(new SaturationConfig()));
     }
 }

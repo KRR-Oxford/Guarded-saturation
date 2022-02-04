@@ -16,17 +16,16 @@ import java.util.logging.Level;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
-import uk.ac.ox.cs.gsat.fol.GTGD;
-import uk.ac.ox.cs.gsat.fol.Logic;
+import uk.ac.ox.cs.gsat.fol.TGD;
 import uk.ac.ox.cs.gsat.io.DatalogSerializer;
 import uk.ac.ox.cs.gsat.mat.SolverOutput;
 import uk.ac.ox.cs.gsat.mat.Utils;
-import uk.ac.ox.cs.gsat.satalg.GSat;
+import uk.ac.ox.cs.gsat.satalg.SaturationAlgorithmFactory;
+import uk.ac.ox.cs.gsat.satalg.SaturationAlgorithmType;
 import uk.ac.ox.cs.pdq.fol.Atom;
 import uk.ac.ox.cs.pdq.fol.ConjunctiveQuery;
 import uk.ac.ox.cs.pdq.fol.Dependency;
 import uk.ac.ox.cs.pdq.fol.Predicate;
-import uk.ac.ox.cs.pdq.fol.TGD;
 import uk.ac.ox.cs.pdq.fol.UntypedConstant;
 import uk.ac.ox.cs.pdq.fol.Variable;
 
@@ -73,7 +72,7 @@ public class IRISPMTest {
 			Collection<ConjunctiveQuery> allQueries, int guardedSaturationSize, int[] queryLenghts) {
 		System.out.println("Initial rules:");
 		allTGDs.forEach(System.out::println);
-		Collection<GTGD> guardedSaturation = GSat.getInstance().run(allTGDs);
+		Collection<? extends TGD> guardedSaturation = SaturationAlgorithmFactory.instance().create(SaturationAlgorithmType.GSAT).run(allTGDs);
 
 		System.out.println("Guarded saturation:");
 		guardedSaturation.forEach(System.out::println);

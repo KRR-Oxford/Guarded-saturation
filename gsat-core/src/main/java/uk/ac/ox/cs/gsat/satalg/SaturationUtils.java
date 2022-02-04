@@ -7,7 +7,6 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
-import uk.ac.ox.cs.gsat.Configuration;
 import uk.ac.ox.cs.gsat.filters.FormulaFilter;
 import uk.ac.ox.cs.gsat.filters.IdentityFormulaFilter;
 import uk.ac.ox.cs.gsat.filters.MinAtomFilter;
@@ -124,15 +123,16 @@ class SaturationUtils {
 
     /**
      * Helpers to create subsumer
+     * @param config 
      */
 
-    static <P extends TGD> Subsumer<P> createSubsumer(Set<P> initialTgds) {
-        return createSubsumer(initialTgds, new HashSet<>());
+    static <P extends TGD> Subsumer<P> createSubsumer(Set<P> initialTgds, SaturationConfig config) {
+        return createSubsumer(initialTgds, new HashSet<>(), config);
     }
 
-    static <P extends TGD> Subsumer<P> createSubsumer(Set<P> allTGDSet, Collection<P> newLeftTGDs) {
+    static <P extends TGD> Subsumer<P> createSubsumer(Set<P> allTGDSet, Collection<P> newLeftTGDs, SaturationConfig config) {
 
-        String subsumptionMethod = Configuration.getSubsumptionMethod();
+        String subsumptionMethod = config.getSubsumptionMethod();
         Subsumer<P> subsumer;
 
         if (subsumptionMethod.equals("tree_atom")) {
@@ -152,7 +152,7 @@ class SaturationUtils {
             } else if (subsumptionMethod.equals("min_atom")) {
                 filter = new MinAtomFilter<P>();
             } else if (subsumptionMethod.equals("tree_predicate")) {
-                filter = new TreePredicateFilter<P>();
+                filter = new TreePredicateFilter<P>(config);
             } else if (subsumptionMethod.equals("identity")) {
                 filter = new IdentityFormulaFilter<P>();
             } else {

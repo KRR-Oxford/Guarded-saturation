@@ -28,10 +28,7 @@ public class SimpleSubsumer<Q extends TGD> implements Subsumer<Q> {
         var bodyN = newTGD.getBodySet();
         var headN = newTGD.getHeadSet();
 
-        long start = System.nanoTime();
-        long candidatesCount = 0;
         for (Q tgd : filter.getSubsumedCandidates(newTGD)) {
-            candidatesCount++;
             var body = tgd.getBodySet();
             var head = tgd.getHeadSet();
 
@@ -59,10 +56,7 @@ public class SimpleSubsumer<Q extends TGD> implements Subsumer<Q> {
     public boolean subsumed(Q newTGD) {
         var bodyN = newTGD.getBodySet();
         var headN = newTGD.getHeadSet();
-        long start = System.nanoTime();
-        long candidatesCount = 0;
         for (Q tgd : filter.getSubsumingCandidates(newTGD)) {
-            candidatesCount++;
             var body = tgd.getBodySet();
             var head = tgd.getHeadSet();
 
@@ -102,6 +96,6 @@ public class SimpleSubsumer<Q extends TGD> implements Subsumer<Q> {
 
     public void printIndex() {
         if (filter instanceof TreePredicateFilter)
-            ((TreePredicateFilter) filter).printIndex("index.dot");
+            ((TreePredicateFilter<Q>) filter).printIndex("index.dot");
     }
 }

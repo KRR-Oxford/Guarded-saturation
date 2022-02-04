@@ -1,7 +1,6 @@
 package uk.ac.ox.cs.gsat;
 
 import java.io.File;
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -25,6 +24,7 @@ import uk.ac.ox.cs.gsat.io.SerializerFactory;
 import uk.ac.ox.cs.gsat.io.TGDProcessingBuilder;
 import uk.ac.ox.cs.gsat.satalg.SaturationAlgorithmFactory;
 import uk.ac.ox.cs.gsat.satalg.SaturationAlgorithmType;
+import uk.ac.ox.cs.gsat.satalg.SaturationConfig;
 import uk.ac.ox.cs.pdq.fol.Predicate;
 
 public class Saturator {
@@ -34,7 +34,7 @@ public class Saturator {
     private boolean help;
 
     @Parameter(names = { "-c", "--config" }, required = false, description = "Path to the configuration file.")
-    private String configFile;
+    private String configFile = "config.properties";
 
     @Parameter(names = { "-i", "--input" }, required = true, description = "Path to the input file.")
     private String inputFile;
@@ -65,7 +65,14 @@ public class Saturator {
 
     private void run() throws Exception {
 
-        Collection<? extends TGD> saturationFullTGDs = computeSaturationFromTGDPath(inputFile, queriesFile);
+        SaturationConfig saturationConfig;
+        if (new File(configFile).exists()) {
+            saturationConfig = new SaturationConfig(configFile);
+        } else {
+            saturationConfig = new SaturationConfig();
+        }
+
+        Collection<? extends TGD> saturationFullTGDs = computeSaturationFromTGDPath(inputFile, queriesFile, saturationConfig);
 
 
         writeTGDsToFile(outputFile, saturationFullTGDs);
@@ -87,7 +94,7 @@ public class Saturator {
 
     }
 
-    public static Collection<? extends TGD> computeSaturationFromTGDPath(String inputPath, String queriesPath) throws Exception {
+    public static Collection<? extends TGD> computeSaturationFromTGDPath(String inputPath, String queriesPath, SaturationConfig config) throws Exception {
 
         TGDFileFormat inputFormat = TGDFileFormat.getFormatFromPath(inputPath);
 
@@ -115,7 +122,7 @@ public class Saturator {
         TGDProcessing tgdProcessing = TGDProcessingBuilder.instance().setParser(parser).setFilters(filters).build();
 
         SaturationAlgorithmType algorithmType = Configuration.getSaturatonAlgType();
-        SaturationAlgorithm algorithm = SaturationAlgorithmFactory.instance().create(algorithmType);
+        SaturationAlgorithm algorithm = SaturationAlgorithmFactory.instance().create(algorithmType, config);
 
         return algorithm.run(tgdProcessing.getTGDs());
     }

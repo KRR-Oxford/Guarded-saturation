@@ -61,7 +61,6 @@ public class AtomPathUnificationIndexTest {
     private static final Atom R_z1 = Atom.create(Predicate.create("R", 1), z1);
     private static final Atom R_f_x1 = Atom.create(Predicate.create("R", 1), f_x1);
     private static final Atom R_f_z1 = Atom.create(Predicate.create("R", 1), f_z1);
-    private static final Atom R_g_x1 = Atom.create(Predicate.create("R", 1), g_x1);
     private static final Atom R_g_z1 = Atom.create(Predicate.create("R", 1), g_z1);
     private static final Atom T_x1x2x3 = Atom.create(Predicate.create("T", 3), x1, x2, x3);
     private static final Atom T_x1f_x1g_x1 = Atom.create(Predicate.create("T", 3), x1, f_x1, g_x1);

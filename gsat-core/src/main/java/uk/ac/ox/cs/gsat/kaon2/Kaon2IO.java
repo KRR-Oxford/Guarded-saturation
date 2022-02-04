@@ -11,7 +11,6 @@ import org.semanticweb.kaon2.api.logic.Rule;
 import uk.ac.ox.cs.gsat.App;
 import uk.ac.ox.cs.gsat.fol.Logic;
 import uk.ac.ox.cs.gsat.io.DatalogSerializer;
-import uk.ac.ox.cs.gsat.satalg.GSat;
 import uk.ac.ox.cs.pdq.fol.Atom;
 import uk.ac.ox.cs.pdq.fol.Predicate;
 import uk.ac.ox.cs.pdq.fol.Term;
@@ -19,13 +18,17 @@ import uk.ac.ox.cs.pdq.fol.UntypedConstant;
 import uk.ac.ox.cs.pdq.fol.Variable;
 
 public class Kaon2IO {
-        public static Collection<? extends String> getDatalogRules(Rule rule) {
 
+    private static final String VARIABLE_PREFIX = "KAON2";
+
+    public static Collection<? extends String> getDatalogRules(Rule rule) {
+
+            
         Map<Term, Term> substitution = new HashMap<>();
         int counter = 1;
         for (org.semanticweb.kaon2.api.logic.Variable variable : rule.getBoundVariables()) {
             substitution.put(Variable.create(variable.getVariableName()),
-                    Variable.create(GSat.getInstance().uVariable + counter++));
+                    Variable.create(VARIABLE_PREFIX + counter++));
 
         }
 

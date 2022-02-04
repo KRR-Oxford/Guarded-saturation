@@ -1,22 +1,15 @@
 package uk.ac.ox.cs.gsat.satalg;
 
-import uk.ac.ox.cs.gsat.Configuration;
 import uk.ac.ox.cs.gsat.fol.OrderedSkGTGD;
 import uk.ac.ox.cs.gsat.fol.TGDFactory;
 import uk.ac.ox.cs.pdq.fol.Atom;
 
-public class OrderedSkolemSat extends AbstractSkolemSat<OrderedSkGTGD> {
+class OrderedSkolemSat extends AbstractSkolemSat<OrderedSkGTGD> {
 
-    private static final TGDFactory<OrderedSkGTGD> FACTORY = TGDFactory.getOrderedSkGTGDInstance(Configuration.isSortedVNF());
     private static final String NAME = "OrderedSkSat";
-    private static final OrderedSkolemSat INSTANCE = new OrderedSkolemSat();
 
-    private OrderedSkolemSat() {
-        super(FACTORY, NAME);
-    }
-
-    public static OrderedSkolemSat getInstance() {
-        return INSTANCE;
+    OrderedSkolemSat(SaturationConfig config) {
+        super(TGDFactory.getOrderedSkGTGDInstance(config.isSortedVNF()), NAME, config);
     }
 
     @Override

@@ -18,8 +18,8 @@ import java.util.Stack;
 import java.util.TreeMap;
 import java.util.TreeSet;
 
-import uk.ac.ox.cs.gsat.Configuration;
 import uk.ac.ox.cs.gsat.fol.TGD;
+import uk.ac.ox.cs.gsat.satalg.SaturationConfig;
 import uk.ac.ox.cs.pdq.fol.Atom;
 import uk.ac.ox.cs.pdq.fol.Function;
 import uk.ac.ox.cs.pdq.fol.FunctionTerm;
@@ -32,6 +32,12 @@ import uk.ac.ox.cs.pdq.fol.Term;
  */
 public class TreePredicateFilter<Q extends TGD> implements FormulaFilter<Q> {
 
+    protected final SaturationConfig config;
+
+    public TreePredicateFilter(SaturationConfig config) {
+        this.config = config;
+    }
+
     private class Node {
         boolean isBody = true;
         // maps hash of next clause to the next node in the trie
@@ -42,7 +48,7 @@ public class TreePredicateFilter<Q extends TGD> implements FormulaFilter<Q> {
     }
 
     Node root = new Node();
-
+    
     private class SubsumedCandidatesIterable implements Iterable<Q> {
         private class SubsumedCandidatesIterator implements Iterator<Q> {
             private class IntNodePair {
@@ -299,9 +305,9 @@ public class TreePredicateFilter<Q extends TGD> implements FormulaFilter<Q> {
         length = length / formulas.size();
         
         // select the kept predicates used for the index
-        int predicateMax = Configuration.getMaxPredicate();
+        int predicateMax = config.getMaxPredicate();
 
-        int bagNumber = (Configuration.getMaxPredicate() > 0)
+        int bagNumber = (predicateMax > 0)
                 ? Math.max(Double.valueOf(Math.pow(formulas.size() / predicateMax, 1 / length)).intValue(), 1)
                 : 0;
 
@@ -389,6 +395,9 @@ public class TreePredicateFilter<Q extends TGD> implements FormulaFilter<Q> {
             bagNumber = keys.size();
         else
             bagNumber = bagNb;
+
+        if (bagNb == 0)
+            return new ArrayList<>();
 
         class KComp implements Comparator<K> {
             public int compare(K a, K b) {

@@ -19,6 +19,7 @@ import uk.ac.ox.cs.gsat.api.Materializer;
 import uk.ac.ox.cs.gsat.fol.TGD;
 import uk.ac.ox.cs.gsat.mat.MaterializerFactory;
 import uk.ac.ox.cs.gsat.mat.MaterializerType;
+import uk.ac.ox.cs.gsat.satalg.SaturationConfig;
 import uk.ac.ox.cs.gsat.statistics.StatisticsCollector;
 import uk.ac.ox.cs.gsat.statistics.StatisticsColumn;
 import uk.ac.ox.cs.gsat.statistics.StatisticsLogger;
@@ -70,7 +71,8 @@ public class Materialization {
         // String inputDataPath = getInputPath(tgdsPath);
         // String outputPath = getMaterializationPath(tgdsPath);
 
-        Collection<? extends TGD> saturationFullTGDs = Saturator.computeSaturationFromTGDPath(tgdsPath, queriesFile);
+        SaturationConfig saturationConfig = new SaturationConfig(configFile);
+        Collection<? extends TGD> saturationFullTGDs = Saturator.computeSaturationFromTGDPath(tgdsPath, queriesFile, saturationConfig);
 
         StatisticsCollector<MaterializationStatColumns> statsCollector = new StatisticsCollector<>();
         StatisticsLogger statsLogger = getStatisticsLogger(statsCollector, null);
