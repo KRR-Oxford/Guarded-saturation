@@ -6,10 +6,10 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
+import uk.ac.ox.cs.gsat.api.SaturationStatColumns;
 import uk.ac.ox.cs.gsat.fol.Logic;
 import uk.ac.ox.cs.gsat.fol.SkGTGD;
 import uk.ac.ox.cs.gsat.fol.TGDFactory;
-import uk.ac.ox.cs.gsat.satalg.stats.SkolemStatistics;
 import uk.ac.ox.cs.gsat.unification.UnificationIndexType;
 import uk.ac.ox.cs.pdq.fol.Atom;
 import uk.ac.ox.cs.pdq.fol.Term;
@@ -17,7 +17,7 @@ import uk.ac.ox.cs.pdq.fol.Term;
 public abstract class AbstractSkolemSat<Q extends SkGTGD> extends EvolveBasedSat<Q> {
 
     protected AbstractSkolemSat(TGDFactory<Q> factory, String name, SaturationConfig config) {
-        super(name, factory, UnificationIndexType.ATOM_PATH_INDEX, UnificationIndexType.ATOM_PATH_INDEX, SkolemStatistics.getSkFactory(), config);
+        super(name, factory, UnificationIndexType.ATOM_PATH_INDEX, UnificationIndexType.ATOM_PATH_INDEX, config);
     }
 
     @Override
@@ -36,7 +36,7 @@ public abstract class AbstractSkolemSat<Q extends SkGTGD> extends EvolveBasedSat
                 break;
             default:
                 String message = String.format("the skolemization type %s is not supported",
-                        config.getSkolemizationType());
+                                               config.getSkolemizationType());
                 throw new IllegalStateException(message);
             }
 
@@ -98,6 +98,24 @@ public abstract class AbstractSkolemSat<Q extends SkGTGD> extends EvolveBasedSat
         return results;
     }
 
+    @Override
+    protected void reportNewRightTGD(String processName, Q tgd) {
+        if (tgd.getFunctionalBodyAtoms().length > 0) {
+            statsCollector.incr(processName, SaturationStatColumns.NEW_RTGD_BSK);
+            if (statsCollector.get(processName, SaturationStatColumns.BODY_SK_ATOMS_MAX) != null) {
+                int maxSkolemAtomInBody = Math.max(Integer.valueOf(statsCollector.get(processName, SaturationStatColumns.BODY_SK_ATOMS_MAX).toString()), tgd.getFunctionalBodyAtoms().length);
+
+                statsCollector.put(processName, SaturationStatColumns.BODY_SK_ATOMS_MAX, maxSkolemAtomInBody);
+            } else {
+                statsCollector.put(processName, SaturationStatColumns.BODY_SK_ATOMS_MAX, tgd.getFunctionalBodyAtoms().length);
+            }
+        } else {
+            // a true non full TGD
+            super.reportNewRightTGD(processName, tgd);
+        }
+    }
+
+    
     public static enum SkolemizationType {
         NAIVE,
         PROJ_ON_FRONTIER

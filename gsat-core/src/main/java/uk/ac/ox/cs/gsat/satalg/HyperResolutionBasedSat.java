@@ -12,12 +12,10 @@ import java.util.Set;
 import java.util.logging.Level;
 
 import uk.ac.ox.cs.gsat.App;
+import uk.ac.ox.cs.gsat.api.SaturationStatColumns;
 import uk.ac.ox.cs.gsat.fol.Logic;
 import uk.ac.ox.cs.gsat.fol.SkGTGD;
 import uk.ac.ox.cs.gsat.fol.TGDFactory;
-import uk.ac.ox.cs.gsat.satalg.stats.HyperResolutionStatistics;
-import uk.ac.ox.cs.gsat.satalg.stats.SaturationStatistics;
-import uk.ac.ox.cs.gsat.satalg.stats.SaturationStatisticsFactory;
 import uk.ac.ox.cs.gsat.subsumers.Subsumer;
 import uk.ac.ox.cs.gsat.unification.UnificationIndex;
 import uk.ac.ox.cs.gsat.unification.UnificationIndexType;
@@ -29,7 +27,6 @@ import uk.ac.ox.cs.pdq.fol.Variable;
 
 public class HyperResolutionBasedSat extends AbstractSaturation<SkGTGD> {
 
-    private static final SaturationStatisticsFactory<SkGTGD> STAT_FACTORY = HyperResolutionStatistics.getFactory();
     private static final String NAME = "HyperSat";
 
 
@@ -38,21 +35,19 @@ public class HyperResolutionBasedSat extends AbstractSaturation<SkGTGD> {
     protected HyperResolutionBasedSat(SaturationConfig config) {
         super(NAME, TGDFactory.getSkGTGDInstance(config.isSortedVNF()),
               UnificationIndexType.ATOM_PATH_INDEX,
-              UnificationIndexType.ATOM_PATH_INDEX, STAT_FACTORY, config);
+              UnificationIndexType.ATOM_PATH_INDEX, config);
     }
 
     @Override
     protected void process(Set<SkGTGD> leftTGDsSet, Set<SkGTGD> rightTGDsSet, Collection<SkGTGD> newLeftTGDs,
             Collection<SkGTGD> newRightTGDs, UnificationIndex<SkGTGD> leftIndex, UnificationIndex<SkGTGD> rightIndex,
             Subsumer<SkGTGD> leftTGDsSubsumer, Subsumer<SkGTGD> rightTGDsSubsumer, Set<Predicate> bodyPredicates,
-            SaturationStatistics<SkGTGD> s) {
-
-        HyperResolutionStatistics<SkGTGD> stats = (HyperResolutionStatistics<SkGTGD>) s;
+            String processName) {
 
         while (!newLeftTGDs.isEmpty() || !newRightTGDs.isEmpty()) {
 
-            if (isTimeout(stats.getStartTime())) {
-                stats.timeoutReached();
+            if (isTimeout(statsCollector.total(processName))) {
+                statsCollector.put(processName, SaturationStatColumns.TIME, "TIMEOUT");
                 break;
             }
 
@@ -68,9 +63,9 @@ public class HyperResolutionBasedSat extends AbstractSaturation<SkGTGD> {
                 if (App.logger.isLoggable(Level.FINE))
                     App.logger.fine("picked full TGD: " + rightTGD);
 
-                long startTime = System.nanoTime();
-                resolved.addAll(hyperresolveWithNewFullTGD(leftTGDsSet, leftIndex, rightTGD, stats));
-                stats.incrHyperResolutionTime(System.nanoTime() - startTime);
+                statsCollector.tick(processName, SaturationStatColumns.OTHER_TIME);
+                resolved.addAll(hyperresolveWithNewFullTGD(leftTGDsSet, leftIndex, rightTGD, processName));
+                statsCollector.tick(processName, SaturationStatColumns.EVOL_TIME);
             } else if (!newLeftTGDs.isEmpty()) {
                 Iterator<SkGTGD> iterator = newLeftTGDs.iterator();
                 SkGTGD leftTGD = iterator.next();
@@ -80,9 +75,9 @@ public class HyperResolutionBasedSat extends AbstractSaturation<SkGTGD> {
                 if (App.logger.isLoggable(Level.FINE))
                     App.logger.fine("picked non-full TGD: " + leftTGD);
 
-                long startTime = System.nanoTime();
-                resolved.addAll(hyperresolveWithNewNonFullTGD(leftTGDsSet, leftIndex, rightIndex, leftTGD, stats));
-                stats.incrHyperResolutionTime(System.nanoTime() - startTime);
+                statsCollector.tick(processName, SaturationStatColumns.OTHER_TIME);
+                resolved.addAll(hyperresolveWithNewNonFullTGD(leftTGDsSet, leftIndex, rightIndex, leftTGD, processName));
+                statsCollector.tick(processName, SaturationStatColumns.EVOL_TIME);
             }
 
             // we update the structures with the TGDs to add
@@ -91,13 +86,13 @@ public class HyperResolutionBasedSat extends AbstractSaturation<SkGTGD> {
                     App.logger.fine("newTGD: " + newTGD);
 
                 if (isRightTGD(newTGD)) {
-                    stats.newRightTGD(newTGD);
-                    addNewTGD(newTGD, true, newRightTGDs, rightTGDsSubsumer, rightIndex, rightTGDsSet, stats);
+                    reportNewRightTGD(processName, newTGD);
+                    addNewTGD(newTGD, true, newRightTGDs, rightTGDsSubsumer, rightIndex, rightTGDsSet, processName);
                 }
 
                 if (isLeftTGD(newTGD)) {
-                    stats.newLeftTGD(newTGD);
-                    addNewTGD(newTGD, false, newLeftTGDs, leftTGDsSubsumer, leftIndex, leftTGDsSet, stats);
+                    reportNewLeftTGD(processName, newTGD);
+                    addNewTGD(newTGD, false, newLeftTGDs, leftTGDsSubsumer, leftIndex, leftTGDsSet, processName);
                 }
 
             }
@@ -114,7 +109,7 @@ public class HyperResolutionBasedSat extends AbstractSaturation<SkGTGD> {
      */    
     private Collection<? extends SkGTGD> hyperresolveWithNewNonFullTGD(Set<SkGTGD> nonFullTGDsSet,
             UnificationIndex<SkGTGD> nonFullTGDsIndex, UnificationIndex<SkGTGD> fullTGDsIndex, SkGTGD nonFullTGD,
-            HyperResolutionStatistics<SkGTGD> stats) {
+            String processName) {
     
         Collection<SkGTGD> resolved = new HashSet<>();
     
@@ -128,7 +123,7 @@ public class HyperResolutionBasedSat extends AbstractSaturation<SkGTGD> {
                 // 1. bodyAtom is a guard
                 if (isGuard) {
                     resolved.addAll(hyperresolveStartingWith(nonFullTGDsSet, nonFullTGDsIndex, nonFullTGD,
-                                                             fullTGD, bodyAtom, stats));
+                                                             fullTGD, bodyAtom, processName));
                 } else {
                     // 2. bodyAtom is not a guard, so resolving on this atom will leave some Skolem functions
                     SkGTGD resolvedRightTGD = resolveOn(nonFullTGD, fullTGD, bodyAtom);
@@ -152,10 +147,10 @@ public class HyperResolutionBasedSat extends AbstractSaturation<SkGTGD> {
     
                             if (isCompatible) {
                                 resolved.addAll(hyperresolveStartingWith(nonFullTGDsSet, nonFullTGDsIndex,
-                                        nonFullTGDForGuard, resolvedRightTGD, resolvedGuard, stats));
+                                        nonFullTGDForGuard, resolvedRightTGD, resolvedGuard, processName));
                             }  else {
-                                stats.incrHyperResolutionCount();
-                                stats.incrHyperResolutionFailureCount();
+                                statsCollector.incr(processName, SaturationStatColumns.EVOL_COUNT);
+                                statsCollector.incr(processName, SaturationStatColumns.HYPER_FAILURE);
                             }
                         }
                     }
@@ -169,11 +164,11 @@ public class HyperResolutionBasedSat extends AbstractSaturation<SkGTGD> {
      * hyperresolution with a new full TGD gathering the non-full TGDs to resolve a guard of the full TGD
      */
     private Collection<? extends SkGTGD> hyperresolveWithNewFullTGD(Set<SkGTGD> nonFullTGDsSet,
-            UnificationIndex<SkGTGD> nonFullTGDsIndex, SkGTGD fullTGD, HyperResolutionStatistics<SkGTGD> stats) {
+            UnificationIndex<SkGTGD> nonFullTGDsIndex, SkGTGD fullTGD, String processName) {
 
         Collection<SkGTGD> resolved = new HashSet<>();
         for (SkGTGD nonFullTGD : nonFullTGDsIndex.get(fullTGD.getGuard()))
-            resolved.addAll(hyperresolveStartingWith(nonFullTGDsSet, nonFullTGDsIndex, nonFullTGD, fullTGD, fullTGD.getGuard(), stats));
+            resolved.addAll(hyperresolveStartingWith(nonFullTGDsSet, nonFullTGDsIndex, nonFullTGD, fullTGD, fullTGD.getGuard(), processName));
 
         return resolved;
     }
@@ -185,7 +180,7 @@ public class HyperResolutionBasedSat extends AbstractSaturation<SkGTGD> {
      */
 
     private Collection<SkGTGD> hyperresolveStartingWith(Set<SkGTGD> nonFullTGDsSet, UnificationIndex<SkGTGD> nonFullTGDsIndex, SkGTGD nonFullTGD,
-                                                   SkGTGD fullTGD, Atom fullTGDGuard, HyperResolutionStatistics<SkGTGD> stats) {
+                                                   SkGTGD fullTGD, Atom fullTGDGuard, String processName) {
         Collection<SkGTGD> resolvedTGDs = new HashSet<>();
         SkGTGD resolvedRightTGD = resolveOn(nonFullTGD, fullTGD, fullTGDGuard);
         if (App.logger.isLoggable(Level.FINE)) {
@@ -205,7 +200,7 @@ public class HyperResolutionBasedSat extends AbstractSaturation<SkGTGD> {
                 }
 
                 for (List<SkGTGD> candidateList : nonFullTGDcandidatesForSkolemAtoms) {
-                    stats.incrHyperResolutionCount();
+                    statsCollector.incr(processName, SaturationStatColumns.EVOL_COUNT);
 
                     List<Atom> headAtoms = new ArrayList<>();
                     List<Map<Term, Term>> candidateRenaming = new ArrayList<>();
@@ -219,7 +214,7 @@ public class HyperResolutionBasedSat extends AbstractSaturation<SkGTGD> {
 
                     Map<Term, Term> mgu = Logic.getVariableSubstitution(skolemAtoms, headAtoms);
                     if (mgu == null) {
-                        stats.incrHyperResolutionFailureCount();
+                        statsCollector.incr(processName, SaturationStatColumns.HYPER_FAILURE);
                         // unification failed -> continue with next candidate list
                         continue;
                     }
@@ -247,12 +242,12 @@ public class HyperResolutionBasedSat extends AbstractSaturation<SkGTGD> {
                     }
                 }
             } else {
-                stats.incrHyperResolutionCount();
+                statsCollector.incr(processName, SaturationStatColumns.EVOL_COUNT);
                 resolvedTGDs.add(factory.computeVNF(resolvedRightTGD, eVariable, uVariable));
             }
         } else {
-            stats.incrHyperResolutionCount();
-            stats.incrHyperResolutionFailureCount();
+            statsCollector.incr(processName, SaturationStatColumns.EVOL_COUNT);
+            statsCollector.incr(processName, SaturationStatColumns.HYPER_FAILURE);
         }
 
         return resolvedTGDs;

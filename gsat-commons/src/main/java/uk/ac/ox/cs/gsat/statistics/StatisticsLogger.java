@@ -6,6 +6,7 @@ import java.io.InputStreamReader;
 import java.io.PrintStream;
 import java.sql.Date;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
@@ -87,7 +88,7 @@ public class StatisticsLogger implements AutoCloseable, Observer {
 		this.out = out;
 		this.stats = stats;
 		this.commandLine = cmdLine;
-		this.stats.addObserver(this);
+		// this.stats.addObserver(this);
 	}
 
 	/**
@@ -181,7 +182,7 @@ public class StatisticsLogger implements AutoCloseable, Observer {
             return this.sortedHeader;
         } else {
             List<StatisticsColumn> headers = new ArrayList<>();
-            headers.addAll(stats.cells().columnKeySet());
+            headers.addAll(stats.getColumns());
             Collections.sort(headers.stream().map(h -> h.name()).collect(Collectors.toList()));
             return headers;
         }
@@ -197,7 +198,7 @@ public class StatisticsLogger implements AutoCloseable, Observer {
 	 * @param rowName the name of the row to print
 	 */
 	public void printRow(String rowName) {
-		Map<? extends StatisticsColumn, Object> row = this.stats.cells().row(rowName);
+		Map<? extends StatisticsColumn, Object> row = this.stats.getRow(rowName);
 		StringBuilder result = new StringBuilder(rowName);
 		for (StatisticsColumn col: sortHeader()) {
 			result.append('\t').append(row.getOrDefault(col, MISSING_VALUE));
@@ -211,9 +212,9 @@ public class StatisticsLogger implements AutoCloseable, Observer {
 	public void printAll() {
 		// Ensuring the column order is preserve across lines.
 		List<StatisticsColumn> cols = sortHeader();
-        for(String key : this.stats.cells().rowKeySet()) {
+        for(String key : this.stats.getRows()) {
 			StringBuilder result = new StringBuilder(key);
-            Map<? extends StatisticsColumn, Object> row = this.stats.cells().row(key);
+            Map<? extends StatisticsColumn, Object> row = this.stats.getRow(key);
 
 			for (StatisticsColumn col: cols) {
 				result.append('\t').append(row.getOrDefault(col, MISSING_VALUE));
@@ -258,7 +259,7 @@ public class StatisticsLogger implements AutoCloseable, Observer {
 			printProlog();
 			hasPrintedProlog = true;
 		}
-		Set<? extends StatisticsColumn> header = this.stats.cells().columnKeySet();
+		Collection<? extends StatisticsColumn> header = this.stats.getColumns();
 		if (!header.equals(lastHeader)) {
 			lastHeader = new HashSet<StatisticsColumn>();
             lastHeader.addAll(header);

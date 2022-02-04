@@ -8,11 +8,9 @@ import java.util.Set;
 import java.util.TreeSet;
 
 import uk.ac.ox.cs.gsat.App;
+import uk.ac.ox.cs.gsat.api.SaturationStatColumns;
 import uk.ac.ox.cs.gsat.fol.GTGD;
 import uk.ac.ox.cs.gsat.fol.TGDFactory;
-import uk.ac.ox.cs.gsat.satalg.stats.EvolveStatistics;
-import uk.ac.ox.cs.gsat.satalg.stats.SaturationStatistics;
-import uk.ac.ox.cs.gsat.satalg.stats.SaturationStatisticsFactory;
 import uk.ac.ox.cs.gsat.subsumers.Subsumer;
 import uk.ac.ox.cs.gsat.unification.UnificationIndex;
 import uk.ac.ox.cs.gsat.unification.UnificationIndexType;
@@ -35,36 +33,34 @@ import uk.ac.ox.cs.pdq.fol.Predicate;
  */
 public abstract class EvolveBasedSat<Q extends GTGD> extends AbstractSaturation<Q> {
 
-    protected EvolveBasedSat(String saturationName, TGDFactory<Q> factory, SaturationStatisticsFactory<Q> statFactory, SaturationConfig config) {
+    protected EvolveBasedSat(String saturationName, TGDFactory<Q> factory, SaturationConfig config) {
 
-        this(saturationName, factory, UnificationIndexType.PREDICATE_INDEX, UnificationIndexType.PREDICATE_INDEX,
-             statFactory, config);
+        this(saturationName, factory, UnificationIndexType.PREDICATE_INDEX, UnificationIndexType.PREDICATE_INDEX, config);
     }
 
     protected EvolveBasedSat(String saturationName, TGDFactory<Q> factory, UnificationIndexType leftIndexType,
-            UnificationIndexType rightIndexType, SaturationStatisticsFactory<Q> statFactory, SaturationConfig config) {
-        super(saturationName, factory, leftIndexType, rightIndexType, statFactory, config);
+            UnificationIndexType rightIndexType, SaturationConfig config) {
+        super(saturationName, factory, leftIndexType, rightIndexType, config);
     }
 
     @Override
     protected void process(Set<Q> leftTGDsSet, Set<Q> rightTGDsSet, Collection<Q> newLeftTGDs,
             Collection<Q> newRightTGDs, UnificationIndex<Q> leftIndex, UnificationIndex<Q> rightIndex,
             Subsumer<Q> leftTGDsSubsumer, Subsumer<Q> rightTGDsSubsumer, Set<Predicate> bodyPredicates,
-            SaturationStatistics<Q> s) {
+            String processName) {
 
-        EvolveStatistics<Q> stats = (EvolveStatistics<Q>) s;
         int counter = 100;
 
         while (!newRightTGDs.isEmpty() || !newLeftTGDs.isEmpty()) {
 
-            if (isTimeout(stats.getStartTime())) {
-                stats.timeoutReached();
+            if (isTimeout(statsCollector.total(processName))) {
+                statsCollector.put(processName, SaturationStatColumns.TIME, "TIMEOUT");
                 break;
             }
 
             App.logger.fine("# new TGDs: " + newRightTGDs.size() + " , " + newLeftTGDs.size());
 
-            if (DEBUG_MODE)
+            if (config.isVerbose())
                 if (counter == 100) {
                     counter = 1;
                     System.out.println("nonFullTGDs\t" + leftTGDsSet.size() + "\t\tfullTGDs\t" + rightTGDsSet.size()
@@ -88,12 +84,12 @@ public abstract class EvolveBasedSat<Q extends GTGD> extends AbstractSaturation<
                 boolean added = addLeftTGD(currentTGD, leftIndex, leftTGDsSet);
                 if (added)
                     for (Q rightTGD : getRightTGDsToEvolveWith(currentTGD, rightIndex)) {
-                        stats.incrEvolveCount();
+                        statsCollector.incr(processName, SaturationStatColumns.EVOL_COUNT);
                         boolean isCurrentTGDSubsumed = fillToAdd(toAdd, currentTGD, rightTGD, true, bodyPredicates,
-                                stats);
+                                processName);
 
                         if (isCurrentTGDSubsumed) {
-                            stats.incrStopBecauseSubsumedCount();
+                            statsCollector.incr(processName, SaturationStatColumns.STOP_BECAUSE_SUBSUMED);
                             break;
                         }
                     }
@@ -110,12 +106,12 @@ public abstract class EvolveBasedSat<Q extends GTGD> extends AbstractSaturation<
                 Set<Q> leftTGDsToEvolve = getLeftTGDsToEvolveWith(currentTGD, leftIndex);
                 if (added && leftTGDsToEvolve != null)
                     for (Q leftTGD : leftTGDsToEvolve) {
-                        stats.incrEvolveCount();
+                        statsCollector.incr(processName, SaturationStatColumns.EVOL_COUNT);
                         boolean isCurrentTGDSubsumed = fillToAdd(toAdd, currentTGD, leftTGD, false, bodyPredicates,
-                                stats);
+                                                                 processName);
 
                         if (isCurrentTGDSubsumed) {
-                            stats.incrStopBecauseSubsumedCount();
+                            statsCollector.incr(processName, SaturationStatColumns.STOP_BECAUSE_SUBSUMED);
                             break;
                         }
                     }
@@ -125,13 +121,13 @@ public abstract class EvolveBasedSat<Q extends GTGD> extends AbstractSaturation<
             for (Q newTGD : toAdd) {
 
                 if (isRightTGD(newTGD)) {
-                    stats.newRightTGD(newTGD);
-                    addNewTGD(newTGD, true, newRightTGDs, rightTGDsSubsumer, rightIndex, rightTGDsSet, stats);
+                    reportNewRightTGD(processName, newTGD);
+                    addNewTGD(newTGD, true, newRightTGDs, rightTGDsSubsumer, rightIndex, rightTGDsSet, processName);
                 }
 
                 if (isLeftTGD(newTGD)) {
-                    stats.newLeftTGD(newTGD);
-                    addNewTGD(newTGD, false, newLeftTGDs, leftTGDsSubsumer, leftIndex, leftTGDsSet, stats);
+                    reportNewLeftTGD(processName, newTGD);
+                    addNewTGD(newTGD, false, newLeftTGDs, leftTGDsSubsumer, leftIndex, leftTGDsSet, processName);
                 }
             }
         }
@@ -139,12 +135,12 @@ public abstract class EvolveBasedSat<Q extends GTGD> extends AbstractSaturation<
     }
 
     private boolean fillToAdd(Collection<Q> toAdd, Q currentTGD, Q otherTGD, boolean isCurrentLeftTGD,
-            Set<Predicate> bodyPredicates, EvolveStatistics<Q> stats) {
+            Set<Predicate> bodyPredicates, String processName) {
         Q leftTGD = (isCurrentLeftTGD) ? currentTGD : otherTGD;
         Q rightTGD = (!isCurrentLeftTGD) ? currentTGD : otherTGD;
-        final long startTime = System.nanoTime();
+        statsCollector.tick(processName, SaturationStatColumns.OTHER_TIME);
         Collection<Q> evolvedTGDs = evolveNew(leftTGD, rightTGD);
-        stats.incrEvolveTime(System.nanoTime() - startTime);
+        statsCollector.tick(processName, SaturationStatColumns.EVOL_TIME);
         if (this.config.isStopEvolvingIfSubsumedEnabled()) {
             boolean subsumed = false;
             for (Q newTGD : evolvedTGDs) {
@@ -166,7 +162,7 @@ public abstract class EvolveBasedSat<Q extends GTGD> extends AbstractSaturation<
                     }
                 } else {
                     App.logger.fine("evolve equals :\n" + leftTGD + "\n + \n" + rightTGD + "\n = \n" + newTGD + "\n");
-                    stats.incrEvolvedEqualsCount();
+                    statsCollector.incr(processName, SaturationStatColumns.EVOL_STOPPED_BECAUSE_EQUAL);
                 }
             }
             if (subsumed) {

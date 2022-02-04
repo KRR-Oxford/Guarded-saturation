@@ -7,18 +7,18 @@ import java.util.Properties;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-import uk.ac.ox.cs.gsat.Configuration.newTGDStructure;
 import uk.ac.ox.cs.gsat.fol.TGD;
 import uk.ac.ox.cs.gsat.satalg.AbstractSkolemSat.SkolemizationType;
 import uk.ac.ox.cs.gsat.unification.UnificationIndexType;
 
 public class SaturationConfig {
 
+    private boolean verbose = true;
     private boolean simpleSatPredicateFilter = true;
     private Long timeout = null;
     private String subsumptionMethod = "tree_predicate";
     private boolean evolvingTGDOrdering = true;
-    private newTGDStructure newTGDStructure = uk.ac.ox.cs.gsat.Configuration.newTGDStructure.SET;
+    private NewTGDStructure newTGDStructure = NewTGDStructure.SET;
     private boolean stopEvolvingIfSubsumed = true;
     private boolean discardUselessTGD = true;
     private SkolemizationType skolemizationType = SkolemizationType.NAIVE;
@@ -47,7 +47,7 @@ public class SaturationConfig {
             timeout = Long.parseLong(prop.getProperty("timeout"));
 
         if (prop.containsKey("optimization.new_tgd_structure"))
-            newTGDStructure = uk.ac.ox.cs.gsat.Configuration.newTGDStructure
+            newTGDStructure = NewTGDStructure
                 .valueOf(prop.getProperty("optimization.new_tgd_structure"));
 
         if (prop.containsKey("optimization.stop_evolving_if_subsumed"))
@@ -134,7 +134,7 @@ public class SaturationConfig {
         return evolvingTGDOrdering;
     }
 
-    public newTGDStructure getNewTGDStrusture() {
+    public NewTGDStructure getNewTGDStrusture() {
         return newTGDStructure;
     }
 
@@ -180,4 +180,12 @@ public class SaturationConfig {
         this.saturationAlgorithmType = saturationAlgorithmType;
     }
 
+    public boolean isVerbose() {
+        return verbose;
+    }
+
+    public void setVerbose(boolean verbose) {
+        this.verbose = verbose;
+    }
+    
 }

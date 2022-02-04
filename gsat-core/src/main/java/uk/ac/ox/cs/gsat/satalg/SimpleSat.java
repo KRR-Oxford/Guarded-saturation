@@ -12,10 +12,13 @@ import java.util.Set;
 
 import uk.ac.ox.cs.gsat.App;
 import uk.ac.ox.cs.gsat.api.SaturationAlgorithm;
+import uk.ac.ox.cs.gsat.api.SaturationStatColumns;
 import uk.ac.ox.cs.gsat.fol.GTGD;
 import uk.ac.ox.cs.gsat.fol.Logic;
 import uk.ac.ox.cs.gsat.fol.TGD;
 import uk.ac.ox.cs.gsat.fol.TGDFactory;
+import uk.ac.ox.cs.gsat.statistics.NullStatisticsCollector;
+import uk.ac.ox.cs.gsat.statistics.StatisticsCollector;
 import uk.ac.ox.cs.gsat.subsumers.Subsumer;
 import uk.ac.ox.cs.pdq.fol.Atom;
 import uk.ac.ox.cs.pdq.fol.Dependency;
@@ -34,6 +37,7 @@ class SimpleSat implements SaturationAlgorithm {
 
     protected final SaturationConfig config;
     protected final TGDFactory<TGD> factory;
+    private StatisticsCollector<SaturationStatColumns> statsCollector = new NullStatisticsCollector<>();
 
     /**
      * Private construtor, we want this class to be a Singleton
@@ -43,6 +47,10 @@ class SimpleSat implements SaturationAlgorithm {
         this.factory = TGDFactory.getTGDInstance(config.isSortedVNF());
     }
 
+    public Collection<TGD> run(Collection<? extends Dependency> allDependencies) {
+        return run("", allDependencies);
+    }
+    
     /**
      *
      * Main method to run the Guarded simple Saturation algorithm
@@ -50,7 +58,7 @@ class SimpleSat implements SaturationAlgorithm {
      * @param allDependencies the Guarded TGDs to process
      * @return the Guarded Saturation of allDependencies
      */
-    public Collection<TGD> run(Collection<? extends Dependency> allDependencies) {
+    public Collection<TGD> run(String processName, Collection<? extends Dependency> allDependencies) {
 
         final long startTime = System.nanoTime();
         boolean timeoutReached = false;
@@ -66,6 +74,8 @@ class SimpleSat implements SaturationAlgorithm {
         App.logger.info("Simple Sat discarded rules : " + discarded + "/" + allDependencies.size() + " = "
                 + String.format(Locale.UK, "%.3f", (float) discarded / allDependencies.size() * 100) + "%");
 
+        statsCollector.start(processName);
+        
         // compute the set of full and non-full tgds in normal forms
         Subsumer<TGD> fullTGDSubsumer = SaturationUtils.createSubsumer(new HashSet<>(), config);
         Collection<TGD> fullTGDs = new HashSet<>();
@@ -90,7 +100,10 @@ class SimpleSat implements SaturationAlgorithm {
             }
         }
 
-        App.logger.info("# initial TGDs: " + fullTGDs.size() + " , " + nonfullTGDs.size());
+        
+        // App.logger.info("# initial TGDs: " + fullTGDs.size() + " , " + nonfullTGDs.size());
+        statsCollector.put(processName, SaturationStatColumns.NFTGD_NB, nonfullTGDs.size());
+        statsCollector.put(processName, SaturationStatColumns.FTGD_NB, fullTGDs.size());
         App.logger.info("Simple Sat width : " + width);
 
         // copying the initial full TGD set for later comparison
@@ -130,18 +143,26 @@ class SimpleSat implements SaturationAlgorithm {
         } while (fullTGDs.addAll(resultingFullTDGs));
 
 
-        long totalTime = System.nanoTime() - startTime;
-        App.logger.info("Simple Sat total time : " + String.format(Locale.UK, "%.0f", totalTime / 1E6) + " ms = "
-                + String.format(Locale.UK, "%.2f", totalTime / 1E9) + " s");
-        App.logger.info("Subsumed elements : "
-                + (fullTGDSubsumer.getNumberSubsumed() + fullTGDSubsumer.getNumberSubsumed()));
-        App.logger.info("Filter discarded elements : "
-                + (fullTGDSubsumer.getFilterDiscarded() + fullTGDSubsumer.getFilterDiscarded()));
-        App.logger.info("Derived full/non full TGDs: " + newFullCount + " , " + 0);
+        // long totalTime = System.nanoTime() - startTime;
+        // App.logger.info("Simple Sat total time : " + String.format(Locale.UK, "%.0f", totalTime / 1E6) + " ms = "
+        // + String.format(Locale.UK, "%.2f", totalTime / 1E9) + " s");
+        statsCollector.stop(processName, SaturationStatColumns.TIME);
+        // App.logger.info("Subsumed elements : "
+                // + (fullTGDSubsumer.getNumberSubsumed() + fullTGDSubsumer.getNumberSubsumed()));
+        statsCollector.put(processName, SaturationStatColumns.SUBSUMED, (fullTGDSubsumer.getNumberSubsumed()));
+        // App.logger.info("Filter discarded elements : "
+                // + (fullTGDSubsumer.getFilterDiscarded() + fullTGDSubsumer.getFilterDiscarded()));
+        
+        // App.logger.info("Derived full/non full TGDs: " + newFullCount + " , " + 0);
+        statsCollector.put(processName, SaturationStatColumns.NEW_FTGD_NB, newFullCount);
+        statsCollector.put(processName, SaturationStatColumns.NEW_NFTGD_NB, 0);
+
+        statsCollector.put(processName, SaturationStatColumns.OUTPUT_SIZE, fullTGDs.size());
 
         Collection<TGD> outputCopy = new ArrayList<>(fullTGDs);
         outputCopy.removeAll(inputFullTGD);
-        App.logger.info("ouptput full TGDs not contained in the input: " + outputCopy.size());
+        // App.logger.info("ouptput full TGDs not contained in the input: " + outputCopy.size());
+        statsCollector.put(processName, SaturationStatColumns.NEW_OUTPUT_SIZE, outputCopy.size());
 
         if (timeoutReached)
             App.logger.info("!!! TIME OUT !!!");
@@ -533,5 +554,10 @@ class SimpleSat implements SaturationAlgorithm {
         if (timeout != null && timeout < (System.nanoTime() - startTime))
             return true;
         return false;
+    }
+
+    @Override
+    public void setStatsCollector(StatisticsCollector<SaturationStatColumns> statsCollector) {
+        this.statsCollector = statsCollector;
     }
 }

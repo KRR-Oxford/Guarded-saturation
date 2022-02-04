@@ -14,7 +14,6 @@ import uk.ac.ox.cs.gsat.App;
 import uk.ac.ox.cs.gsat.fol.GTGD;
 import uk.ac.ox.cs.gsat.fol.Logic;
 import uk.ac.ox.cs.gsat.fol.TGDFactory;
-import uk.ac.ox.cs.gsat.satalg.stats.EvolveStatistics;
 import uk.ac.ox.cs.pdq.fol.Atom;
 import uk.ac.ox.cs.pdq.fol.Term;
 import uk.ac.ox.cs.pdq.fol.Variable;
@@ -32,7 +31,7 @@ class GSat extends EvolveBasedSat<GTGD> {
     private static final String NAME = "GSat";
 
     public GSat(SaturationConfig config) {
-        super(NAME, TGDFactory.getGTGDInstance(config.isSortedVNF()), EvolveStatistics.getFactory(), config);
+        super(NAME, TGDFactory.getGTGDInstance(config.isSortedVNF()), config);
     }
 
     @Override

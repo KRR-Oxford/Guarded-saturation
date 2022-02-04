@@ -11,13 +11,13 @@ import java.util.Stack;
 import java.util.TreeSet;
 
 import uk.ac.ox.cs.gsat.App;
-import uk.ac.ox.cs.gsat.Configuration;
 import uk.ac.ox.cs.gsat.api.SaturationAlgorithm;
+import uk.ac.ox.cs.gsat.api.SaturationStatColumns;
 import uk.ac.ox.cs.gsat.fol.GTGD;
 import uk.ac.ox.cs.gsat.fol.Logic;
 import uk.ac.ox.cs.gsat.fol.TGDFactory;
-import uk.ac.ox.cs.gsat.satalg.stats.SaturationStatistics;
-import uk.ac.ox.cs.gsat.satalg.stats.SaturationStatisticsFactory;
+import uk.ac.ox.cs.gsat.statistics.NullStatisticsCollector;
+import uk.ac.ox.cs.gsat.statistics.StatisticsCollector;
 import uk.ac.ox.cs.gsat.subsumers.Subsumer;
 import uk.ac.ox.cs.gsat.unification.UnificationIndex;
 import uk.ac.ox.cs.gsat.unification.UnificationIndexFactory;
@@ -30,13 +30,12 @@ import uk.ac.ox.cs.pdq.fol.Variable;
 
 /**
  * The abstract saturation class initialize the structures used by each
- * saturation algorithms following the chosen configuration. The tgds are 
+ * saturation algorithms following the chosen configuration. The tgds are
  * partitioned in two: the left tgds and the right tgds. The algorithm process
- * should unify the head atoms of the left tgds with the body atoms of the right tgds to 
- * derive new tgds.
+ * should unify the head atoms of the left tgds with the body atoms of the right
+ * tgds to derive new tgds.
  */
 public abstract class AbstractSaturation<Q extends GTGD> implements SaturationAlgorithm {
-    protected final boolean DEBUG_MODE = Configuration.isDebugMode();
     protected final String saturationName;
     protected final TGDFactory<Q> factory;
     // New variable name for Universally Quantified Variables
@@ -49,25 +48,25 @@ public abstract class AbstractSaturation<Q extends GTGD> implements SaturationAl
     protected final UnificationIndexType leftIndexType;
     // type of the right unification index
     protected final UnificationIndexType rightIndexType;
-    // factory of the statistics record
-    protected final SaturationStatisticsFactory<Q> statFactory;
     protected final SaturationConfig config;
+    protected StatisticsCollector<SaturationStatColumns> statsCollector = new NullStatisticsCollector<>();
 
-    protected AbstractSaturation(String saturationName, TGDFactory<Q> factory, SaturationStatisticsFactory<Q> statFactory, SaturationConfig config) {
+    protected AbstractSaturation(String saturationName, TGDFactory<Q> factory, SaturationConfig config) {
 
         this(saturationName, factory, UnificationIndexType.PREDICATE_INDEX, UnificationIndexType.PREDICATE_INDEX,
-                statFactory, config);
+             config);
     }
 
     protected AbstractSaturation(String saturationName, TGDFactory<Q> factory, UnificationIndexType leftIndexType,
-                                 UnificationIndexType rightIndexType, SaturationStatisticsFactory<Q> statFactory, SaturationConfig config) {
+                                 UnificationIndexType rightIndexType, SaturationConfig config) {
         this.saturationName = saturationName;
         this.uVariable = saturationName + "_u";
         this.eVariable = saturationName + "_e";
         this.zVariable = saturationName + "_z";
         this.factory = factory;
         this.config = config;
-        // in case the unification index type is configurated forces the configuration choice
+        // in case the unification index type is configurated forces the configuration
+        // choice
         if (config.getUnificationIndexType() != null) {
             this.leftIndexType = config.getUnificationIndexType();
             this.rightIndexType = config.getUnificationIndexType();
@@ -75,16 +74,18 @@ public abstract class AbstractSaturation<Q extends GTGD> implements SaturationAl
             this.leftIndexType = leftIndexType;
             this.rightIndexType = rightIndexType;
         }
-        this.statFactory = statFactory;
     }
 
+    public Collection<Q> run(Collection<? extends Dependency> allDependencies) {
+        return run("", allDependencies);
+    }
+    
     /**
      * Main method to run the saturation algorithm
      */
-    public Collection<Q> run(Collection<? extends Dependency> allDependencies) {
+    public Collection<Q> run(String processName, Collection<? extends Dependency> allDependencies) {
 
         System.out.println(String.format("Running %s...", this.saturationName));
-        SaturationStatistics<Q> stats = this.statFactory.create(saturationName);
 
         int discarded = 0;
 
@@ -98,14 +99,11 @@ public abstract class AbstractSaturation<Q extends GTGD> implements SaturationAl
         }
 
         App.logger.info(this.saturationName + " discarded rules : " + discarded + "/" + allDependencies.size() + " = "
-                + String.format(Locale.UK, "%.3f", (float) discarded / allDependencies.size() * 100) + "%");
-
-        if (DEBUG_MODE)
-            System.out.println(this.saturationName + " discarded rules : " + discarded + "/" + allDependencies.size()
-                    + " = " + String.format(Locale.UK, "%.3f", (float) discarded / allDependencies.size() * 100) + "%");
+                        + String.format(Locale.UK, "%.3f", (float) discarded / allDependencies.size() * 100) + "%");
 
         // we start the time watch
-        stats.start();
+        if (this.statsCollector != null)
+            statsCollector.start(processName);
 
         // we change the fesh variables prefixes we will use until
         // they do not appear into the selected TGDs
@@ -166,21 +164,23 @@ public abstract class AbstractSaturation<Q extends GTGD> implements SaturationAl
         // copying the initial left TGD set for later comparison
         Collection<Q> initialRightTGDs = new HashSet<>(rightTGDsSet);
 
-        stats.setInitialLeftTGDs(newLeftTGDs.size());
-        stats.setInitialRightTGDs(rightTGDsSet.size());
+        statsCollector.put(processName, SaturationStatColumns.NFTGD_NB, newLeftTGDs.size());
+        statsCollector.put(processName, SaturationStatColumns.FTGD_NB, rightTGDsSet.size());
 
         // running the saturation process using the structures
-        process(leftTGDsSet, rightTGDsSet, newLeftTGDs, newRightTGDs, leftIndex, rightIndex, leftTGDsSubsumer, rightTGDsSubsumer, bodyPredicates, stats);
-        
+        process(leftTGDsSet, rightTGDsSet, newLeftTGDs, newRightTGDs, leftIndex, rightIndex, leftTGDsSubsumer,
+                rightTGDsSubsumer, bodyPredicates, processName);
+
         // filter the outputed (full) TGD from the right ones
         Collection<Q> output = getOutput(rightTGDsSubsumer.getAll());
 
-        stats.stop();
-        stats.log(leftTGDsSubsumer, rightTGDsSubsumer);
-
+        statsCollector.stop(processName, SaturationStatColumns.TIME);
+        statsCollector.put(processName, SaturationStatColumns.OUTPUT_SIZE, output.size());
         Collection<Q> outputCopy = new ArrayList<>(output);
         outputCopy.removeAll(initialRightTGDs);
-        App.logger.info("ouptput full TGDs not contained in the input: " + outputCopy.size());
+        // App.logger.info("ouptput full TGDs not contained in the input: " + outputCopy.size());
+        statsCollector.put(processName, SaturationStatColumns.NEW_OUTPUT_SIZE, outputCopy.size());
+        statsCollector.put(processName, SaturationStatColumns.SUBSUMED, (leftTGDsSubsumer.getNumberSubsumed() + rightTGDsSubsumer.getNumberSubsumed()));
         // if (rightTGDsSubsumer instanceof SimpleSubsumer)
         // ((SimpleSubsumer<Q>)rightTGDsSubsumer).printIndex();
 
@@ -188,24 +188,24 @@ public abstract class AbstractSaturation<Q extends GTGD> implements SaturationAl
     }
 
     /**
-     * saturation process of the algorithm 
+     * saturation process of the algorithm
      * 
-     * @param leftTGDsSet 
-     * @param rightTGDsSet 
-     * @param newLeftTGDs 
-     * @param newRightTGDs 
-     * @param leftIndex 
-     * @param rightIndex 
-     * @param bodyPredicates 
-     * @param stats 
-     * @param leftTGDsSubsumer 
-     * @param rightTGDsSubsumer 
+     * @param leftTGDsSet
+     * @param rightTGDsSet
+     * @param newLeftTGDs
+     * @param newRightTGDs
+     * @param leftIndex
+     * @param rightIndex
+     * @param bodyPredicates
+     * @param stats
+     * @param leftTGDsSubsumer
+     * @param rightTGDsSubsumer
      *
      */
     protected abstract void process(Set<Q> leftTGDsSet, Set<Q> rightTGDsSet, Collection<Q> newLeftTGDs,
-                Collection<Q> newRightTGDs, UnificationIndex<Q> leftIndex, UnificationIndex<Q> rightIndex,
-                Subsumer<Q> leftTGDsSubsumer, Subsumer<Q> rightTGDsSubsumer, Set<Predicate> bodyPredicates,
-                SaturationStatistics<Q> stats);
+                                    Collection<Q> newRightTGDs, UnificationIndex<Q> leftIndex, UnificationIndex<Q> rightIndex,
+                                    Subsumer<Q> leftTGDsSubsumer, Subsumer<Q> rightTGDsSubsumer, Set<Predicate> bodyPredicates,
+                                    String processName);
 
     /**
      * select the ouput from the final right TGDs
@@ -222,7 +222,7 @@ public abstract class AbstractSaturation<Q extends GTGD> implements SaturationAl
      * the TGDs
      */
     protected void initialization(Collection<Q> selectedTGDs, Set<Q> rightTGDsSet, Collection<Q> newLeftTGDs,
-            UnificationIndex<Q> rightIndex) {
+                                  UnificationIndex<Q> rightIndex) {
 
         for (Q transformedTGD : transformInputTGDs(selectedTGDs)) {
             if (isRightTGD(transformedTGD)) {
@@ -235,8 +235,8 @@ public abstract class AbstractSaturation<Q extends GTGD> implements SaturationAl
     }
 
     /**
-     * Returns the inputted TGDs transformed into TGDs on which the saturation process
-     * should be applied
+     * Returns the inputted TGDs transformed into TGDs on which the saturation
+     * process should be applied
      */
     protected abstract Collection<Q> transformInputTGDs(Collection<Q> inputTGDs);
 
@@ -272,23 +272,24 @@ public abstract class AbstractSaturation<Q extends GTGD> implements SaturationAl
     }
 
     protected void addNewTGD(Q newTGD, boolean asRightTGD, Collection<Q> newTGDs, Subsumer<Q> TGDsSubsumer,
-            UnificationIndex<Q> unificationIndex, Set<Q> TGDsSet, SaturationStatistics<Q> stats) {
+                             UnificationIndex<Q> unificationIndex, Set<Q> TGDsSet, String processName) {
 
         // discard if the newTGD is a tautology
         if (config.isTautologyDiscarded() && newTGD.getBodySet().containsAll(newTGD.getHeadSet())) {
-            stats.incrDiscardedTautologyCount();
+            statsCollector.incr(processName, SaturationStatColumns.DISCARDED_TAUTOLOGY);
             return;
         }
 
-        long startTime = System.nanoTime();
+        statsCollector.tick(processName, SaturationStatColumns.OTHER_TIME);
         boolean isSubsumed = TGDsSubsumer.subsumed(newTGD);
-        stats.incrForwardSubsumptionTime(System.nanoTime() - startTime);
+        statsCollector.tick(processName, SaturationStatColumns.FORWARD_SUB_TIME);
+
         if (isSubsumed)
             return;
 
-        startTime = System.nanoTime();
+        statsCollector.tick(processName, SaturationStatColumns.OTHER_TIME);
         Collection<Q> sub = TGDsSubsumer.subsumesAny(newTGD);
-        stats.incrBackwardSubsumptionTime(System.nanoTime() - startTime);
+        statsCollector.tick(processName, SaturationStatColumns.BACKWARD_SUB_TIME);
 
         TGDsSet.removeAll(sub);
         newTGDs.removeAll(sub);
@@ -304,13 +305,12 @@ public abstract class AbstractSaturation<Q extends GTGD> implements SaturationAl
             }
         }
 
-        if (config.getNewTGDStrusture().equals(Configuration.newTGDStructure.STACK) && newTGDs.contains(newTGD))
+        if (config.getNewTGDStrusture().equals(NewTGDStructure.STACK) && newTGDs.contains(newTGD))
             return;
         newTGDs.add(newTGD);
         TGDsSubsumer.add(newTGD);
     }
 
-    
     /**
      *
      * Check if the variables we use in the rename are already used in the input
@@ -364,6 +364,18 @@ public abstract class AbstractSaturation<Q extends GTGD> implements SaturationAl
         if (timeout != null && timeout < (System.nanoTime() - startTime))
             return true;
         return false;
+    }
+
+    public void setStatsCollector(StatisticsCollector<SaturationStatColumns> statsCollector) {
+        this.statsCollector = statsCollector;
+    }
+
+    protected void reportNewLeftTGD(String processName, Q tgd) {
+        statsCollector.incr(processName, SaturationStatColumns.NEW_NFTGD_NB);
+    }
+
+    protected void reportNewRightTGD(String processName, Q tgd) {
+        statsCollector.incr(processName, SaturationStatColumns.NEW_FTGD_NB);
     }
 
 }

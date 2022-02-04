@@ -1,6 +1,9 @@
 package uk.ac.ox.cs.gsat;
 
 import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
+import java.io.PrintStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -19,6 +22,7 @@ import com.beust.jcommander.ParameterException;
 import org.apache.commons.io.FilenameUtils;
 
 import uk.ac.ox.cs.gsat.api.SaturationAlgorithm;
+import uk.ac.ox.cs.gsat.api.SaturationStatColumns;
 import uk.ac.ox.cs.gsat.api.io.Parser;
 import uk.ac.ox.cs.gsat.api.io.Serializer;
 import uk.ac.ox.cs.gsat.api.io.TGDFilter;
@@ -30,10 +34,16 @@ import uk.ac.ox.cs.gsat.io.SerializerFactory;
 import uk.ac.ox.cs.gsat.io.TGDProcessingBuilder;
 import uk.ac.ox.cs.gsat.satalg.SaturationAlgorithmFactory;
 import uk.ac.ox.cs.gsat.satalg.SaturationConfig;
+import uk.ac.ox.cs.gsat.statistics.DefaultStatisticsCollector;
+import uk.ac.ox.cs.gsat.statistics.StatisticsCollector;
+import uk.ac.ox.cs.gsat.statistics.StatisticsColumn;
+import uk.ac.ox.cs.gsat.statistics.StatisticsLogger;
 import uk.ac.ox.cs.pdq.fol.Predicate;
 
 public class Saturator {
 
+    protected static final String STATS_FILENAME= "stats.csv";
+    
     /** The help. */
     @Parameter(names = { "-h", "--help" }, help = true, description = "Displays this help message.")
     private boolean help;
@@ -48,8 +58,8 @@ public class Saturator {
     private String outputPath;
 
     @Parameter(names = { "-q",
-            "--queries" }, required = false, description = "Path to the queries file used to filter the input.")
-    private String queriesFile;
+                         "--queries" }, required = false, description = "Path to the queries file used to filter the input.")
+                         private String queriesFile;
 
     private Saturator(String... args) throws Exception {
         JCommander jc = new JCommander(this);
@@ -77,33 +87,47 @@ public class Saturator {
             saturationConfig = new SaturationConfig();
         }
 
+        StatisticsCollector<SaturationStatColumns> statisticsCollector = new DefaultStatisticsCollector<>();
+        SaturationAlgorithm algorithm = SaturationAlgorithmFactory.instance().create(saturationConfig);
+        algorithm.setStatsCollector(statisticsCollector);
         File inputFile = new File(inputPath);
         File outputFile = new File(outputPath);
 
         if (!inputFile.exists())
-            throw new IllegalArgumentException("the input file or directory do not exists.");
+            throw new IllegalArgumentException("The input file or directory do not exists.");
 
         if (inputFile.isDirectory()) {
             if (outputFile.exists() && !outputFile.isDirectory()) {
                 throw new IllegalArgumentException(
-                        "Since the input is a directory the output should also be a directory.");
+                                                   "Since the input is a directory the output should also be a directory.");
             }
+
+            StatisticsLogger statsLogger = getStatisticsLogger(statisticsCollector, outputPath, STATS_FILENAME);
+            statsLogger.printHeader();
 
             Path inputDirectoryPath = Paths.get(inputPath);
             Path outputDirectoryPath = Paths.get(outputPath);
             List<String> singleInputPaths = Files.find(inputDirectoryPath, 999, (p, bfa) -> bfa.isRegularFile())
-                    .map(p -> p.toString()).filter(p -> TGDFileFormat.matchesAny(p)).collect(Collectors.toList());
+                .map(p -> p.toString()).filter(p -> TGDFileFormat.matchesAny(p)).collect(Collectors.toList());
 
             // sort the input paths
             Collections.sort(singleInputPaths);
             
             for (String singleInput : singleInputPaths) {
                 String singleOutputPath = getSingleOutputPath(singleInput, inputDirectoryPath, outputDirectoryPath);
-                runSingleFile(saturationConfig, singleInput, singleOutputPath);
+                runSingleFile(algorithm, singleInput, singleOutputPath);
+                statsLogger.printRow(getRowName(singleInput));
             }
         } else {
-            runSingleFile(saturationConfig, inputPath, outputPath);
+            StatisticsLogger statsLogger = getStatisticsLogger(statisticsCollector, null, null);
+            statsLogger.printHeader();
+            runSingleFile(algorithm, inputPath, outputPath);
+            statsLogger.printRow(getRowName(inputPath));
         }
+    }
+
+    private static String getRowName(String singleInput) {
+        return FilenameUtils.getBaseName(singleInput);
     }
 
     /**
@@ -126,17 +150,34 @@ public class Saturator {
         return singleOutputPath;
     }
 
-    private void runSingleFile(SaturationConfig saturationConfig, String input, String output) throws Exception {
+    private void runSingleFile(SaturationAlgorithm algorithm, String input, String output) throws Exception {
         Collection<? extends TGD> saturationFullTGDs = computeSaturationFromTGDPath(input, queriesFile,
-                saturationConfig);
+                                                                                    algorithm);
         writeTGDsToFile(output, saturationFullTGDs);
     }
 
+    public static <T extends StatisticsColumn> StatisticsLogger getStatisticsLogger(
+                                                                                    StatisticsCollector<T> statsCollector, String inputDirectory, String statsFileName) throws FileNotFoundException {
+
+        StatisticsLogger statsLogger;
+        if (inputDirectory != null) {
+            String statsFilePath = Paths.get(inputDirectory).resolve(statsFileName).toString();
+            new File(statsFilePath).delete();
+            PrintStream statsStream = new PrintStream(new FileOutputStream(statsFilePath, true));
+            statsLogger = new StatisticsLogger(statsStream, statsCollector);
+        } else {
+            statsLogger = new StatisticsLogger(System.out, statsCollector);
+        }
+        statsLogger.setSortedHeader(Arrays.asList(SaturationStatColumns.values()));
+
+        return statsLogger;
+    }
+    
     public static void writeTGDsToFile(String outputPath, Collection<? extends TGD> tgds) throws Exception {
         TGDFileFormat outputFormat = TGDFileFormat.getFormatFromPath(outputPath);
         if (outputFormat == null) {
             String message = String.format("The output file should use one of these extensions %s",
-                    Arrays.asList(TGDFileFormat.values()), TGDFileFormat.getExtensions());
+                                           Arrays.asList(TGDFileFormat.values()), TGDFileFormat.getExtensions());
             throw new IllegalArgumentException(message);
         }
 
@@ -158,14 +199,22 @@ public class Saturator {
     }
 
     public static Collection<? extends TGD> computeSaturationFromTGDPath(String inputPath, String queriesPath,
-            SaturationConfig config) throws Exception {
+                                                                         SaturationConfig config) throws Exception {
+        SaturationAlgorithm algorithm = SaturationAlgorithmFactory.instance().create(config);
+
+        return computeSaturationFromTGDPath(inputPath, queriesPath, algorithm);
+    }
+
+    public static Collection<? extends TGD> computeSaturationFromTGDPath(String inputPath, String queriesPath,
+                                                                         SaturationAlgorithm algorithm) throws Exception {
+
 
         TGDFileFormat inputFormat = TGDFileFormat.getFormatFromPath(inputPath);
 
         if (inputFormat == null) {
             String message = String.format(
-                    "The input file format should be of one of %s and should use one of these extensions %s",
-                    Arrays.asList(TGDFileFormat.values()), TGDFileFormat.getExtensions());
+                                           "The input file format should be of one of %s and should use one of these extensions %s",
+                                           Arrays.asList(TGDFileFormat.values()), TGDFileFormat.getExtensions());
             throw new IllegalArgumentException(message);
         }
 
@@ -179,15 +228,13 @@ public class Saturator {
             Parser queryParser = ParserFactory.instance().create(TGDFileFormat.DLGP);
             queryParser.parse(queriesPath, true, false);
             Set<Predicate> wantedPredicates = queryParser.getConjunctiveQueries().stream().map(a -> a.getPredicate())
-                    .collect(Collectors.toSet());
+                .collect(Collectors.toSet());
             filters.add(new PredicateDependenciesBasedFilter<>(wantedPredicates));
         }
 
         TGDProcessing tgdProcessing = TGDProcessingBuilder.instance().setParser(parser).setFilters(filters).build();
 
-        SaturationAlgorithm algorithm = SaturationAlgorithmFactory.instance().create(config);
-
-        return algorithm.run(tgdProcessing.getTGDs());
+        return algorithm.run(getRowName(inputPath), tgdProcessing.getTGDs());
     }
 
     public static void main(String... args) throws Exception {
