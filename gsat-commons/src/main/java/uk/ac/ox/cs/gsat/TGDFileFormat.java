@@ -31,6 +31,10 @@ public enum TGDFileFormat {
         return null;
     }
 
+    public static boolean matchesAny(String path) {
+        return getFormatFromPath(path) != null;
+    }
+    
     public static List<String> getExtensions() {
         List<String> result = new ArrayList<>();
 

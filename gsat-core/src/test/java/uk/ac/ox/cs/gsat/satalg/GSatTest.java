@@ -16,7 +16,6 @@ import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
 import uk.ac.ox.cs.gsat.App;
-import uk.ac.ox.cs.gsat.Configuration;
 import uk.ac.ox.cs.gsat.fol.GTGD;
 import uk.ac.ox.cs.gsat.fol.TGD;
 import uk.ac.ox.cs.gsat.fol.TGDFactory;
@@ -92,8 +91,6 @@ public class GSatTest {
 		App.logger.setLevel(Level.WARNING);
 		App.logger.setUseParentHandlers(false);
 
-        // force the saturation algo to be gsat
-        Configuration.setSaturationAlg("gsat");
 	}
 
 	@Test

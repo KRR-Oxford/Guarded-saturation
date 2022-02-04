@@ -29,9 +29,6 @@ public class OWLTest {
 		App.logger.setLevel(Level.WARNING);
 		App.logger.setUseParentHandlers(false);
 
-        // force the saturation algo to be gsat
-        Configuration.setSaturationAlg("gsat");
-
 	}
 
 	@Disabled("Disabled because it is too slow")

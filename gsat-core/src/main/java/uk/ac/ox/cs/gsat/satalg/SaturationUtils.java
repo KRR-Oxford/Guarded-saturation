@@ -117,8 +117,9 @@ class SaturationUtils {
         if (compareTo != 0)
             return compareTo;
 
-        throw new RuntimeException();
-
+        // in case of clash
+        compareTo = tgd1.toString().compareTo(tgd2.toString());
+        return compareTo;
     };
 
     /**

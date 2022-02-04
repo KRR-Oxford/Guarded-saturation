@@ -30,8 +30,6 @@ public class ChaseBenchTest {
                 App.logger.setLevel(Level.WARNING);
                 App.logger.setUseParentHandlers(false);
 
-                // force the saturation algo to be gsat
-                Configuration.setSaturationAlg("gsat");
         }
 
         private void fromChaseBench(String baseTest, String basePath, String fact_querySize, int output_val,

@@ -2,7 +2,10 @@ package uk.ac.ox.cs.gsat.satalg;
 
 import java.io.FileInputStream;
 import java.io.IOException;
+import java.util.Arrays;
 import java.util.Properties;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 import uk.ac.ox.cs.gsat.Configuration.newTGDStructure;
 import uk.ac.ox.cs.gsat.fol.TGD;
@@ -24,6 +27,7 @@ public class SaturationConfig {
     private UnificationIndexType unificationIndexType = null;
     private int maxPredicate = 0;
     private boolean sortedVNF = true;
+    private SaturationAlgorithmType saturationAlgorithmType = SaturationAlgorithmType.GSAT;
 
     public SaturationConfig() {
     }
@@ -69,6 +73,18 @@ public class SaturationConfig {
 
         if (prop.containsKey("optimization.unification_index_type"))
             unificationIndexType = UnificationIndexType.valueOf(prop.getProperty("optimization.unification_index_type"));
+        if (prop.containsKey("saturation_alg")) {
+            String value = prop.getProperty("saturation_alg").toUpperCase();
+            Set<String> allowedValues = Arrays.stream(SaturationAlgorithmType.values()).map(t -> t.toString()).collect(Collectors.toSet());
+            if (allowedValues.contains(value)) {
+                SaturationAlgorithmType type = SaturationAlgorithmType.valueOf(value);
+                this.saturationAlgorithmType = type;
+
+            } else {
+                String message = String.format("The value %s is not supported for 'saturation_alg'. It should be one in %s", value, allowedValues);
+                throw new IllegalArgumentException(message);
+            }
+        }
 
     }
 
@@ -150,6 +166,18 @@ public class SaturationConfig {
 
     public UnificationIndexType getUnificationIndexType() {
         return unificationIndexType;
+    }
+
+    public SaturationAlgorithmType getSaturatonAlgType() {
+        return saturationAlgorithmType;
+    }
+
+    public SaturationAlgorithmType getSaturationAlgorithmType() {
+        return saturationAlgorithmType;
+    }
+
+    public void setSaturationAlgorithmType(SaturationAlgorithmType saturationAlgorithmType) {
+        this.saturationAlgorithmType = saturationAlgorithmType;
     }
 
 }

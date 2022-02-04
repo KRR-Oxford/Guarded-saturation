@@ -13,11 +13,24 @@ public class SaturationAlgorithmFactory {
         return INSTANCE;
     }
 
+    /**
+     * Create a saturation algorithm with the given type and the default configuration
+     */
     public SaturationAlgorithm create(SaturationAlgorithmType type) {
-        return create(type, new SaturationConfig());
+
+        SaturationConfig config = new SaturationConfig();
+        config.setSaturationAlgorithmType(type);
+        
+        return create(config);
     }
 
-    public SaturationAlgorithm create(SaturationAlgorithmType type, SaturationConfig config) {
+    /**
+     * Create a saturation algorithm following the given configuration
+     */
+    public SaturationAlgorithm create(SaturationConfig config) {
+
+        SaturationAlgorithmType type = config.getSaturatonAlgType();
+        
         switch(type) {
         case GSAT:
             return new GSat(config);

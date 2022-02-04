@@ -1,9 +1,13 @@
 package uk.ac.ox.cs.gsat;
 
 import java.io.File;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -11,6 +15,8 @@ import java.util.stream.Collectors;
 import com.beust.jcommander.JCommander;
 import com.beust.jcommander.Parameter;
 import com.beust.jcommander.ParameterException;
+
+import org.apache.commons.io.FilenameUtils;
 
 import uk.ac.ox.cs.gsat.api.SaturationAlgorithm;
 import uk.ac.ox.cs.gsat.api.io.Parser;
@@ -23,7 +29,6 @@ import uk.ac.ox.cs.gsat.io.PredicateDependenciesBasedFilter;
 import uk.ac.ox.cs.gsat.io.SerializerFactory;
 import uk.ac.ox.cs.gsat.io.TGDProcessingBuilder;
 import uk.ac.ox.cs.gsat.satalg.SaturationAlgorithmFactory;
-import uk.ac.ox.cs.gsat.satalg.SaturationAlgorithmType;
 import uk.ac.ox.cs.gsat.satalg.SaturationConfig;
 import uk.ac.ox.cs.pdq.fol.Predicate;
 
@@ -37,10 +42,10 @@ public class Saturator {
     private String configFile = "config.properties";
 
     @Parameter(names = { "-i", "--input" }, required = true, description = "Path to the input file.")
-    private String inputFile;
+    private String inputPath;
 
     @Parameter(names = { "-o", "--output" }, required = true, description = "Path to the output file.")
-    private String outputFile;
+    private String outputPath;
 
     @Parameter(names = { "-q",
             "--queries" }, required = false, description = "Path to the queries file used to filter the input.")
@@ -72,10 +77,59 @@ public class Saturator {
             saturationConfig = new SaturationConfig();
         }
 
-        Collection<? extends TGD> saturationFullTGDs = computeSaturationFromTGDPath(inputFile, queriesFile, saturationConfig);
+        File inputFile = new File(inputPath);
+        File outputFile = new File(outputPath);
 
+        if (!inputFile.exists())
+            throw new IllegalArgumentException("the input file or directory do not exists.");
 
-        writeTGDsToFile(outputFile, saturationFullTGDs);
+        if (inputFile.isDirectory()) {
+            if (outputFile.exists() && !outputFile.isDirectory()) {
+                throw new IllegalArgumentException(
+                        "Since the input is a directory the output should also be a directory.");
+            }
+
+            Path inputDirectoryPath = Paths.get(inputPath);
+            Path outputDirectoryPath = Paths.get(outputPath);
+            List<String> singleInputPaths = Files.find(inputDirectoryPath, 999, (p, bfa) -> bfa.isRegularFile())
+                    .map(p -> p.toString()).filter(p -> TGDFileFormat.matchesAny(p)).collect(Collectors.toList());
+
+            // sort the input paths
+            Collections.sort(singleInputPaths);
+            
+            for (String singleInput : singleInputPaths) {
+                String singleOutputPath = getSingleOutputPath(singleInput, inputDirectoryPath, outputDirectoryPath);
+                runSingleFile(saturationConfig, singleInput, singleOutputPath);
+            }
+        } else {
+            runSingleFile(saturationConfig, inputPath, outputPath);
+        }
+    }
+
+    /**
+     * In case the input and the output are directories, we generate the name of the
+     * single output files
+     * @param singleInput 
+     * @param inputDirectoryPath 
+     * @param outputDirectoryPath 
+     */
+    private static String getSingleOutputPath(String singleInput, Path inputDirectoryPath, Path outputDirectoryPath) {
+        Path singleInputPath = Paths.get(singleInput);
+        Path relativeInputPath = inputDirectoryPath.relativize(singleInputPath);
+        Path relativeOutputPath = Paths.get(FilenameUtils.getBaseName(singleInput) + "-sat.dlgp");
+
+        if (relativeInputPath.getParent() != null) {
+            relativeOutputPath = relativeInputPath.getParent().resolve(relativeOutputPath);
+        }
+        
+        String singleOutputPath = outputDirectoryPath.resolve(relativeOutputPath).toString();
+        return singleOutputPath;
+    }
+
+    private void runSingleFile(SaturationConfig saturationConfig, String input, String output) throws Exception {
+        Collection<? extends TGD> saturationFullTGDs = computeSaturationFromTGDPath(input, queriesFile,
+                saturationConfig);
+        writeTGDsToFile(output, saturationFullTGDs);
     }
 
     public static void writeTGDsToFile(String outputPath, Collection<? extends TGD> tgds) throws Exception {
@@ -86,6 +140,15 @@ public class Saturator {
             throw new IllegalArgumentException(message);
         }
 
+
+        // create the output directory
+        Path outputDirPath = Paths.get(outputPath).getParent();
+        if (outputDirPath != null) {
+            File outputDir = outputDirPath.toFile();
+            if (!outputDir.exists())
+                outputDir.mkdirs();
+        }
+
         Serializer serializer = SerializerFactory.instance().create(outputFormat);
 
         serializer.open(outputPath);
@@ -94,7 +157,8 @@ public class Saturator {
 
     }
 
-    public static Collection<? extends TGD> computeSaturationFromTGDPath(String inputPath, String queriesPath, SaturationConfig config) throws Exception {
+    public static Collection<? extends TGD> computeSaturationFromTGDPath(String inputPath, String queriesPath,
+            SaturationConfig config) throws Exception {
 
         TGDFileFormat inputFormat = TGDFileFormat.getFormatFromPath(inputPath);
 
@@ -121,14 +185,9 @@ public class Saturator {
 
         TGDProcessing tgdProcessing = TGDProcessingBuilder.instance().setParser(parser).setFilters(filters).build();
 
-        SaturationAlgorithmType algorithmType = Configuration.getSaturatonAlgType();
-        SaturationAlgorithm algorithm = SaturationAlgorithmFactory.instance().create(algorithmType, config);
+        SaturationAlgorithm algorithm = SaturationAlgorithmFactory.instance().create(config);
 
         return algorithm.run(tgdProcessing.getTGDs());
-    }
-
-    private boolean isInputDirectory() {
-        return new File(this.inputFile).isDirectory();
     }
 
     public static void main(String... args) throws Exception {

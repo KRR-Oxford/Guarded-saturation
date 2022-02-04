@@ -14,7 +14,6 @@ import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
 import uk.ac.ox.cs.gsat.App;
-import uk.ac.ox.cs.gsat.Configuration;
 import uk.ac.ox.cs.pdq.fol.Atom;
 import uk.ac.ox.cs.pdq.fol.Function;
 import uk.ac.ox.cs.pdq.fol.FunctionTerm;
@@ -86,9 +85,6 @@ public class LogicTest {
 		App.logger.addHandler(handlerObj);
 		App.logger.setLevel(Level.WARNING);
 		App.logger.setUseParentHandlers(false);
-
-        // force the saturation algo to be gsat
-        Configuration.setSaturationAlg("gsat");
 	}
 
 	@Test

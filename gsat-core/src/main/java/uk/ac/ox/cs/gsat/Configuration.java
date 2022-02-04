@@ -5,8 +5,6 @@ import java.io.FileInputStream;
 import java.io.IOException;
 import java.util.Properties;
 
-import uk.ac.ox.cs.gsat.satalg.SaturationAlgorithmType;
-
 /**
  * From Angry-HEX code
  */
@@ -114,10 +112,6 @@ public class Configuration {
                             ? Boolean.parseBoolean(Configuration.prop.getProperty("negative_constraint"))
                             : true;
 
-                    newTGDStructure = Configuration.prop.containsKey("optimization.new_tgd_structure")
-                            ? uk.ac.ox.cs.gsat.Configuration.newTGDStructure
-                                    .valueOf(prop.getProperty("optimization.new_tgd_structure"))
-                            : uk.ac.ox.cs.gsat.Configuration.newTGDStructure.SET;
 
                     applyStructuralTransformation = Configuration.prop
                             .containsKey("optimization.apply_structural_transformation")
@@ -132,29 +126,6 @@ public class Configuration {
 
         Configuration.initialize();
         return isSaturationOnly;
-    }
-
-    public static String getSaturationAlg() {
-
-        Configuration.initialize();
-
-        if (Configuration.prop == null)
-            return "gsat";
-
-        String value = Configuration.prop.getProperty("saturation_alg");
-        return (value != null) ? value : "gsat";
-    }
-
-    public static SaturationAlgorithmType getSaturatonAlgType() {
-        return SaturationAlgorithmType.valueOf(Configuration.getSaturationAlg().toUpperCase());
-    }
-
-    public static void setSaturationAlg(String value) {
-
-        Configuration.initialize();
-
-        if (Configuration.prop != null)
-            Configuration.prop.setProperty("saturation_alg", value);
     }
 
     public static boolean isDebugMode() {
