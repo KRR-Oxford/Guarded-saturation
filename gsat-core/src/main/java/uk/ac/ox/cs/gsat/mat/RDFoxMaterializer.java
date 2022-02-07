@@ -59,7 +59,6 @@ class RDFoxMaterializer implements Materializer {
         statsCollector.tick(statsRowName, MaterializationStatColumns.MAT_WRITING_TIME);
 
         long materializationSize = getTripleCount(dsConn, "IDB");
-        statsCollector.stop(statsRowName, MaterializationStatColumns.MAT_TOTAL);
         statsCollector.put(statsRowName, MaterializationStatColumns.MAT_SIZE, materializationSize);
 
         return materializationSize;

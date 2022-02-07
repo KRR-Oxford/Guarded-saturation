@@ -32,7 +32,7 @@ public class HyperResolutionBasedSat extends AbstractSaturation<SkGTGD> {
 
     private Map<SkGTGD, SkGTGD> renamingCache = new HashMap<>();
 
-    protected HyperResolutionBasedSat(SaturationConfig config) {
+    protected HyperResolutionBasedSat(SaturationAlgorithmConfiguration config) {
         super(NAME, TGDFactory.getSkGTGDInstance(config.isSortedVNF()),
               UnificationIndexType.ATOM_PATH_INDEX,
               UnificationIndexType.ATOM_PATH_INDEX, config);

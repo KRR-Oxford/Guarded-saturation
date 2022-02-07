@@ -19,7 +19,7 @@ import java.util.TreeMap;
 import java.util.TreeSet;
 
 import uk.ac.ox.cs.gsat.fol.TGD;
-import uk.ac.ox.cs.gsat.satalg.SaturationConfig;
+import uk.ac.ox.cs.gsat.satalg.SaturationAlgorithmConfiguration;
 import uk.ac.ox.cs.pdq.fol.Atom;
 import uk.ac.ox.cs.pdq.fol.Function;
 import uk.ac.ox.cs.pdq.fol.FunctionTerm;
@@ -32,9 +32,9 @@ import uk.ac.ox.cs.pdq.fol.Term;
  */
 public class TreePredicateFilter<Q extends TGD> implements FormulaFilter<Q> {
 
-    protected final SaturationConfig config;
+    protected final SaturationAlgorithmConfiguration config;
 
-    public TreePredicateFilter(SaturationConfig config) {
+    public TreePredicateFilter(SaturationAlgorithmConfiguration config) {
         this.config = config;
     }
 

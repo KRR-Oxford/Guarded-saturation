@@ -11,29 +11,30 @@ import uk.ac.ox.cs.gsat.fol.TGD;
 import uk.ac.ox.cs.gsat.satalg.AbstractSkolemSat.SkolemizationType;
 import uk.ac.ox.cs.gsat.unification.UnificationIndexType;
 
-public class SaturationConfig {
+public class SaturationAlgorithmConfiguration {
 
-    private boolean verbose = true;
-    private boolean simpleSatPredicateFilter = true;
-    private Long timeout = null;
-    private String subsumptionMethod = "tree_predicate";
-    private boolean evolvingTGDOrdering = true;
-    private NewTGDStructure newTGDStructure = NewTGDStructure.SET;
-    private boolean stopEvolvingIfSubsumed = true;
-    private boolean discardUselessTGD = true;
-    private SkolemizationType skolemizationType = SkolemizationType.NAIVE;
-    private boolean discardTautology = true;
-    private boolean orderedSkolemSatSelectSkolemBodyAtom = false;
-    private UnificationIndexType unificationIndexType = null;
-    private int maxPredicate = 0;
-    private boolean sortedVNF = true;
-    private SaturationAlgorithmType saturationAlgorithmType = SaturationAlgorithmType.GSAT;
+    protected final Properties prop = new Properties();
+    
+    protected boolean verbose = true;
+    protected boolean simpleSatPredicateFilter = true;
+    protected Long timeout = null;
+    protected String subsumptionMethod = "tree_predicate";
+    protected boolean evolvingTGDOrdering = true;
+    protected NewTGDStructure newTGDStructure = NewTGDStructure.SET;
+    protected boolean stopEvolvingIfSubsumed = true;
+    protected boolean discardUselessTGD = true;
+    protected SkolemizationType skolemizationType = SkolemizationType.NAIVE;
+    protected boolean discardTautology = true;
+    protected boolean orderedSkolemSatSelectSkolemBodyAtom = false;
+    protected UnificationIndexType unificationIndexType = null;
+    protected int maxPredicate = 0;
+    protected boolean sortedVNF = true;
+    protected SaturationAlgorithmType saturationAlgorithmType = SaturationAlgorithmType.GSAT;
 
-    public SaturationConfig() {
+    public SaturationAlgorithmConfiguration() {
     }
     
-    public SaturationConfig(String configPath) throws IOException {
-        Properties prop = new Properties();
+    public SaturationAlgorithmConfiguration(String configPath) throws IOException {
         FileInputStream inStream = new FileInputStream(configPath);
         prop.load(inStream);
 

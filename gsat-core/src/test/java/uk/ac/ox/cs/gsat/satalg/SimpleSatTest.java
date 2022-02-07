@@ -47,7 +47,7 @@ public class SimpleSatTest {
 	@Test
 	public void simpleTest() {
 
-		SimpleSat sgsat = new SimpleSat(new SaturationConfig());
+		SimpleSat sgsat = new SimpleSat(new SaturationAlgorithmConfiguration());
 		// Variables
 
 		// A(x1) -> ∃ x2. R(x1, x2)
@@ -79,7 +79,7 @@ public class SimpleSatTest {
 	@Test
 	public void thesisTest() {
 
-		SimpleSat sgsat = new SimpleSat(new SaturationConfig());
+		SimpleSat sgsat = new SimpleSat(new SaturationAlgorithmConfiguration());
 		// Variables
 
 		// R(x1, x2) -> ∃ y1, y2. S(x1, x2, y1, y2) & T(x1, x2, y2)

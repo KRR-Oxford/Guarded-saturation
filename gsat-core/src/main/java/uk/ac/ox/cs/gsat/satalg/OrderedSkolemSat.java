@@ -8,7 +8,7 @@ class OrderedSkolemSat extends AbstractSkolemSat<OrderedSkGTGD> {
 
     private static final String NAME = "OrderedSkSat";
 
-    OrderedSkolemSat(SaturationConfig config) {
+    OrderedSkolemSat(SaturationAlgorithmConfiguration config) {
         super(TGDFactory.getOrderedSkGTGDInstance(config.isSortedVNF()), NAME, config);
     }
 

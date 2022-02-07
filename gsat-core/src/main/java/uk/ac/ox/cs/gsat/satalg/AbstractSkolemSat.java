@@ -16,7 +16,7 @@ import uk.ac.ox.cs.pdq.fol.Term;
 
 public abstract class AbstractSkolemSat<Q extends SkGTGD> extends EvolveBasedSat<Q> {
 
-    protected AbstractSkolemSat(TGDFactory<Q> factory, String name, SaturationConfig config) {
+    protected AbstractSkolemSat(TGDFactory<Q> factory, String name, SaturationAlgorithmConfiguration config) {
         super(name, factory, UnificationIndexType.ATOM_PATH_INDEX, UnificationIndexType.ATOM_PATH_INDEX, config);
     }
 

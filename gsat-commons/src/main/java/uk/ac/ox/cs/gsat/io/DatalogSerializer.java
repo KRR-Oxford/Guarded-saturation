@@ -1,9 +1,13 @@
 package uk.ac.ox.cs.gsat.io;
 
+import java.io.File;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
+import java.nio.file.OpenOption;
 import java.nio.file.Paths;
+import java.nio.file.StandardOpenOption;
+import java.util.Base64;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.LinkedList;
@@ -29,6 +33,8 @@ import uk.ac.ox.cs.pdq.fol.Variable;
  */
 public class DatalogSerializer implements Serializer {
 
+    protected final static OpenOption[] OPEN_OPTIONS = new OpenOption[] {StandardOpenOption.CREATE, StandardOpenOption.APPEND, StandardOpenOption.WRITE };
+    
     protected String filePath;
     
     @Override
@@ -39,6 +45,7 @@ public class DatalogSerializer implements Serializer {
     @Override
     public void open(String filePath) throws IOException {
         this.filePath = filePath;
+        new File(filePath).delete();
     }
 
     @Override
@@ -57,7 +64,7 @@ public class DatalogSerializer implements Serializer {
         Collection<String> datalogRules = new LinkedList<>();
         guardedSaturation.forEach((tgd) -> datalogRules.addAll(getDatalogRules(tgd)));
 
-        Files.write(Paths.get(path), datalogRules, StandardCharsets.UTF_8);
+        Files.write(Paths.get(path), datalogRules, StandardCharsets.UTF_8, OPEN_OPTIONS);
 
     }
 
@@ -113,9 +120,11 @@ public class DatalogSerializer implements Serializer {
         if (name != null) {
             if (name.length() > 6
                     && (name.substring(0, 7).equals("http://") || name.substring(0, 7).equals("file://"))) {
-                // URL in angle bracket
-                // App.logger.fine("URL as predicate name. Adding angle brackets." + name);
-                name = '<' + name + '>';
+                // URL encoded using Base64
+                // without padding = character at the end
+                name = Base64.getUrlEncoder()
+                       .encodeToString(name.getBytes()).replace("=","");
+;
             } else if (name.length() > 0 && name.substring(0, 1).matches("[A-Z]")) { // First char to Lower Case
                 // App.logger.fine("Predicate starting with an upper-case letter. Transforming
                 // it to lower-case.");
@@ -159,7 +168,7 @@ public class DatalogSerializer implements Serializer {
         for (Atom atom : facts)
             datalogFacts.add(renameVariablesAndConstantsDatalog(atom).toString() + '.');
 
-        Files.write(Paths.get(path), datalogFacts, StandardCharsets.UTF_8);
+        Files.write(Paths.get(path), datalogFacts, StandardCharsets.UTF_8, OPEN_OPTIONS);
 
     }
 
@@ -171,7 +180,7 @@ public class DatalogSerializer implements Serializer {
             // System.out.println(query);
             datalogQueries.add(getDatalogQuery(query));
 
-        Files.write(Paths.get(path), datalogQueries, StandardCharsets.UTF_8);
+        Files.write(Paths.get(path), datalogQueries, StandardCharsets.UTF_8, OPEN_OPTIONS);
 
     }
 
@@ -201,7 +210,7 @@ public class DatalogSerializer implements Serializer {
 
         datalogQueries.add(renameVariablesAndConstantsDatalog((Atom) query).toString() + " ?");
 
-        Files.write(Paths.get(path), datalogQueries, StandardCharsets.UTF_8);
+        Files.write(Paths.get(path), datalogQueries, StandardCharsets.UTF_8, OPEN_OPTIONS);
 
     }
 

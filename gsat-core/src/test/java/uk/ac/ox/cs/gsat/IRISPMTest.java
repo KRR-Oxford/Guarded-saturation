@@ -70,6 +70,7 @@ public class IRISPMTest {
 
 	private void fromIRISPM(Collection<Dependency> allTGDs, Collection<Atom> allFacts,
 			Collection<ConjunctiveQuery> allQueries, int guardedSaturationSize, int[] queryLenghts) {
+
 		System.out.println("Initial rules:");
 		allTGDs.forEach(System.out::println);
 		Collection<? extends TGD> guardedSaturation = SaturationAlgorithmFactory.instance().create(SaturationAlgorithmType.GSAT).run(allTGDs);
@@ -86,18 +87,25 @@ public class IRISPMTest {
 		allQueries.forEach(System.out::println);
 
 		String baseOutputPath = "test" + File.separator + "UnitTests" + File.separator + "IRISPM" + File.separator;
+        String rulesPath = baseOutputPath + "rules.rul";
+        String queryPath = baseOutputPath + "query.rul";
+        String dataPath = baseOutputPath + "facts.data";
+        new File(rulesPath).delete();
+        new File(queryPath).delete();
+        new File(dataPath).delete();
+
 		new File(baseOutputPath).mkdirs();
 		try {
-			DatalogSerializer.writeDatalogRules(guardedSaturation, baseOutputPath + "rules.rul");
-			DatalogSerializer.writeDatalogFacts(allFacts, baseOutputPath + "facts.data");
+			DatalogSerializer.writeDatalogRules(guardedSaturation, rulesPath);
+			DatalogSerializer.writeDatalogFacts(allFacts, dataPath);
 			int count = 0;
 			assertEquals(allQueries.size(), queryLenghts.length);
 			for (ConjunctiveQuery q : allQueries) {
 
-				DatalogSerializer.writeDatalogQueries(Arrays.asList(q), baseOutputPath + "query.rul");
+				DatalogSerializer.writeDatalogQueries(Arrays.asList(q), queryPath);
 				SolverOutput output = Utils.invokeSolver(Configuration.getSolverPath(),
-						Configuration.getSolverOptionsQuery(), Arrays.asList(baseOutputPath + "rules.rul",
-								baseOutputPath + "facts.data", baseOutputPath + "query.rul"));
+						Configuration.getSolverOptionsQuery(), Arrays.asList(rulesPath,
+								dataPath, queryPath));
 				System.out.println(output);
 
 				int expectedLines = queryLenghts[count++];

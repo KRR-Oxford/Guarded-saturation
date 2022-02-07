@@ -33,13 +33,13 @@ import uk.ac.ox.cs.pdq.fol.Predicate;
  */
 public abstract class EvolveBasedSat<Q extends GTGD> extends AbstractSaturation<Q> {
 
-    protected EvolveBasedSat(String saturationName, TGDFactory<Q> factory, SaturationConfig config) {
+    protected EvolveBasedSat(String saturationName, TGDFactory<Q> factory, SaturationAlgorithmConfiguration config) {
 
         this(saturationName, factory, UnificationIndexType.PREDICATE_INDEX, UnificationIndexType.PREDICATE_INDEX, config);
     }
 
     protected EvolveBasedSat(String saturationName, TGDFactory<Q> factory, UnificationIndexType leftIndexType,
-            UnificationIndexType rightIndexType, SaturationConfig config) {
+            UnificationIndexType rightIndexType, SaturationAlgorithmConfiguration config) {
         super(saturationName, factory, leftIndexType, rightIndexType, config);
     }
 

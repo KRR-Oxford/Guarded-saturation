@@ -21,7 +21,7 @@ import uk.ac.ox.cs.gsat.kaon2.KAON2StructuralTransformationIO;
 import uk.ac.ox.cs.gsat.mat.SolverOutput;
 import uk.ac.ox.cs.gsat.mat.Utils;
 import uk.ac.ox.cs.gsat.satalg.SaturationAlgorithmFactory;
-import uk.ac.ox.cs.gsat.satalg.SaturationConfig;
+import uk.ac.ox.cs.gsat.satalg.SaturationAlgorithmConfiguration;
 import uk.ac.ox.cs.pdq.fol.Atom;
 import uk.ac.ox.cs.pdq.fol.Dependency;
 
@@ -198,7 +198,7 @@ public class App {
 
 		try {
 
-            SaturationConfig satConfig = new SaturationConfig("config.properties");
+            SaturationAlgorithmConfiguration satConfig = new SaturationAlgorithmConfiguration("config.properties");
             SaturationAlgorithmFactory factory = SaturationAlgorithmFactory.instance();
 
             executionOutput.setFullTGDSaturation(factory.create(satConfig).run(rules));

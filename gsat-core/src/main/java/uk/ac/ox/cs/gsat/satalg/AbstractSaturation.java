@@ -48,17 +48,17 @@ public abstract class AbstractSaturation<Q extends GTGD> implements SaturationAl
     protected final UnificationIndexType leftIndexType;
     // type of the right unification index
     protected final UnificationIndexType rightIndexType;
-    protected final SaturationConfig config;
+    protected final SaturationAlgorithmConfiguration config;
     protected StatisticsCollector<SaturationStatColumns> statsCollector = new NullStatisticsCollector<>();
 
-    protected AbstractSaturation(String saturationName, TGDFactory<Q> factory, SaturationConfig config) {
+    protected AbstractSaturation(String saturationName, TGDFactory<Q> factory, SaturationAlgorithmConfiguration config) {
 
         this(saturationName, factory, UnificationIndexType.PREDICATE_INDEX, UnificationIndexType.PREDICATE_INDEX,
              config);
     }
 
     protected AbstractSaturation(String saturationName, TGDFactory<Q> factory, UnificationIndexType leftIndexType,
-                                 UnificationIndexType rightIndexType, SaturationConfig config) {
+                                 UnificationIndexType rightIndexType, SaturationAlgorithmConfiguration config) {
         this.saturationName = saturationName;
         this.uVariable = saturationName + "_u";
         this.eVariable = saturationName + "_e";

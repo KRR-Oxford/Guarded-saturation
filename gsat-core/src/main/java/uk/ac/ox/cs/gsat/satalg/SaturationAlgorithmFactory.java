@@ -18,7 +18,7 @@ public class SaturationAlgorithmFactory {
      */
     public SaturationAlgorithm create(SaturationAlgorithmType type) {
 
-        SaturationConfig config = new SaturationConfig();
+        SaturationAlgorithmConfiguration config = new SaturationAlgorithmConfiguration();
         config.setSaturationAlgorithmType(type);
         
         return create(config);
@@ -27,7 +27,7 @@ public class SaturationAlgorithmFactory {
     /**
      * Create a saturation algorithm following the given configuration
      */
-    public SaturationAlgorithm create(SaturationConfig config) {
+    public SaturationAlgorithm create(SaturationAlgorithmConfiguration config) {
 
         SaturationAlgorithmType type = config.getSaturatonAlgType();
         

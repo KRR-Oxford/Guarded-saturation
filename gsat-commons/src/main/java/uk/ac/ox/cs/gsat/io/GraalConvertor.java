@@ -12,7 +12,6 @@ import fr.lirmm.graphik.graal.api.core.AtomSet;
 import fr.lirmm.graphik.graal.api.core.ConjunctiveQuery;
 import fr.lirmm.graphik.graal.api.core.NegativeConstraint;
 import fr.lirmm.graphik.graal.api.core.Predicate;
-import fr.lirmm.graphik.graal.api.core.Query;
 import fr.lirmm.graphik.graal.api.core.Rule;
 import fr.lirmm.graphik.graal.api.core.Term;
 import fr.lirmm.graphik.util.stream.CloseableIterator;
@@ -89,10 +88,10 @@ public class GraalConvertor {
 
     }
 
-    public static Collection<uk.ac.ox.cs.pdq.fol.Atom> getPDQAtomsFromGraalAtoms(Collection<Atom> atoms, Map<String, String> predicateRenaming)
+    public static Set<uk.ac.ox.cs.pdq.fol.Atom> getPDQAtomsFromGraalAtoms(Collection<Atom> atoms, Map<String, String> predicateRenaming)
             throws IteratorException {
 
-        Collection<uk.ac.ox.cs.pdq.fol.Atom> pdqAtoms = new LinkedList<>();
+        Set<uk.ac.ox.cs.pdq.fol.Atom> pdqAtoms = new HashSet<>();
 
         for (Atom atom : atoms) {
 

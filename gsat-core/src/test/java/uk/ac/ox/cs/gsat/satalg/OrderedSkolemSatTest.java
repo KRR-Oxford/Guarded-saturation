@@ -4,6 +4,6 @@ import uk.ac.ox.cs.gsat.fol.OrderedSkGTGD;
 
 public class OrderedSkolemSatTest extends AbstractSkolemSatTest<OrderedSkGTGD> {
     public OrderedSkolemSatTest() {
-        super(new OrderedSkolemSat(new SaturationConfig()));
+        super(new OrderedSkolemSat(new SaturationAlgorithmConfiguration()));
     }
 }

@@ -30,7 +30,7 @@ class GSat extends EvolveBasedSat<GTGD> {
 
     private static final String NAME = "GSat";
 
-    public GSat(SaturationConfig config) {
+    public GSat(SaturationAlgorithmConfiguration config) {
         super(NAME, TGDFactory.getGTGDInstance(config.isSortedVNF()), config);
     }
 

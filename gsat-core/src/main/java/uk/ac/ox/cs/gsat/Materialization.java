@@ -4,22 +4,22 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.PrintStream;
+import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.List;
 
 import com.beust.jcommander.JCommander;
 import com.beust.jcommander.Parameter;
 import com.beust.jcommander.ParameterException;
-
-import org.apache.commons.io.FilenameUtils;
 
 import uk.ac.ox.cs.gsat.api.MaterializationStatColumns;
 import uk.ac.ox.cs.gsat.api.Materializer;
 import uk.ac.ox.cs.gsat.fol.TGD;
 import uk.ac.ox.cs.gsat.mat.MaterializerFactory;
 import uk.ac.ox.cs.gsat.mat.MaterializerType;
-import uk.ac.ox.cs.gsat.satalg.SaturationConfig;
 import uk.ac.ox.cs.gsat.statistics.DefaultStatisticsCollector;
 import uk.ac.ox.cs.gsat.statistics.StatisticsCollector;
 import uk.ac.ox.cs.gsat.statistics.StatisticsColumn;
@@ -39,15 +39,19 @@ public class Materialization {
     @Parameter(names = { "-t", "--tgds" }, required = true, description = "Path to the tgds file.")
     private String tgdsPath;
 
-    @Parameter(names = { "-d", "--data" }, required = true, description = "Path to the input data file.\n Need to be in a format compatible with the materializer: NTriple for RDFox and datalog facts for DLV")
+    @Parameter(names = { "-d", "--data" }, required = false, description = "Path to the input data file.\n Need to be in a format compatible with the materializer: NTriple for RDFox and datalog facts for DLV")
     private String dataPath;
 
-    @Parameter(names = { "-o", "--output" }, required = true, description = "Path to the output materialization file.")
+    @Parameter(names = { "-o", "--output" }, required = false, description = "Path to the output saturation file.")
     private String materializationPath;
 
     @Parameter(names = { "-q",
             "--queries" }, required = false, description = "Path to the queries file used to filter the input.")
     private String queriesFile;
+
+    private Saturator saturator;
+    private StatisticsCollector<MaterializationStatColumns> statsCollector;
+    private StatisticsLogger statsLogger;
 
     private Materialization(String... args) throws Exception {
         JCommander jc = new JCommander(this);
@@ -63,26 +67,12 @@ public class Materialization {
             jc.usage();
             return;
         }
-        run();
-    }
+        saturator = new Saturator(configFile, tgdsPath, materializationPath);
+        statsCollector = new DefaultStatisticsCollector<>();
+        statsLogger = getStatisticsLogger(statsCollector, null);
 
-    private void run() throws Exception {
-
-        String rowName = getRowName(tgdsPath);
-        // String inputDataPath = getInputPath(tgdsPath);
-        // String outputPath = getMaterializationPath(tgdsPath);
-
-        SaturationConfig saturationConfig = new SaturationConfig(configFile);
-        Collection<? extends TGD> saturationFullTGDs = Saturator.computeSaturationFromTGDPath(tgdsPath, queriesFile, saturationConfig);
-
-        StatisticsCollector<MaterializationStatColumns> statsCollector = new DefaultStatisticsCollector<>();
-        StatisticsLogger statsLogger = getStatisticsLogger(statsCollector, null);
-
-        materializeToFile(dataPath, saturationFullTGDs, materializationPath, statsCollector, rowName);
-        
-        statsLogger.printHeader();
-        statsLogger.printRow(getRowName(tgdsPath));
-
+        saturator.setWatcher(new SaturatorWatcherForMaterialization());
+        saturator.run();
     }
 
     public static void materializeToFile(String dataPath, Collection<? extends TGD> saturationFullTGDs, String materializationPath,
@@ -96,6 +86,7 @@ public class Materialization {
         statsCollector.put(rowName, MaterializationStatColumns.MAT_FTGD_NB, saturationFullTGDs.size());
 
         materializer.materialize(dataPath, saturationFullTGDs, materializationPath);
+        statsCollector.stop(rowName, MaterializationStatColumns.MAT_TOTAL);
     }
 
     public static <T extends StatisticsColumn> StatisticsLogger getStatisticsLogger(
@@ -115,23 +106,48 @@ public class Materialization {
         return statsLogger;
     }
 
-    public static String getRowName(String tgdPath) {
-        return FilenameUtils.getBaseName(tgdPath);
+    /**
+     * compute the path of the materialization from the path of the saturation and the row name
+     */
+    private static String getMaterializationPath(String saturationPath, String rowName) {
+        Path saturation = Paths.get(saturationPath);
+        String materializationFileName = rowName + "-mat.txt";
+        if (saturation.getParent() != null)
+            return saturation.getParent().resolve(materializationFileName).toString();
+
+        return materializationFileName;
     }
 
-    public static String getInputPath(String tgdPath) {
-        return Paths.get(tgdPath).getParent().resolve(FilenameUtils.getBaseName(tgdPath) + "-input.nt").toString();
-    }
+    /**
+     * compute the path of the data input from the path of the tgds input
+     */
+    private String getInputPath(String inputPath) {
 
-    public static String getMaterializationPath(String tgdPath) {
-        String result = Paths.get(tgdPath).getParent().resolve(FilenameUtils.getBaseName(tgdPath) + "-mat.nt")
-                .toString();
-        System.out.println(String.format("The materialization path is: %s", result));
-        return result;
-    }
+        if (dataPath != null)
+            return dataPath;
+        
+        // Path saturation = Paths.get(saturationPath);
+        // String dataFileName = rowName + "-data.dlgp";
+        // if (saturation.getParent() != null)
+        //     return saturation.getParent().resolve(dataFileName).toString();
 
+        return inputPath;
+    }
+    
     public static void main(String... args) throws Exception {
         new Materialization(args);
     }
 
+    class SaturatorWatcherForMaterialization implements SaturatorWatcher {
+
+        public void changeDirectory(String inputDirectoryPath, String outputDirectoryPath) throws FileNotFoundException {
+            statsLogger = getStatisticsLogger(statsCollector, outputDirectoryPath);
+            statsLogger.printHeader();
+        }
+        
+        public void singleSaturationDone(String rowName, String inputPath, String outputPath, Collection<? extends TGD> saturationFullTGDs) throws Exception {
+            materializeToFile(getInputPath(inputPath), saturationFullTGDs, getMaterializationPath(outputPath, rowName), statsCollector, rowName);
+            statsLogger.printRow(rowName);
+        }
+    }
 }

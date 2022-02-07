@@ -16,10 +16,10 @@ public class ParserFactory {
         return INSTANCE;
     }
     
-    public Parser create(TGDFileFormat format) {
+    public Parser create(TGDFileFormat format, boolean skipFacts, boolean includeNegativeConstraints) {
         switch (format) {
         case DLGP:
-            return new DLGPParser();
+            return new DLGPParser(skipFacts, includeNegativeConstraints);
         case OWL:
         default:
             String message = String.format("Unsupported format to parse: %s", format);

@@ -33,7 +33,7 @@ import uk.ac.ox.cs.pdq.fol.Variable;
  */
 public class GSatTest {
 
-    private static final GSat gsat = new GSat(new SaturationConfig());
+    private static final GSat gsat = new GSat(new SaturationAlgorithmConfiguration());
 	// Variables
 	private static final Variable x1 = Variable.create("x1");
 	private static final Variable x2 = Variable.create("x2");

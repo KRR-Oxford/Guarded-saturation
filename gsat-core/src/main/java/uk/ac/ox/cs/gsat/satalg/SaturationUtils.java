@@ -127,11 +127,11 @@ class SaturationUtils {
      * @param config 
      */
 
-    static <P extends TGD> Subsumer<P> createSubsumer(Set<P> initialTgds, SaturationConfig config) {
+    static <P extends TGD> Subsumer<P> createSubsumer(Set<P> initialTgds, SaturationAlgorithmConfiguration config) {
         return createSubsumer(initialTgds, new HashSet<>(), config);
     }
 
-    static <P extends TGD> Subsumer<P> createSubsumer(Set<P> allTGDSet, Collection<P> newLeftTGDs, SaturationConfig config) {
+    static <P extends TGD> Subsumer<P> createSubsumer(Set<P> allTGDSet, Collection<P> newLeftTGDs, SaturationAlgorithmConfiguration config) {
 
         String subsumptionMethod = config.getSubsumptionMethod();
         Subsumer<P> subsumer;

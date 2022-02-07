@@ -18,22 +18,18 @@ import java.util.stream.Collectors;
 import com.beust.jcommander.JCommander;
 import com.beust.jcommander.Parameter;
 import com.beust.jcommander.ParameterException;
+import com.hp.hpl.jena.reasoner.IllegalParameterException;
 
 import org.apache.commons.io.FilenameUtils;
 
-import uk.ac.ox.cs.gsat.api.SaturationAlgorithm;
 import uk.ac.ox.cs.gsat.api.SaturationStatColumns;
 import uk.ac.ox.cs.gsat.api.io.Parser;
 import uk.ac.ox.cs.gsat.api.io.Serializer;
 import uk.ac.ox.cs.gsat.api.io.TGDFilter;
-import uk.ac.ox.cs.gsat.api.io.TGDProcessing;
 import uk.ac.ox.cs.gsat.fol.TGD;
 import uk.ac.ox.cs.gsat.io.ParserFactory;
 import uk.ac.ox.cs.gsat.io.PredicateDependenciesBasedFilter;
 import uk.ac.ox.cs.gsat.io.SerializerFactory;
-import uk.ac.ox.cs.gsat.io.TGDProcessingBuilder;
-import uk.ac.ox.cs.gsat.satalg.SaturationAlgorithmFactory;
-import uk.ac.ox.cs.gsat.satalg.SaturationConfig;
 import uk.ac.ox.cs.gsat.statistics.DefaultStatisticsCollector;
 import uk.ac.ox.cs.gsat.statistics.StatisticsCollector;
 import uk.ac.ox.cs.gsat.statistics.StatisticsColumn;
@@ -42,26 +38,47 @@ import uk.ac.ox.cs.pdq.fol.Predicate;
 
 public class Saturator {
 
-    protected static final String STATS_FILENAME= "stats.csv";
-    
-    /** The help. */
+    protected static final String STATS_FILENAME = "stats.csv";
+
     @Parameter(names = { "-h", "--help" }, help = true, description = "Displays this help message.")
     private boolean help;
 
     @Parameter(names = { "-c", "--config" }, required = false, description = "Path to the configuration file.")
     private String configFile = "config.properties";
 
-    @Parameter(names = { "-i", "--input" }, required = true, description = "Path to the input file.")
+    @Parameter(names = { "-t", "--tgds" }, required = true, description = "Path to the input file.")
     private String inputPath;
 
     @Parameter(names = { "-o", "--output" }, required = true, description = "Path to the output file.")
     private String outputPath;
 
     @Parameter(names = { "-q",
-                         "--queries" }, required = false, description = "Path to the queries file used to filter the input.")
-                         private String queriesFile;
+            "--queries" }, required = false, description = "Path to the queries file used to filter the input.")
+    private String queriesPath;
 
-    private Saturator(String... args) throws Exception {
+    // configuration of the saturation process
+    protected SaturationProcessConfiguration saturationConfig;
+    // collector of the satistics of saturation algorithm
+    protected StatisticsCollector<SaturationStatColumns> statisticsCollector;
+
+    private SaturationProcess saturationProcess;
+
+    private File inputFile;
+
+    private File outputFile;
+
+    private SaturatorWatcher watcher;
+
+    Saturator(String configPath, String inputPath, String outputPath) throws Exception {
+
+        this.configFile = configPath;
+        this.inputPath = inputPath;
+        this.outputPath = outputPath;
+        
+        init();
+    }
+    
+    Saturator(String... args) throws Exception {
         JCommander jc = new JCommander(this);
 
         try {
@@ -71,57 +88,54 @@ public class Saturator {
             jc.usage();
             return;
         }
+
         if (this.help) {
             jc.usage();
             return;
         }
-        run();
+
+        init();
     }
 
-    private void run() throws Exception {
+    private void init() throws Exception {
 
-        SaturationConfig saturationConfig;
-        if (new File(configFile).exists()) {
-            saturationConfig = new SaturationConfig(configFile);
+        if (configFile != null) {
+            if (new File(configFile).exists()) {
+                saturationConfig = new SaturationProcessConfiguration(configFile);
+            } else {
+                String message = String.format("Configuration file %s do not exists");
+                throw new IllegalParameterException(message);
+            }
         } else {
-            saturationConfig = new SaturationConfig();
+            saturationConfig = new SaturationProcessConfiguration();
         }
 
-        StatisticsCollector<SaturationStatColumns> statisticsCollector = new DefaultStatisticsCollector<>();
-        SaturationAlgorithm algorithm = SaturationAlgorithmFactory.instance().create(saturationConfig);
-        algorithm.setStatsCollector(statisticsCollector);
-        File inputFile = new File(inputPath);
-        File outputFile = new File(outputPath);
+        statisticsCollector = new DefaultStatisticsCollector<>();
 
-        if (!inputFile.exists())
-            throw new IllegalArgumentException("The input file or directory do not exists.");
+        saturationProcess = new SaturationProcess(saturationConfig, getFilters());
+        saturationProcess.setStatisticCollector(statisticsCollector);
+        inputFile = new File(inputPath);
 
-        if (inputFile.isDirectory()) {
-            if (outputFile.exists() && !outputFile.isDirectory()) {
-                throw new IllegalArgumentException(
-                                                   "Since the input is a directory the output should also be a directory.");
-            }
+        outputFile = new File(outputPath);
+    }
+    
+    void run() throws Exception {
 
-            StatisticsLogger statsLogger = getStatisticsLogger(statisticsCollector, outputPath, STATS_FILENAME);
-            statsLogger.printHeader();
+        if (isInputDirectory()) {
+            // run on the root directory
+            runSingleDirectory(inputPath, outputPath);
 
-            Path inputDirectoryPath = Paths.get(inputPath);
-            Path outputDirectoryPath = Paths.get(outputPath);
-            List<String> singleInputPaths = Files.find(inputDirectoryPath, 999, (p, bfa) -> bfa.isRegularFile())
-                .map(p -> p.toString()).filter(p -> TGDFileFormat.matchesAny(p)).collect(Collectors.toList());
+            // run on the sub directories
+            File[] subDirectories = inputFile.listFiles(File::isDirectory);
 
-            // sort the input paths
-            Collections.sort(singleInputPaths);
-            
-            for (String singleInput : singleInputPaths) {
-                String singleOutputPath = getSingleOutputPath(singleInput, inputDirectoryPath, outputDirectoryPath);
-                runSingleFile(algorithm, singleInput, singleOutputPath);
-                statsLogger.printRow(getRowName(singleInput));
+            for (File subDirectory : subDirectories) {
+                Log.GLOBAL.info("Run saturation in directory: " + subDirectory);
+                runSingleDirectory(subDirectory.getCanonicalPath(), outputPath);
             }
         } else {
             StatisticsLogger statsLogger = getStatisticsLogger(statisticsCollector, null, null);
             statsLogger.printHeader();
-            runSingleFile(algorithm, inputPath, outputPath);
+            runSingleFile(inputPath, outputPath);
             statsLogger.printRow(getRowName(inputPath));
         }
     }
@@ -130,38 +144,55 @@ public class Saturator {
         return FilenameUtils.getBaseName(singleInput);
     }
 
-    /**
-     * In case the input and the output are directories, we generate the name of the
-     * single output files
-     * @param singleInput 
-     * @param inputDirectoryPath 
-     * @param outputDirectoryPath 
-     */
-    private static String getSingleOutputPath(String singleInput, Path inputDirectoryPath, Path outputDirectoryPath) {
-        Path singleInputPath = Paths.get(singleInput);
-        Path relativeInputPath = inputDirectoryPath.relativize(singleInputPath);
-        Path relativeOutputPath = Paths.get(FilenameUtils.getBaseName(singleInput) + "-sat.dlgp");
-
-        if (relativeInputPath.getParent() != null) {
-            relativeOutputPath = relativeInputPath.getParent().resolve(relativeOutputPath);
-        }
-        
-        String singleOutputPath = outputDirectoryPath.resolve(relativeOutputPath).toString();
-        return singleOutputPath;
-    }
-
-    private void runSingleFile(SaturationAlgorithm algorithm, String input, String output) throws Exception {
-        Collection<? extends TGD> saturationFullTGDs = computeSaturationFromTGDPath(input, queriesFile,
-                                                                                    algorithm);
+    private void runSingleFile(String input, String output) throws Exception {
+        String rowName = getRowName(input);
+        Collection<? extends TGD> saturationFullTGDs = saturationProcess.saturate(rowName, input);
         writeTGDsToFile(output, saturationFullTGDs);
+
+        // report about the performed saturation
+        if (this.watcher != null)
+            this.watcher.singleSaturationDone(rowName, input, output, saturationFullTGDs);
+
     }
 
-    public static <T extends StatisticsColumn> StatisticsLogger getStatisticsLogger(
-                                                                                    StatisticsCollector<T> statsCollector, String inputDirectory, String statsFileName) throws FileNotFoundException {
+    /**
+     * run the saturation on the files contained in a directory (without sub-directory files) 
+     * Its create a statistics file for this specific directory
+     */    
+    private void runSingleDirectory(String inputDirectoryPath, String outputDirectoryPath) throws Exception {
 
+        // report about the new directory
+        if (this.watcher != null)
+            this.watcher.changeDirectory(inputDirectoryPath, outputDirectoryPath);
+        
+        // clear the statistics collector
+        statisticsCollector.clear();
+        // create a statistics logger writing the statistics in <outputdirectory>/stats.csv 
+        StatisticsLogger statsLogger = getStatisticsLogger(statisticsCollector, outputDirectoryPath, STATS_FILENAME);
+        statsLogger.printHeader();
+    
+        
+        List<String> singleInputPaths = Files.find(Paths.get(inputDirectoryPath), 1, (p, bfa) -> bfa.isRegularFile())
+                .map(p -> p.toString()).filter(p -> TGDFileFormat.matchesAny(p)).collect(Collectors.toList());
+    
+        // sort the input paths
+        Collections.sort(singleInputPaths);
+    
+        for (String singleInput : singleInputPaths) {
+            String singleOutputPath = getSingleOutputPath(singleInput, inputDirectoryPath, outputDirectoryPath);
+            runSingleFile(singleInput, singleOutputPath);
+            statsLogger.printRow(getRowName(singleInput));
+        }
+    
+    }
+    
+    public static <T extends StatisticsColumn> StatisticsLogger getStatisticsLogger(
+            StatisticsCollector<T> statsCollector, String outputDirectory, String statsFileName)
+            throws FileNotFoundException {
+    
         StatisticsLogger statsLogger;
-        if (inputDirectory != null) {
-            String statsFilePath = Paths.get(inputDirectory).resolve(statsFileName).toString();
+        if (outputDirectory != null) {
+            String statsFilePath = Paths.get(outputDirectory).resolve(statsFileName).toString();
             new File(statsFilePath).delete();
             PrintStream statsStream = new PrintStream(new FileOutputStream(statsFilePath, true));
             statsLogger = new StatisticsLogger(statsStream, statsCollector);
@@ -169,18 +200,38 @@ public class Saturator {
             statsLogger = new StatisticsLogger(System.out, statsCollector);
         }
         statsLogger.setSortedHeader(Arrays.asList(SaturationStatColumns.values()));
-
+    
         return statsLogger;
     }
     
+    /**
+     * In case the input and the output are directories, we generate the name of the
+     * single output files
+     * 
+     * @param singleInput
+     * @param inputDirectoryPath
+     * @param outputDirectoryPath
+     */
+    private static String getSingleOutputPath(String singleInput, String inputDirectoryPath, String outputDirectoryPath) {
+        Path singleInputPath = Paths.get(singleInput);
+        Path relativeInputPath = Paths.get(inputDirectoryPath).relativize(singleInputPath);
+        Path relativeOutputPath = Paths.get(FilenameUtils.getBaseName(singleInput) + "-sat.dlgp");
+
+        if (relativeInputPath.getParent() != null) {
+            relativeOutputPath = relativeInputPath.getParent().resolve(relativeOutputPath);
+        }
+
+        String singleOutputPath = Paths.get(outputDirectoryPath).resolve(relativeOutputPath).toString();
+        return singleOutputPath;
+    }
+
     public static void writeTGDsToFile(String outputPath, Collection<? extends TGD> tgds) throws Exception {
         TGDFileFormat outputFormat = TGDFileFormat.getFormatFromPath(outputPath);
         if (outputFormat == null) {
             String message = String.format("The output file should use one of these extensions %s",
-                                           Arrays.asList(TGDFileFormat.values()), TGDFileFormat.getExtensions());
+                    Arrays.asList(TGDFileFormat.values()), TGDFileFormat.getExtensions());
             throw new IllegalArgumentException(message);
         }
-
 
         // create the output directory
         Path outputDirPath = Paths.get(outputPath).getParent();
@@ -198,46 +249,42 @@ public class Saturator {
 
     }
 
-    public static Collection<? extends TGD> computeSaturationFromTGDPath(String inputPath, String queriesPath,
-                                                                         SaturationConfig config) throws Exception {
-        SaturationAlgorithm algorithm = SaturationAlgorithmFactory.instance().create(config);
-
-        return computeSaturationFromTGDPath(inputPath, queriesPath, algorithm);
-    }
-
-    public static Collection<? extends TGD> computeSaturationFromTGDPath(String inputPath, String queriesPath,
-                                                                         SaturationAlgorithm algorithm) throws Exception {
-
-
-        TGDFileFormat inputFormat = TGDFileFormat.getFormatFromPath(inputPath);
-
-        if (inputFormat == null) {
-            String message = String.format(
-                                           "The input file format should be of one of %s and should use one of these extensions %s",
-                                           Arrays.asList(TGDFileFormat.values()), TGDFileFormat.getExtensions());
-            throw new IllegalArgumentException(message);
-        }
-
-        Parser parser = ParserFactory.instance().create(inputFormat);
-
-        parser.parse(inputPath, Configuration.isSaturationOnly(), Configuration.includeNegativeConstraint());
-
+    /**
+     * generate the TGD filters list according to the inputs
+     */
+    protected List<TGDFilter<TGD>> getFilters() throws Exception {
         List<TGDFilter<TGD>> filters = new ArrayList<>();
 
         if (queriesPath != null) {
-            Parser queryParser = ParserFactory.instance().create(TGDFileFormat.DLGP);
-            queryParser.parse(queriesPath, true, false);
-            Set<Predicate> wantedPredicates = queryParser.getConjunctiveQueries().stream().map(a -> a.getPredicate())
-                .collect(Collectors.toSet());
+            Parser queryParser = ParserFactory.instance().create(TGDFileFormat.DLGP, false, false);
+            Set<Predicate> wantedPredicates = queryParser.parse(queriesPath).getConjunctiveQueries().stream()
+                    .map(a -> a.getPredicate()).collect(Collectors.toSet());
             filters.add(new PredicateDependenciesBasedFilter<>(wantedPredicates));
         }
 
-        TGDProcessing tgdProcessing = TGDProcessingBuilder.instance().setParser(parser).setFilters(filters).build();
+        return filters;
+    }
 
-        return algorithm.run(getRowName(inputPath), tgdProcessing.getTGDs());
+    protected boolean isInputDirectory() {
+        if (!inputFile.exists())
+            throw new IllegalArgumentException("The input file or directory do not exists.");
+
+        if (inputFile.isDirectory()) {
+            if (outputFile.exists() && !outputFile.isDirectory()) {
+                throw new IllegalArgumentException(
+                        "Since the input is a directory the output should also be a directory.");
+            }
+            return true;
+        }
+        return false;
     }
 
     public static void main(String... args) throws Exception {
-        new Saturator(args);
+        Saturator saturator = new Saturator(args);
+        saturator.run();
+    }
+
+    public void setWatcher(SaturatorWatcher watcher) {
+        this.watcher = watcher;
     }
 }

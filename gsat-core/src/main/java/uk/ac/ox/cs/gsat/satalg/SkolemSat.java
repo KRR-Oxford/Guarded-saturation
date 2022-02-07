@@ -18,7 +18,7 @@ class SkolemSat extends AbstractSkolemSat<SkGTGD> {
 
     private static final String NAME = "SkSat";
 
-    SkolemSat(SaturationConfig config) {
+    SkolemSat(SaturationAlgorithmConfiguration config) {
         super(TGDFactory.getSkGTGDInstance(config.isSortedVNF()), NAME, config);
     }
 

@@ -35,14 +35,14 @@ class SimpleSat implements SaturationAlgorithm {
     // New variable name for renamed Variables
     public String zVariable = "GSat_z";
 
-    protected final SaturationConfig config;
+    protected final SaturationAlgorithmConfiguration config;
     protected final TGDFactory<TGD> factory;
     private StatisticsCollector<SaturationStatColumns> statsCollector = new NullStatisticsCollector<>();
 
     /**
      * Private construtor, we want this class to be a Singleton
      */
-    public SimpleSat(SaturationConfig config) {
+    public SimpleSat(SaturationAlgorithmConfiguration config) {
         this.config = config;
         this.factory = TGDFactory.getTGDInstance(config.isSortedVNF());
     }
