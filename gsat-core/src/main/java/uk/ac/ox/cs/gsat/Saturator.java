@@ -38,37 +38,40 @@ import uk.ac.ox.cs.gsat.statistics.StatisticsColumn;
 import uk.ac.ox.cs.gsat.statistics.StatisticsLogger;
 import uk.ac.ox.cs.pdq.fol.Predicate;
 
+/**
+ * Saturator is the main class of the core module
+ */
 public class Saturator {
 
     protected static final String STATS_FILENAME = "stats.csv";
     protected static final String CONF_FILENAME = "config.properties";
 
     @Parameter(names = { "-h", "--help" }, help = true, description = "Displays this help message.")
-    private boolean help;
+    protected boolean help;
 
     @Parameter(names = { "-c", "--config" }, required = false, description = "Path to the configuration file.")
-    private String configFile;
+    protected String configFile;
 
     @Parameter(names = { "-t", "--tgds" }, required = true, description = "Path to the input file.")
-    private String inputPath;
+    protected String inputPath;
 
     @Parameter(names = { "-o", "--output" }, required = true, description = "Path to the output file.")
-    private String outputPath;
+    protected String outputPath;
 
     @Parameter(names = { "-q",
             "--queries" }, required = false, description = "Path to the queries file used to filter the input.")
-    private String queriesPath;
+    protected String queriesPath;
 
     // collector of the satistics of saturation algorithm
     protected StatisticsCollector<SaturationStatColumns> statisticsCollector;
 
-    private SaturationProcess saturationProcess;
+    protected SaturationProcess saturationProcess;
 
-    private File inputFile;
+    protected File inputFile;
 
-    private File outputFile;
+    protected File outputFile;
 
-    private SaturatorWatcher watcher;
+    protected SaturatorWatcher watcher;
 
     private boolean initialized = false;
 
@@ -89,18 +92,18 @@ public class Saturator {
         } catch (ParameterException e) {
             System.err.println(e.getMessage());
             jc.usage();
-            return;
+            System.exit(1);
         }
 
         if (this.help) {
             jc.usage();
-            return;
+            System.exit(0);
         }
 
         init();
     }
 
-    private void init() throws Exception {
+    protected void init() throws Exception {
 
         statisticsCollector = new DefaultStatisticsCollector<>();
         inputFile = new File(inputPath);
@@ -175,7 +178,7 @@ public class Saturator {
         return FilenameUtils.getBaseName(singleInput);
     }
 
-    private void runSingleFile(String input, String output) throws Exception {
+    protected void runSingleFile(String input, String output) throws Exception {
         String rowName = getRowName(input);
         Collection<? extends TGD> saturationFullTGDs = saturationProcess.saturate(rowName, input);
         writeTGDsToFile(output, saturationFullTGDs);
@@ -189,8 +192,9 @@ public class Saturator {
     /**
      * run the saturation on the files contained in a directory (without sub-directory files) 
      * Its create a statistics file for this specific directory
+     * @throws Exception
      */    
-    private void runSingleDirectory(String inputDirectoryPath, String outputDirectoryPath) throws Exception {
+    protected void runSingleDirectory(String inputDirectoryPath, String outputDirectoryPath) throws Exception {
 
         setConfiguration(inputDirectoryPath);
         // report about the new directory
@@ -211,9 +215,15 @@ public class Saturator {
         Collections.sort(singleInputPaths);
     
         for (String singleInput : singleInputPaths) {
+            String rowName = getRowName(singleInput);
             String singleOutputPath = getSingleOutputPath(singleInput, inputDirectoryPath, outputDirectoryPath);
-            runSingleFile(singleInput, singleOutputPath);
-            statsLogger.printRow(getRowName(singleInput));
+            try {
+                runSingleFile(singleInput, singleOutputPath);
+            } catch (Exception e) {
+                statisticsCollector.put(rowName, SaturationStatColumns.TIME, "ERROR");
+                e.printStackTrace();
+            }
+            statsLogger.printRow(rowName);
         }
     
     }
@@ -244,7 +254,7 @@ public class Saturator {
      * @param inputDirectoryPath
      * @param outputDirectoryPath
      */
-    private static String getSingleOutputPath(String singleInput, String inputDirectoryPath, String outputDirectoryPath) {
+    protected static String getSingleOutputPath(String singleInput, String inputDirectoryPath, String outputDirectoryPath) {
         Path singleInputPath = Paths.get(singleInput);
         Path relativeInputPath = Paths.get(inputDirectoryPath).relativize(singleInputPath);
         Path relativeOutputPath = Paths.get(FilenameUtils.getBaseName(singleInput) + "-sat.dlgp");

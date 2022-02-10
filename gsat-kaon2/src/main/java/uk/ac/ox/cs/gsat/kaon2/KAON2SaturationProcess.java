@@ -3,6 +3,7 @@ package uk.ac.ox.cs.gsat.kaon2;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.LinkedList;
+import java.util.Set;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
@@ -38,37 +39,38 @@ public class KAON2SaturationProcess implements SaturationProcess {
     public Collection<? extends TGD> saturate(String processName, String inputPath) throws Exception {
         final Collection<Rule> saturationRules = new LinkedList<>();
 
+        Reasoner reasoner = getReasoner(processName, inputPath);
+
         ExecutorService executorKAON2 = Executors.newSingleThreadExecutor();
-        Future<String> futureKAON2 = executorKAON2.submit(new Callable<String>() {
-            @Override
-            public String call() throws Exception {
-                try {
-                    KAON2Statistics monitor = null;
-
-                    if (statisticsCollector != null)
-                        monitor = new KAON2Statistics(processName, statisticsCollector);
-
-                    saturationRules.addAll(runKAON2(processName, inputPath, monitor));
-                } catch (Exception e) {
-                    e.printStackTrace();
-                    return "Failed!";
-                }
-                return "Completed!";
-            }
-        });
+        Callable<Collection<Rule>> call = getCallable(processName, reasoner);
+        Future<Collection<Rule>> futureKAON2 = executorKAON2.submit(call);
 
         try {
-            futureKAON2.get(config.getTimeout(), TimeUnit.SECONDS);
+            if (config.getTimeout() != null)
+                saturationRules.addAll(futureKAON2.get(config.getTimeout(), TimeUnit.SECONDS));
+            else
+                saturationRules.addAll(futureKAON2.get());
         } catch (TimeoutException e) {
             futureKAON2.cancel(true);
+            reasoner.interrupt();
+            // wait 1s for the execution to terminate
+            executorKAON2.awaitTermination(1, TimeUnit.SECONDS);
+
+            if (statisticsCollector != null)
+                statisticsCollector.put(processName, SaturationStatColumns.TIME, "TIMEOUT");
+
         } catch (InterruptedException | ExecutionException e) {
             futureKAON2.cancel(true);
-
+            throw e;
         }
 
         executorKAON2.shutdownNow();
 
-        return KAON2Convertor.getTGDFromKAON2Rules(saturationRules);
+        if (statisticsCollector != null)
+            statisticsCollector.put(processName, SaturationStatColumns.OUTPUT_SIZE, saturationRules.size());
+
+        return Set.of();
+        // return KAON2Convertor.getTGDFromKAON2Rules(saturationRules);
     }
 
     @Override
@@ -76,35 +78,53 @@ public class KAON2SaturationProcess implements SaturationProcess {
         return saturate("", inputPath);
     }
 
-    private Collection<Rule> runKAON2(String processName, String input_file, KAON2Statistics monitor)
-            throws KAON2Exception, InterruptedException {
-        KAON2Connection connection = KAON2Manager.newConnection();
-
-        DefaultOntologyResolver resolver = new DefaultOntologyResolver();
-        resolver.registerReplacement("http://bkhigkhghjbhgiyfgfhgdhfty", "file:" + input_file.replace("\\", "/"));
-        connection.setOntologyResolver(resolver);
-
-        Ontology ontology = connection.openOntology("http://bkhigkhghjbhgiyfgfhgdhfty", new HashMap<String, Object>());
-        System.out.println("Initial axioms in the ontology: " + ontology.createAxiomRequest().sizeAll());
-        Reasoner reasoner = ontology.createReasoner();
-
-        if (monitor != null)
-            reasoner.setParameter("theoremProverMonitor", monitor);
-
-        statisticsCollector.tick(processName, SaturationStatColumns.OTHER_TIME);
-        Collection<Rule> reductionToDLP = new LinkedList<>();
-        try {
-            reductionToDLP = reasoner.getReductionToDisjunctiveDatalog(false, false, false, true);
-        } finally {
-            reasoner.dispose();
-        }
-        statisticsCollector.tick(processName, SaturationStatColumns.TIME);
-        return reductionToDLP;
-    }
-
     @Override
     public void setStatisticCollector(StatisticsCollector<SaturationStatColumns> statisticsCollector) {
         this.statisticsCollector = statisticsCollector;
     }
 
+    protected Reasoner getReasoner(String processName, String inputPath) throws KAON2Exception, InterruptedException {
+        KAON2Connection connection = KAON2Manager.newConnection();
+        DefaultOntologyResolver resolver = new DefaultOntologyResolver();
+        resolver.registerReplacement("http://bkhigkhghjbhgiyfgfhgdhfty", "file:" + inputPath.replace("\\", "/"));
+        connection.setOntologyResolver(resolver);
+
+        Ontology ontology = connection.openOntology("http://bkhigkhghjbhgiyfgfhgdhfty", new HashMap<String, Object>());
+        if (statisticsCollector != null)
+            statisticsCollector.put(processName, SaturationStatColumns.AXIOM_NB,
+                    ontology.createAxiomRequest().sizeAll());
+        return ontology.createReasoner();
+    }
+
+    protected Callable<Collection<Rule>> getCallable(String processName, Reasoner reasoner) {
+        return new Callable<Collection<Rule>>() {
+            @Override
+            public Collection<Rule> call() throws Exception {
+                Collection<Rule> reductionToDLP = new LinkedList<>();
+
+                KAON2Statistics monitor = null;
+
+                if (statisticsCollector != null)
+                    monitor = new KAON2Statistics(processName, statisticsCollector);
+
+                if (monitor != null)
+                    reasoner.setParameter("theoremProverMonitor", monitor);
+
+                // we start the time watch
+                if (statisticsCollector != null)
+                    statisticsCollector.start(processName);
+
+                try {
+                    reductionToDLP = reasoner.getReductionToDisjunctiveDatalog(false, false, false, true);
+                } finally {
+                    reasoner.dispose();
+                }
+
+                if (statisticsCollector != null)
+                    statisticsCollector.tick(processName, SaturationStatColumns.TIME);
+
+                return reductionToDLP;
+            }
+        };
+    }
 }

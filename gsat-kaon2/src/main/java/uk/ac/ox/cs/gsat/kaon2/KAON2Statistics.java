@@ -42,7 +42,7 @@ public class KAON2Statistics implements TheoremProverMonitor {
                 return;
             }
         }
-        statisticsCollector.incr(processName, SaturationStatColumns.NEW_NFTGD_NB);
+        statisticsCollector.incr(processName, SaturationStatColumns.NEW_FTGD_NB);
     }
 
     @Override

@@ -4,6 +4,10 @@ import uk.ac.ox.cs.gsat.statistics.StatisticsColumn;
 
 public enum SaturationStatColumns implements StatisticsColumn {
     /**
+     * initial number of axioms (for OWL files) 
+     */
+    AXIOM_NB,
+    /**
      * initial number of non-full TGDs 
      */
     NFTGD_NB,
