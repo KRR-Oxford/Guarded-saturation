@@ -16,6 +16,7 @@
   <modules>
     <module>gsat-core</module>
     <module>gsat-commons</module>
+    <module>gsat-kaon2</module>
   </modules>
 
   <dependencies>
