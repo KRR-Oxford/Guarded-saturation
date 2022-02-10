@@ -7,9 +7,10 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 import uk.ac.ox.cs.gsat.api.SaturationAlgorithm;
+import uk.ac.ox.cs.gsat.api.SaturationProcess;
 import uk.ac.ox.cs.gsat.api.SaturationStatColumns;
 import uk.ac.ox.cs.gsat.api.io.Parser;
-import uk.ac.ox.cs.gsat.api.io.TGDFilter;
+import uk.ac.ox.cs.gsat.api.io.TGDTransformation;
 import uk.ac.ox.cs.gsat.api.io.TGDProcessor;
 import uk.ac.ox.cs.gsat.fol.TGD;
 import uk.ac.ox.cs.gsat.io.DefaultTGDProcessor;
@@ -20,21 +21,22 @@ import uk.ac.ox.cs.gsat.statistics.StatisticsCollector;
 import uk.ac.ox.cs.pdq.fol.Predicate;
 
 /**
- * Saturation process wraps together the TGDs processing phase (parsing, filtering, etc) and the saturation phase
+ * The core saturation process wraps together the TGDs preprocessing phase (parsing, filtering, etc) 
+ * and the saturation phase using one of the saturation algorithm of the core module
  */
-public class SaturationProcess {
+public class CoreSaturationProcess implements SaturationProcess {
 
     protected final SaturationProcessConfiguration config;
     protected final SaturationAlgorithm saturationAlgorithm;
     protected final TGDProcessor tgdProcessor;
 
-    public SaturationProcess (SaturationProcessConfiguration config) {
+    public CoreSaturationProcess (SaturationProcessConfiguration config) {
         this(config, new ArrayList<>());
     }
 
-    public SaturationProcess (SaturationProcessConfiguration config, List<TGDFilter<TGD>> filters) {
+    public CoreSaturationProcess (SaturationProcessConfiguration config, List<TGDTransformation<TGD>> transformations) {
         this.config = config;
-        this.tgdProcessor = new DefaultTGDProcessor(filters, config.isSkipingFacts(), config.isNegativeConstraint());
+        this.tgdProcessor = new DefaultTGDProcessor(transformations, config.isSkipingFacts(), config.isNegativeConstraint());
         
         this.saturationAlgorithm = SaturationAlgorithmFactory.instance().create(config);
     }
@@ -57,17 +59,17 @@ public class SaturationProcess {
      */
     protected static Collection<TGD> processTGDs(String inputPath, String queriesPath, SaturationProcessConfiguration config) throws Exception {
 
-        // create the filters for the TGDs
-        List<TGDFilter<TGD>> filters = new ArrayList<>();
+        // create the transformations for the TGDs
+        List<TGDTransformation<TGD>> transformations = new ArrayList<>();
 
         if (queriesPath != null) {
             Parser queryParser = ParserFactory.instance().create(TGDFileFormat.DLGP, false, false);
             Set<Predicate> wantedPredicates = queryParser.parse(queriesPath).getConjunctiveQueries().stream().map(a -> a.getPredicate())
                 .collect(Collectors.toSet());
-            filters.add(new PredicateDependenciesBasedFilter<>(wantedPredicates));
+            transformations.add(new PredicateDependenciesBasedFilter<>(wantedPredicates));
         }
 
-        TGDProcessor tgdProcessor = new DefaultTGDProcessor(filters, config.isSkipingFacts(), config.isNegativeConstraint());
+        TGDProcessor tgdProcessor = new DefaultTGDProcessor(transformations, config.isSkipingFacts(), config.isNegativeConstraint());
 
         return tgdProcessor.getProcessedTGDs(inputPath);
     }

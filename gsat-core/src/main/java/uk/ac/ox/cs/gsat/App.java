@@ -17,11 +17,10 @@ import uk.ac.ox.cs.gsat.io.DLGPIO;
 import uk.ac.ox.cs.gsat.io.DLGPSerializer;
 import uk.ac.ox.cs.gsat.io.DatalogSerializer;
 import uk.ac.ox.cs.gsat.io.OWLIO;
-import uk.ac.ox.cs.gsat.kaon2.KAON2StructuralTransformationIO;
 import uk.ac.ox.cs.gsat.mat.SolverOutput;
 import uk.ac.ox.cs.gsat.mat.Utils;
-import uk.ac.ox.cs.gsat.satalg.SaturationAlgorithmFactory;
 import uk.ac.ox.cs.gsat.satalg.SaturationAlgorithmConfiguration;
+import uk.ac.ox.cs.gsat.satalg.SaturationAlgorithmFactory;
 import uk.ac.ox.cs.pdq.fol.Atom;
 import uk.ac.ox.cs.pdq.fol.Dependency;
 
@@ -67,15 +66,15 @@ public class App {
 					} else
 						printHelp("Wrong number of parameters for dlgp");
 				else if (args[0].equals("owl")) {
-                    if (Configuration.applyKAON2StructuralTransformation()) {
-                        fromOWLWithStructuralTransformation(args[1]);
-                    } else {
+                    // if (Configuration.applyKAON2StructuralTransformation()) {
+                    //     fromOWLWithStructuralTransformation(args[1]);
+                    // } else {
                         if (args.length == 2 || args.length == 3) {
                             String query = args.length == 2 ? "" : args[2]; // Optional argument
                             fromOWL(args[1], query);
                         } else
                             printHelp("Wrong number of parameters for owl");
-                    }
+                    // }
                 } else
 					printHelp("Wrong command (i.e. first argument)");
 			else
@@ -150,13 +149,13 @@ public class App {
 
 	}
 
-	public static ExecutionOutput fromOWLWithStructuralTransformation(String path) {
+	// public static ExecutionOutput fromOWLWithStructuralTransformation(String path) {
 
-		System.out.println("Executing from OWL files with structural transformation");
+	// 	System.out.println("Executing from OWL files with structural transformation");
 
-		return executeAllSteps(new KAON2StructuralTransformationIO(path, false, Configuration.includeNegativeConstraint()));
+	// 	return executeAllSteps(new KAON2StructuralTransformationIO(path, false, Configuration.includeNegativeConstraint()));
 
-	}
+	// }
     
 	/**
 	 * Runs a file in the OWL format

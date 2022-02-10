@@ -17,6 +17,11 @@ import uk.ac.ox.cs.pdq.fol.Term;
 import uk.ac.ox.cs.pdq.fol.UntypedConstant;
 import uk.ac.ox.cs.pdq.fol.Variable;
 
+
+/**
+ * This class is not used anymore, it seems to translate KAON2 rule to Datalog string.
+ * Maybe useful to implement {@link KAON2Convertor}
+ */
 public class Kaon2IO {
 
     private static final String VARIABLE_PREFIX = "KAON2";

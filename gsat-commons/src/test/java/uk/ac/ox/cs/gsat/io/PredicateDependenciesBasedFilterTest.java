@@ -31,7 +31,7 @@ public class PredicateDependenciesBasedFilterTest {
         PredicateDependenciesBasedFilter<TGD> filter = new PredicateDependenciesBasedFilter<TGD>(wantedPredicate);
 
         Collection<TGD> tgds = Set.of(R_to_S, S_to_T, R_to_U);
-        Collection<TGD> filterTGDs = filter.filter(tgds);
+        Collection<TGD> filterTGDs = filter.apply(tgds);
 
         Collection<TGD> expected = Set.of(R_to_S, S_to_T);
         

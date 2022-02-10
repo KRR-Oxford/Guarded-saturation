@@ -22,10 +22,11 @@ import com.hp.hpl.jena.reasoner.IllegalParameterException;
 
 import org.apache.commons.io.FilenameUtils;
 
+import uk.ac.ox.cs.gsat.api.SaturationProcess;
 import uk.ac.ox.cs.gsat.api.SaturationStatColumns;
 import uk.ac.ox.cs.gsat.api.io.Parser;
 import uk.ac.ox.cs.gsat.api.io.Serializer;
-import uk.ac.ox.cs.gsat.api.io.TGDFilter;
+import uk.ac.ox.cs.gsat.api.io.TGDTransformation;
 import uk.ac.ox.cs.gsat.fol.TGD;
 import uk.ac.ox.cs.gsat.io.ParserFactory;
 import uk.ac.ox.cs.gsat.io.PredicateDependenciesBasedFilter;
@@ -112,7 +113,7 @@ public class Saturator {
 
         statisticsCollector = new DefaultStatisticsCollector<>();
 
-        saturationProcess = new SaturationProcess(saturationConfig, getFilters());
+        saturationProcess = new CoreSaturationProcess(saturationConfig, getTransformations());
         saturationProcess.setStatisticCollector(statisticsCollector);
         inputFile = new File(inputPath);
 
@@ -250,19 +251,19 @@ public class Saturator {
     }
 
     /**
-     * generate the TGD filters list according to the inputs
+     * generate the TGD transformations list according to the inputs
      */
-    protected List<TGDFilter<TGD>> getFilters() throws Exception {
-        List<TGDFilter<TGD>> filters = new ArrayList<>();
+    protected List<TGDTransformation<TGD>> getTransformations() throws Exception {
+        List<TGDTransformation<TGD>> transformations = new ArrayList<>();
 
         if (queriesPath != null) {
             Parser queryParser = ParserFactory.instance().create(TGDFileFormat.DLGP, false, false);
             Set<Predicate> wantedPredicates = queryParser.parse(queriesPath).getConjunctiveQueries().stream()
                     .map(a -> a.getPredicate()).collect(Collectors.toSet());
-            filters.add(new PredicateDependenciesBasedFilter<>(wantedPredicates));
+            transformations.add(new PredicateDependenciesBasedFilter<>(wantedPredicates));
         }
 
-        return filters;
+        return transformations;
     }
 
     protected boolean isInputDirectory() {

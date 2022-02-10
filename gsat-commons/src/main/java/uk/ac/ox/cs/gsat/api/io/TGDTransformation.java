@@ -5,8 +5,8 @@ import java.util.Set;
 
 import uk.ac.ox.cs.gsat.fol.TGD;
 
-public interface TGDFilter<T extends TGD> {
+public interface TGDTransformation<T extends TGD> {
 
-    public Set<T> filter(Collection<T> tgds);
+    public Set<T> apply(Collection<T> tgds);
 
 }

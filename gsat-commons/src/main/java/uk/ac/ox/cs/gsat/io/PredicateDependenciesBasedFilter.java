@@ -6,7 +6,7 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
-import uk.ac.ox.cs.gsat.api.io.TGDFilter;
+import uk.ac.ox.cs.gsat.api.io.TGDTransformation;
 import uk.ac.ox.cs.gsat.fol.TGD;
 import uk.ac.ox.cs.pdq.fol.Atom;
 import uk.ac.ox.cs.pdq.fol.Predicate;
@@ -14,7 +14,7 @@ import uk.ac.ox.cs.pdq.fol.Predicate;
 /**
  * Filter TGDs based on a set of predicates by keeping only the TGDs that contain one initial predicate in their head or inductively one predicate contained in the body of a kept TGD.
  */
-public class PredicateDependenciesBasedFilter<T extends TGD> implements TGDFilter<T> {
+public class PredicateDependenciesBasedFilter<T extends TGD> implements TGDTransformation<T> {
 
     private Collection<Predicate> predicates;
 
@@ -23,7 +23,7 @@ public class PredicateDependenciesBasedFilter<T extends TGD> implements TGDFilte
     }
 
     @Override
-    public Set<T> filter(Collection<T> tgds) {
+    public Set<T> apply(Collection<T> tgds) {
         Set<T> result = new HashSet<T>();
         Set<Predicate> requiredHeadPredicates = requiredHeadPrecidates(tgds);
 

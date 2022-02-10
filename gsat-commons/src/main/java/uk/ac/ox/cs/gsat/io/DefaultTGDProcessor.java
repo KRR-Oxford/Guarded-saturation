@@ -6,18 +6,18 @@ import java.util.List;
 
 import uk.ac.ox.cs.gsat.TGDFileFormat;
 import uk.ac.ox.cs.gsat.api.io.Parser;
-import uk.ac.ox.cs.gsat.api.io.TGDFilter;
+import uk.ac.ox.cs.gsat.api.io.TGDTransformation;
 import uk.ac.ox.cs.gsat.api.io.TGDProcessor;
 import uk.ac.ox.cs.gsat.fol.TGD;
 
 public class DefaultTGDProcessor implements TGDProcessor {
 
-    protected final List<TGDFilter<TGD>> filters;
+    protected final List<TGDTransformation<TGD>> transformations;
     private final boolean includeNegativeConstraints;
     private final boolean skipFacts;
 
-    public DefaultTGDProcessor(List<TGDFilter<TGD>> filters, boolean skipFacts, boolean includeNegativeConstraints) {
-        this.filters = filters;
+    public DefaultTGDProcessor(List<TGDTransformation<TGD>> transformations, boolean skipFacts, boolean includeNegativeConstraints) {
+        this.transformations = transformations;
         this.skipFacts = skipFacts;
         this.includeNegativeConstraints = includeNegativeConstraints;
     }
@@ -39,9 +39,9 @@ public class DefaultTGDProcessor implements TGDProcessor {
         // parse the file 
         Collection<TGD> result = parser.parse(path).getTGDs();
 
-        // apply the filters
-        for(TGDFilter<TGD> filter : filters) {
-            result = filter.filter(result);
+        // apply the transformations
+        for(TGDTransformation<TGD> transformation : transformations) {
+            result = transformation.apply(result);
         }
 
         return result;
