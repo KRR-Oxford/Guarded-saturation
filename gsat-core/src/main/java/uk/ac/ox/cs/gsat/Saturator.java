@@ -3,6 +3,7 @@ package uk.ac.ox.cs.gsat;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
+import java.io.IOException;
 import java.io.PrintStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -40,12 +41,13 @@ import uk.ac.ox.cs.pdq.fol.Predicate;
 public class Saturator {
 
     protected static final String STATS_FILENAME = "stats.csv";
+    protected static final String CONF_FILENAME = "config.properties";
 
     @Parameter(names = { "-h", "--help" }, help = true, description = "Displays this help message.")
     private boolean help;
 
     @Parameter(names = { "-c", "--config" }, required = false, description = "Path to the configuration file.")
-    private String configFile = "config.properties";
+    private String configFile;
 
     @Parameter(names = { "-t", "--tgds" }, required = true, description = "Path to the input file.")
     private String inputPath;
@@ -57,8 +59,6 @@ public class Saturator {
             "--queries" }, required = false, description = "Path to the queries file used to filter the input.")
     private String queriesPath;
 
-    // configuration of the saturation process
-    protected SaturationProcessConfiguration saturationConfig;
     // collector of the satistics of saturation algorithm
     protected StatisticsCollector<SaturationStatColumns> statisticsCollector;
 
@@ -69,6 +69,8 @@ public class Saturator {
     private File outputFile;
 
     private SaturatorWatcher watcher;
+
+    private boolean initialized = false;
 
     Saturator(String configPath, String inputPath, String outputPath) throws Exception {
 
@@ -100,28 +102,18 @@ public class Saturator {
 
     private void init() throws Exception {
 
-        if (configFile != null) {
-            if (new File(configFile).exists()) {
-                saturationConfig = new SaturationProcessConfiguration(configFile);
-            } else {
-                String message = String.format("Configuration file %s do not exists");
-                throw new IllegalParameterException(message);
-            }
-        } else {
-            saturationConfig = new SaturationProcessConfiguration();
-        }
-
         statisticsCollector = new DefaultStatisticsCollector<>();
-
-        saturationProcess = new CoreSaturationProcess(saturationConfig, getTransformations());
-        saturationProcess.setStatisticCollector(statisticsCollector);
         inputFile = new File(inputPath);
 
         outputFile = new File(outputPath);
+        this.initialized = true;
     }
     
     void run() throws Exception {
 
+        if (!this.initialized)
+            return;
+        
         if (isInputDirectory()) {
             // run on the root directory
             runSingleDirectory(inputPath, outputPath);
@@ -131,14 +123,52 @@ public class Saturator {
 
             for (File subDirectory : subDirectories) {
                 Log.GLOBAL.info("Run saturation in directory: " + subDirectory);
-                runSingleDirectory(subDirectory.getCanonicalPath(), outputPath);
+
+                Path inputDirRelativePath = Paths.get(inputPath).relativize(subDirectory.toPath());
+                Path outputSubDirectory = Paths.get(outputPath).resolve(inputDirRelativePath);
+
+                outputSubDirectory.toFile().mkdirs();
+
+                runSingleDirectory(subDirectory.getCanonicalPath(), outputSubDirectory.toString());
             }
         } else {
+            setConfiguration(".");
             StatisticsLogger statsLogger = getStatisticsLogger(statisticsCollector, null, null);
             statsLogger.printHeader();
             runSingleFile(inputPath, outputPath);
             statsLogger.printRow(getRowName(inputPath));
         }
+    }
+
+    protected void setConfiguration(String currentDirectoryPath) throws Exception {
+        SaturationProcessConfiguration saturationConfig = getConfiguration(currentDirectoryPath);
+        saturationProcess = new CoreSaturationProcess(saturationConfig, getTransformations());
+        saturationProcess.setStatisticCollector(statisticsCollector);
+    }
+    
+    protected SaturationProcessConfiguration getConfiguration(String currentDirectoryPath) throws IOException  {
+        SaturationProcessConfiguration saturationConfig;
+
+        // if the configuration file is given as an input, it overrides the others
+        if (configFile != null) {
+            if (new File(configFile).exists()) {
+                saturationConfig = new SaturationProcessConfiguration(configFile);
+            } else {
+                String message = String.format("Configuration file %s do not exists", configFile);
+                throw new IllegalParameterException(message);
+            }
+        } else {
+            // if there is a configuration file in the current directory, we use it
+            Path currentDirectoryConfigPath = Paths.get(currentDirectoryPath).resolve(CONF_FILENAME);
+
+            if (currentDirectoryConfigPath.toFile().exists()) {
+                saturationConfig = new SaturationProcessConfiguration(currentDirectoryConfigPath.toString());
+            } else {
+                saturationConfig = new SaturationProcessConfiguration();
+            }
+        }
+
+        return saturationConfig;
     }
 
     private static String getRowName(String singleInput) {
@@ -162,6 +192,7 @@ public class Saturator {
      */    
     private void runSingleDirectory(String inputDirectoryPath, String outputDirectoryPath) throws Exception {
 
+        setConfiguration(inputDirectoryPath);
         // report about the new directory
         if (this.watcher != null)
             this.watcher.changeDirectory(inputDirectoryPath, outputDirectoryPath);
@@ -232,14 +263,6 @@ public class Saturator {
             String message = String.format("The output file should use one of these extensions %s",
                     Arrays.asList(TGDFileFormat.values()), TGDFileFormat.getExtensions());
             throw new IllegalArgumentException(message);
-        }
-
-        // create the output directory
-        Path outputDirPath = Paths.get(outputPath).getParent();
-        if (outputDirPath != null) {
-            File outputDir = outputDirPath.toFile();
-            if (!outputDir.exists())
-                outputDir.mkdirs();
         }
 
         Serializer serializer = SerializerFactory.instance().create(outputFormat);
