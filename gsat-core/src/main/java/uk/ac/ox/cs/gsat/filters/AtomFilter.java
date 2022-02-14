@@ -22,8 +22,6 @@ public abstract class AtomFilter<Q extends TGD> implements FormulaFilter<Q> {
     }
 
     public void init(Collection<Q> formulas) {
-        for (Q formula: formulas)
-            add(formula);
     }
     
     public void add(Q formula) {

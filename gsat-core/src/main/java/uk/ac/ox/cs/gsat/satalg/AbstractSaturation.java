@@ -18,6 +18,7 @@ import uk.ac.ox.cs.gsat.fol.Logic;
 import uk.ac.ox.cs.gsat.fol.TGDFactory;
 import uk.ac.ox.cs.gsat.statistics.NullStatisticsCollector;
 import uk.ac.ox.cs.gsat.statistics.StatisticsCollector;
+import uk.ac.ox.cs.gsat.subsumers.SimpleSubsumer;
 import uk.ac.ox.cs.gsat.subsumers.Subsumer;
 import uk.ac.ox.cs.gsat.unification.UnificationIndex;
 import uk.ac.ox.cs.gsat.unification.UnificationIndexFactory;
@@ -113,6 +114,12 @@ public abstract class AbstractSaturation<Q extends GTGD> implements SaturationAl
             zVariable += "0";
         }
 
+        // the selected TGDs needs to be transformated  for the
+        // algorithm. For the skolemised approches, it skolemises
+        // the TGDs.
+        Collection<Q> initialTGDs = transformInputTGDs(selectedTGDs);
+        
+        // right and left structures storing the newly derived TGDs; meaning unchecked
         Collection<Q> newRightTGDs;
         Collection<Q> newLeftTGDs;
 
@@ -133,6 +140,7 @@ public abstract class AbstractSaturation<Q extends GTGD> implements SaturationAl
             throw new IllegalStateException();
         }
 
+        // right and left unification indexes of the checked TGDs
         UnificationIndex<Q> leftIndex = UnificationIndexFactory.getInstance().create(this.leftIndexType);
         UnificationIndex<Q> rightIndex;
         if (config.isEvolvingTGDOrderingEnabled())
@@ -140,21 +148,19 @@ public abstract class AbstractSaturation<Q extends GTGD> implements SaturationAl
         else
             rightIndex = UnificationIndexFactory.getInstance().create(this.rightIndexType);
 
+        // set of the checked TGDs
         Set<Q> rightTGDsSet = new HashSet<>();
         Set<Q> leftTGDsSet = new HashSet<>();
 
-        // initialization of the structures
-        initialization(selectedTGDs, rightTGDsSet, newLeftTGDs, rightIndex);
-
         App.logger.info("Subsumption method : " + config.getSubsumptionMethod());
 
-        // hack
-        Set<Q> allTGDSet = new HashSet<>();
-        allTGDSet.addAll(rightTGDsSet);
-        allTGDSet.addAll(newLeftTGDs);
-        Subsumer<Q> rightTGDsSubsumer = SaturationUtils.createSubsumer(allTGDSet, newLeftTGDs, config);
-        Subsumer<Q> leftTGDsSubsumer = SaturationUtils.createSubsumer(allTGDSet, rightTGDsSet, config);
+        // creation of the right and left subsumers storing both the checked and unchecked TGDs
+        Subsumer<Q> rightTGDsSubsumer = SaturationUtils.createSubsumer(initialTGDs, config);
+        Subsumer<Q> leftTGDsSubsumer = SaturationUtils.createSubsumer(initialTGDs, config);
 
+        // initialization of the structures
+        initialization(initialTGDs, rightTGDsSet, leftTGDsSet, newLeftTGDs, rightIndex, leftIndex, rightTGDsSubsumer, leftTGDsSubsumer, processName);
+        
         Set<Predicate> bodyPredicates = new HashSet<>();
         if (config.isDiscardUselessTGDEnabled()) {
             bodyPredicates.addAll(SaturationUtils.getBodyPredicates(leftTGDsSet));
@@ -181,8 +187,8 @@ public abstract class AbstractSaturation<Q extends GTGD> implements SaturationAl
         // App.logger.info("ouptput full TGDs not contained in the input: " + outputCopy.size());
         statsCollector.put(processName, SaturationStatColumns.NEW_OUTPUT_SIZE, outputCopy.size());
         statsCollector.put(processName, SaturationStatColumns.SUBSUMED, (leftTGDsSubsumer.getNumberSubsumed() + rightTGDsSubsumer.getNumberSubsumed()));
-        // if (rightTGDsSubsumer instanceof SimpleSubsumer)
-        // ((SimpleSubsumer<Q>)rightTGDsSubsumer).printIndex();
+        if (rightTGDsSubsumer instanceof SimpleSubsumer)
+            ((SimpleSubsumer<Q>)leftTGDsSubsumer).printIndex();
 
         return output;
     }
@@ -217,20 +223,25 @@ public abstract class AbstractSaturation<Q extends GTGD> implements SaturationAl
     }
 
     /**
-     * Fill the structure holding TGDs with the selected TGDs transformed for the
-     * algorithm. For the skolemised approches, this is the step, which skolemises
-     * the TGDs
+     * Fill the structure holding TGDs with the initial TGDs.
+     * The right TGDs structures are initialized as if every right TGD is checked.
+     * While the left TGDs structures are initialized as if every left TGD is unchecked.
      */
-    protected void initialization(Collection<Q> selectedTGDs, Set<Q> rightTGDsSet, Collection<Q> newLeftTGDs,
-                                  UnificationIndex<Q> rightIndex) {
-
-        for (Q transformedTGD : transformInputTGDs(selectedTGDs)) {
+    protected void initialization(Collection<Q> initialTGDs, Set<Q> rightTGDsSet, Set<Q> leftTGDsSet,
+                                  Collection<Q> newLeftTGDs, UnificationIndex<Q> rightIndex, UnificationIndex<Q> leftIndex, Subsumer<Q> rightTGDsSubsumer, Subsumer<Q> leftTGDsSubsumer, String processName) {
+        // we store the inserted right TGDs without redundancy.
+        Set<Q> insertedRightTGDs = new HashSet<>();
+        for (Q transformedTGD : initialTGDs) {
             if (isRightTGD(transformedTGD)) {
-                addRightTGD(transformedTGD, rightIndex, rightTGDsSet);
+                addNewTGD(transformedTGD, true, insertedRightTGDs, rightTGDsSubsumer, rightIndex, rightTGDsSet, processName);
             }
             if (isLeftTGD(transformedTGD)) {
-                newLeftTGDs.add(transformedTGD);
+                addNewTGD(transformedTGD, false, newLeftTGDs, leftTGDsSubsumer, leftIndex, leftTGDsSet, processName);
             }
+        }
+        // we add every right tgd as checked
+        for (Q insertedRightTGD : insertedRightTGDs) {
+            addRightTGD(insertedRightTGD, rightIndex, rightTGDsSet);
         }
     }
 

@@ -26,7 +26,6 @@ public class IdentityFormulaFilter<Q extends TGD> implements FormulaFilter<Q> {
     }
 
     public void add(Q newFormula) {
-        formulas.add(newFormula);
     }
 
     public void removeAll(Collection<Q> newFormulas) {

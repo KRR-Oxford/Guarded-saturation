@@ -90,18 +90,19 @@ public class IRISPMTest {
         String rulesPath = baseOutputPath + "rules.rul";
         String queryPath = baseOutputPath + "query.rul";
         String dataPath = baseOutputPath + "facts.data";
-        new File(rulesPath).delete();
-        new File(queryPath).delete();
-        new File(dataPath).delete();
 
 		new File(baseOutputPath).mkdirs();
 		try {
+            new File(dataPath).delete();
+            new File(rulesPath).delete();
+
 			DatalogSerializer.writeDatalogRules(guardedSaturation, rulesPath);
 			DatalogSerializer.writeDatalogFacts(allFacts, dataPath);
 			int count = 0;
 			assertEquals(allQueries.size(), queryLenghts.length);
 			for (ConjunctiveQuery q : allQueries) {
 
+                new File(queryPath).delete();
 				DatalogSerializer.writeDatalogQueries(Arrays.asList(q), queryPath);
 				SolverOutput output = Utils.invokeSolver(Configuration.getSolverPath(),
 						Configuration.getSolverOptionsQuery(), Arrays.asList(rulesPath,

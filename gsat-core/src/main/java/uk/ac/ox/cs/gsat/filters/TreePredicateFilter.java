@@ -317,10 +317,7 @@ public class TreePredicateFilter<Q extends TGD> implements FormulaFilter<Q> {
 
         init(formulas, true, bagNumber);
         init(formulas, false, bagNumber);
-        for (Q formula: formulas)
-            add(formula);
 
-        // printIndex("index-init.dot");
     }
 
     private void init(Collection<Q> formulas, boolean isBody, int bagNumber) {
@@ -396,7 +393,7 @@ public class TreePredicateFilter<Q extends TGD> implements FormulaFilter<Q> {
         else
             bagNumber = bagNb;
 
-        if (bagNb == 0)
+        if (bagNumber == 0)
             return new ArrayList<>();
 
         class KComp implements Comparator<K> {

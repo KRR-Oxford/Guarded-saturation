@@ -43,7 +43,8 @@ public interface FormulaFilter<Q extends TGD> {
     void add(Q tgd);
 
     /**
-     * initialize the filter with a set of tgds
+     * initialize the structure of the filter with a set of tgds
+     * no tgd is added to the filter by this method
     */    
     void init(Collection<Q> tgds);
     

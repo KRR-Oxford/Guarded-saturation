@@ -123,29 +123,19 @@ class SaturationUtils {
     };
 
     /**
-     * Helpers to create subsumer
-     * @param config 
+     * Create a subsumer initialized with all the TGDs
+     * @param initialTGDs - set of all TGDs
+     * @param config - saturation configuration
      */
-
-    static <P extends TGD> Subsumer<P> createSubsumer(Set<P> initialTgds, SaturationAlgorithmConfiguration config) {
-        return createSubsumer(initialTgds, new HashSet<>(), config);
-    }
-
-    static <P extends TGD> Subsumer<P> createSubsumer(Set<P> allTGDSet, Collection<P> newLeftTGDs, SaturationAlgorithmConfiguration config) {
+    static <P extends TGD> Subsumer<P> createSubsumer(Collection<P> initialTGDs, SaturationAlgorithmConfiguration config) {
 
         String subsumptionMethod = config.getSubsumptionMethod();
         Subsumer<P> subsumer;
 
         if (subsumptionMethod.equals("tree_atom")) {
             subsumer = new ExactAtomSubsumer<P>();
-            for (P formula : allTGDSet)
-                if (!newLeftTGDs.contains(formula))
-                    subsumer.add(formula);
         } else if (subsumptionMethod.equals("disabled")) {
             subsumer = new DisabledSubsumer<P>();
-            for (P formula : allTGDSet)
-                if (!newLeftTGDs.contains(formula))
-                    subsumer.add(formula);
         } else {
             FormulaFilter<P> filter;
             if (subsumptionMethod.equals("min_predicate")) {
@@ -159,10 +149,10 @@ class SaturationUtils {
             } else {
                 throw new IllegalStateException("Subsumption method " + subsumptionMethod + " is not supported.");
             }
-            filter.init(allTGDSet);
-            filter.removeAll(newLeftTGDs);
+            filter.init(initialTGDs);
             subsumer = new SimpleSubsumer<P>(filter);
         }
+
         return subsumer;
     }
 
