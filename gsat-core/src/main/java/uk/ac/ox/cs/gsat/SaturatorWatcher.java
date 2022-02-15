@@ -12,4 +12,6 @@ public interface SaturatorWatcher {
     public void changeDirectory(String inputDirectoryPath, String outputDirectoryPath) throws Exception;
         
     public void singleSaturationDone(String rowName, String inputPath, String outputPath, Collection<? extends TGD> saturationFullTGD) throws Exception;
+
+    public void changeConfiguration(String saturationConfigPath) throws Exception;
 }

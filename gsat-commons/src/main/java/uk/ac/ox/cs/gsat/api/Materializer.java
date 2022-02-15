@@ -3,6 +3,7 @@ package uk.ac.ox.cs.gsat.api;
 import java.io.OutputStream;
 import java.util.Collection;
 
+import uk.ac.ox.cs.gsat.api.io.ParserResult;
 import uk.ac.ox.cs.gsat.fol.TGD;
 import uk.ac.ox.cs.gsat.statistics.StatisticsCollector;
 
@@ -15,12 +16,12 @@ public interface Materializer {
     /**
      * Returns the number of materialized facts
      */
-    public long materialize(String inputDataFile, Collection<? extends TGD> fullTGDs, OutputStream outputStream) throws Exception;
+    public long materialize(ParserResult parserResult, Collection<? extends TGD> fullTGDs, OutputStream outputStream) throws Exception;
 
     /**
      * Returns the number of materialized facts
      */
-    public long materialize(String inputDataFile, Collection<? extends TGD> fullTGDs, String outputFile) throws Exception;
+    public long materialize(ParserResult parserResult, Collection<? extends TGD> fullTGDs, String outputFile) throws Exception;
 
 
     /**

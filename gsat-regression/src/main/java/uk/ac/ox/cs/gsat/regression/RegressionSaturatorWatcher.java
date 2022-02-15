@@ -75,4 +75,8 @@ public class RegressionSaturatorWatcher implements SaturatorWatcher {
             Log.GLOBAL.warning(builder.toString());
         }
     }
+
+    @Override
+    public void changeConfiguration(String saturationConfigPath) throws Exception {
+    }
 }

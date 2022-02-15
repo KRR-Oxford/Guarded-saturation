@@ -57,7 +57,7 @@ public class CoreSaturationProcess implements SaturationProcess {
      * parse and filter the TGDs from an input path
      * @throws Exception
      */
-    protected static Collection<TGD> processTGDs(String inputPath, String queriesPath, SaturationProcessConfiguration config) throws Exception {
+    private static Collection<TGD> processTGDs(String inputPath, String queriesPath, SaturationProcessConfiguration config) throws Exception {
 
         // create the transformations for the TGDs
         List<TGDTransformation<TGD>> transformations = new ArrayList<>();

@@ -11,6 +11,7 @@ import tech.oxfordsemantic.jrdfox.logic.datalog.TupleTableAtom;
 import tech.oxfordsemantic.jrdfox.logic.expression.IRI;
 import tech.oxfordsemantic.jrdfox.logic.expression.Term;
 import tech.oxfordsemantic.jrdfox.logic.expression.Variable;
+import tech.oxfordsemantic.jrdfox.logic.sparql.pattern.TriplePattern;
 import uk.ac.ox.cs.pdq.fol.Atom;
 import uk.ac.ox.cs.pdq.fol.Predicate;
 import uk.ac.ox.cs.pdq.fol.TGD;
@@ -46,7 +47,7 @@ public class RDFoxFactory {
 
 
     /**
-     * translate a binary or unary atom from PDQ as a triple in RDFox
+     * translate a binary or unary atom from PDQ as a atom in RDFox
      */
     protected static TupleTableAtom pdqAtomAsRDFoxAtom(Atom atom) {
 
@@ -61,6 +62,22 @@ public class RDFoxFactory {
         }
     }
 
+    /**
+     * translate a binary or unary atom from PDQ as a triple in RDFox
+     */
+    protected static TriplePattern pdqAtomAsRDFoxTriple(Atom atom) {
+
+        Predicate predicate = atom.getPredicate();
+        if (predicate.getArity() == 1) {
+            return TriplePattern.create(pdqTermAsRDFoxTerm(atom.getTerm(0)), IRI.RDF_TYPE, predicateAsIRI(predicate));
+        } else if (predicate.getArity() == 2) {
+            return TriplePattern.create(pdqTermAsRDFoxTerm(atom.getTerm(0)), predicateAsIRI(predicate), pdqTermAsRDFoxTerm(atom.getTerm(1)));
+        } else {
+            String message = String.format("The atom %s is neither unary nor binary", atom);
+            throw new IllegalStateException(message);
+        }
+    }
+    
     protected static IRI predicateAsIRI(Predicate predicate) {
         return IRI.create(predicate.getName());
     }
@@ -69,8 +86,7 @@ public class RDFoxFactory {
         if (term.isVariable()) {
             return Variable.create(((uk.ac.ox.cs.pdq.fol.Variable) term).getSymbol());
         } else if (term.isUntypedConstant()) {
-            throw new NotImplementedException(
-                    "The translation from PDQ constant to RDFox constant is not yet implemented");
+            return IRI.create(term.toString());
         } else {
             String message = String.format("The term %s seems to be neither a variable nor a constant, so it can not be translated as a RDFox object", term);
             throw new IllegalStateException(message);

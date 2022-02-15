@@ -144,18 +144,24 @@ public class Saturator {
     }
 
     protected void setConfiguration(String currentDirectoryPath) throws Exception {
-        SaturationProcessConfiguration saturationConfig = getConfiguration(currentDirectoryPath);
+        String saturationConfigPath = getConfigurationPath(currentDirectoryPath);
+        SaturationProcessConfiguration saturationConfig;
+        if (saturationConfigPath != null)
+            saturationConfig = new SaturationProcessConfiguration(saturationConfigPath);
+        else
+            saturationConfig = new SaturationProcessConfiguration();
         saturationProcess = new CoreSaturationProcess(saturationConfig, getTransformations());
         saturationProcess.setStatisticCollector(statisticsCollector);
+        watcher.changeConfiguration(saturationConfigPath);
     }
     
-    protected SaturationProcessConfiguration getConfiguration(String currentDirectoryPath) throws IOException  {
-        SaturationProcessConfiguration saturationConfig;
+    protected String getConfigurationPath(String currentDirectoryPath) throws IOException  {
+        String saturationConfigPath;
 
         // if the configuration file is given as an input, it overrides the others
         if (configFile != null) {
             if (new File(configFile).exists()) {
-                saturationConfig = new SaturationProcessConfiguration(configFile);
+                saturationConfigPath = configFile;
             } else {
                 String message = String.format("Configuration file %s do not exists", configFile);
                 throw new IllegalParameterException(message);
@@ -165,13 +171,13 @@ public class Saturator {
             Path currentDirectoryConfigPath = Paths.get(currentDirectoryPath).resolve(CONF_FILENAME);
 
             if (currentDirectoryConfigPath.toFile().exists()) {
-                saturationConfig = new SaturationProcessConfiguration(currentDirectoryConfigPath.toString());
+                saturationConfigPath = currentDirectoryConfigPath.toString();
             } else {
-                saturationConfig = new SaturationProcessConfiguration();
+                saturationConfigPath = null;
             }
         }
 
-        return saturationConfig;
+        return saturationConfigPath;
     }
 
     private static String getRowName(String singleInput) {
@@ -256,7 +262,7 @@ public class Saturator {
      * @param inputDirectoryPath
      * @param outputDirectoryPath
      */
-    protected static String getSingleOutputPath(String singleInput, String inputDirectoryPath, String outputDirectoryPath) {
+    public static String getSingleOutputPath(String singleInput, String inputDirectoryPath, String outputDirectoryPath) {
         Path singleInputPath = Paths.get(singleInput);
         Path relativeInputPath = Paths.get(inputDirectoryPath).relativize(singleInputPath);
         Path relativeOutputPath = Paths.get(FilenameUtils.getBaseName(singleInput) + "-sat.dlgp");
@@ -273,7 +279,7 @@ public class Saturator {
         TGDFileFormat outputFormat = TGDFileFormat.getFormatFromPath(outputPath);
         if (outputFormat == null) {
             String message = String.format("The output file should use one of these extensions %s",
-                    Arrays.asList(TGDFileFormat.values()), TGDFileFormat.getExtensions());
+                    TGDFileFormat.getExtensions());
             throw new IllegalArgumentException(message);
         }
 

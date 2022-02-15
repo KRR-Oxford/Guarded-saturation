@@ -8,7 +8,7 @@ import java.util.Properties;
 /**
  * From Angry-HEX code
  */
-public class Configuration {
+class Configuration {
 
     private static final String file = "config.properties";
     private static Properties prop = null;

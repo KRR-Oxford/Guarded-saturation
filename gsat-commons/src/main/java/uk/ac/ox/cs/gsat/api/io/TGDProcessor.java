@@ -9,6 +9,9 @@ import uk.ac.ox.cs.gsat.fol.TGD;
  */
 public interface TGDProcessor {
 
+    /**
+     * parse and process the TGDs stored in a file
+     */
     public Collection<TGD> getProcessedTGDs(String path) throws Exception;
 
 }

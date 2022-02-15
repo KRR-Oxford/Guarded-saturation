@@ -14,7 +14,12 @@ public class KAON2Saturator extends Saturator {
 
     @Override
     protected void setConfiguration(String currentDirectoryPath) throws Exception {
-        SaturationProcessConfiguration saturationConfig = getConfiguration(currentDirectoryPath);
+        String saturationConfigPath = getConfigurationPath(currentDirectoryPath);
+        SaturationProcessConfiguration saturationConfig;
+        if (saturationConfigPath != null)
+            saturationConfig = new SaturationProcessConfiguration(saturationConfigPath);
+        else
+            saturationConfig = new SaturationProcessConfiguration();
         saturationProcess = new KAON2SaturationProcess(saturationConfig);
         saturationProcess.setStatisticCollector(statisticsCollector);
     }
