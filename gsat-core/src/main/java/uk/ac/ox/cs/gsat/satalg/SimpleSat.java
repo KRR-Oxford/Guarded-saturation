@@ -11,6 +11,7 @@ import java.util.Map;
 import java.util.Set;
 
 import uk.ac.ox.cs.gsat.App;
+import uk.ac.ox.cs.gsat.Log;
 import uk.ac.ox.cs.gsat.api.SaturationAlgorithm;
 import uk.ac.ox.cs.gsat.api.SaturationStatColumns;
 import uk.ac.ox.cs.gsat.fol.GTGD;
@@ -29,19 +30,16 @@ import uk.ac.ox.cs.pdq.fol.Variable;
 class SimpleSat implements SaturationAlgorithm {
 
     // New variable name for Universally Quantified Variables
-    public String uVariable = "GSat_u";
+    public String uVariable = "SSat_u";
     // New variable name for Existentially Quantified Variables
-    public String eVariable = "GSat_e";
+    public String eVariable = "SSat_e";
     // New variable name for renamed Variables
-    public String zVariable = "GSat_z";
+    public String zVariable = "SSat_z";
 
     protected final SaturationAlgorithmConfiguration config;
     protected final TGDFactory<TGD> factory;
     private StatisticsCollector<SaturationStatColumns> statsCollector = new NullStatisticsCollector<>();
 
-    /**
-     * Private construtor, we want this class to be a Singleton
-     */
     public SimpleSat(SaturationAlgorithmConfiguration config) {
         this.config = config;
         this.factory = TGDFactory.getTGDInstance(config.isSortedVNF());
@@ -55,6 +53,7 @@ class SimpleSat implements SaturationAlgorithm {
      *
      * Main method to run the Guarded simple Saturation algorithm
      *
+     * @param processName 
      * @param allDependencies the Guarded TGDs to process
      * @return the Guarded Saturation of allDependencies
      */
@@ -75,9 +74,8 @@ class SimpleSat implements SaturationAlgorithm {
                 + String.format(Locale.UK, "%.3f", (float) discarded / allDependencies.size() * 100) + "%");
 
         statsCollector.start(processName);
-        
+        Subsumer<TGD> fullTGDSubsumer = SaturationUtils.createSubsumer(selectedTGDs, config);
         // compute the set of full and non-full tgds in normal forms
-        Subsumer<TGD> fullTGDSubsumer = SaturationUtils.createSubsumer(new HashSet<>(), config);
         Collection<TGD> fullTGDs = new HashSet<>();
         List<TGD> nonfullTGDs = new ArrayList<>();
         Collection<Predicate> nfTGDHeadPredicate = new HashSet<>();
@@ -88,8 +86,9 @@ class SimpleSat implements SaturationAlgorithm {
 				TGD currentTGD = factory.computeVNF(hnf, eVariable, uVariable);
                 width = Math.max(currentTGD.getWidth(), width);
                 if (Logic.isFull(currentTGD) && !fullTGDSubsumer.subsumed(tgd)) {
+                    Collection<TGD> subsumedFullTGDs = fullTGDSubsumer.subsumesAny(tgd);
+                    fullTGDs.removeAll(subsumedFullTGDs);
                     fullTGDs.add(currentTGD);
-                    fullTGDSubsumer.subsumesAny(tgd);
                     fullTGDSubsumer.add(tgd);
                 } else {
                     nonfullTGDs.add(currentTGD);
@@ -100,11 +99,10 @@ class SimpleSat implements SaturationAlgorithm {
             }
         }
 
-        
         // App.logger.info("# initial TGDs: " + fullTGDs.size() + " , " + nonfullTGDs.size());
         statsCollector.put(processName, SaturationStatColumns.NFTGD_NB, nonfullTGDs.size());
         statsCollector.put(processName, SaturationStatColumns.FTGD_NB, fullTGDs.size());
-        App.logger.info("Simple Sat width : " + width);
+        Log.GLOBAL.info("Simple Sat width : " + width);
 
         // copying the initial full TGD set for later comparison
         Collection<TGD> inputFullTGD = new HashSet<>(fullTGDs);
@@ -129,14 +127,15 @@ class SimpleSat implements SaturationAlgorithm {
             // filter the composition results 
             resultingFullTDGs = filterFullTGDByBodyPredicate(resultingFullTDGs, nfTGDHeadPredicate);
             res = resultingFullTDGs.size() - res;
-            App.logger.fine("step " + step + " COMPOSITION results " + res);
+
+            // App.logger.finer("step " + step + " COMPOSITION results " + res);
 
             resultingFullTDGs.addAll(applyOriginal(nonfullTGDs, fullTGDs, fullTGDSubsumer, startTime));
             res = resultingFullTDGs.size() -res;
-			App.logger.fine("step "+ step +" ORIGINAL results " + res);
+			// App.logger.finer("step "+ step +" ORIGINAL results " + res);
 
 
-            App.logger.fine("step "+ step +" full TGDs " + (fullTGDs.size() + resultingFullTDGs.size()));
+            // App.logger.fine("step "+ step +" full TGDs " + (fullTGDs.size() + resultingFullTDGs.size()));
 
             newFullCount += resultingFullTDGs.size();
             step++;
@@ -235,7 +234,7 @@ class SimpleSat implements SaturationAlgorithm {
     
         ftgd = renameTgd(ftgd);
     
-        App.logger.fine("apply original on:\n" + nftgd + "\nand\n" + ftgd);
+        // App.logger.fine("apply original on:\n" + nftgd + "\nand\n" + ftgd);
     
     
         Collection<TGD> results = new ArrayList<>();

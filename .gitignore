@@ -236,3 +236,7 @@ TSWLatexianTemp*
 *~[0-9]*
 
 old
+.classpath
+.factorypath
+.project
+.settings

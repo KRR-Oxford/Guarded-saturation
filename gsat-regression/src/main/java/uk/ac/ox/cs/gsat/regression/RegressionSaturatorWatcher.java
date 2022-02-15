@@ -40,33 +40,39 @@ public class RegressionSaturatorWatcher implements SaturatorWatcher {
         Path expectedFilePath = initialExpectedPath.resolve(outputRelativePath);
 
         if (!expectedFilePath.toFile().exists() || TGDFileFormat.getFormatFromPath(outputPath) != TGDFileFormat.DLGP) {
-            String message = String.format("The expected DLGP file %s is missing.", expectedFilePath.toString());
-            Log.GLOBAL.warning(message);
+            String message = String.format("The expected DLGP file %s is missing.\n", expectedFilePath.toString());
+            Log.GLOBAL.severe(message);
             return;
         }
 
-        Log.GLOBAL.info("Regression comparison of " + outputPath + " with " + expectedFilePath);
+        Log.GLOBAL.info("Regression comparison of " + outputPath + " with " + expectedFilePath +"\n\n");
         
         ParserResult expectedParserResult = parser.parse(expectedFilePath.toString());
 
         if (!expectedParserResult.getTGDs().containsAll(saturationFullTGD)) {
             Collection<TGD> unexpected = new HashSet<>(saturationFullTGD);
             unexpected.removeAll(expectedParserResult.getTGDs());
-            Log.GLOBAL.warning("The following TGDs are in the saturation, but were not expected: ");
-            for (TGD t : unexpected)
-                Log.GLOBAL.warning(t.toString());
-
-            Log.GLOBAL.warning("------------------------------------------------------------------");
+            StringBuilder builder = new StringBuilder();
+            builder.append("The following TGDs are in the saturation, but were not expected:\n");
+            for (TGD t : unexpected) {
+                builder.append(t.toString());
+                builder.append("\n");
+            }
+            builder.append("------------------------------------------------------------------\n\n");
+            Log.GLOBAL.warning(builder.toString());
         }
 
         if (!saturationFullTGD.containsAll(expectedParserResult.getTGDs())) {
             Collection<TGD> missing = new HashSet<>(expectedParserResult.getTGDs());
             missing.removeAll(saturationFullTGD);
-            Log.GLOBAL.warning("The following TGDs are missing in the saturation: ");
-            for (TGD t : missing)
-                Log.GLOBAL.warning(t.toString());
-
-            Log.GLOBAL.warning("------------------------------------------------------------------");
+            StringBuilder builder = new StringBuilder();
+            builder.append("The following TGDs are missing in the saturation:\n");
+            for (TGD t : missing) {
+                builder.append(t.toString());
+                builder.append("\n");
+            }
+            builder.append("------------------------------------------------------------------\n\n");
+            Log.GLOBAL.warning(builder.toString());
         }
     }
 }
