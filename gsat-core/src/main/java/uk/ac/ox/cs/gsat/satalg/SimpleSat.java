@@ -143,10 +143,14 @@ class SimpleSat implements SaturationAlgorithm {
         } while (fullTGDs.addAll(resultingFullTDGs));
 
 
+        if (timeoutReached)
+            statsCollector.put(processName, SaturationStatColumns.TIME, "TIMEOUT");
+        else
+            statsCollector.stop(processName, SaturationStatColumns.TIME);
+
         // long totalTime = System.nanoTime() - startTime;
         // App.logger.info("Simple Sat total time : " + String.format(Locale.UK, "%.0f", totalTime / 1E6) + " ms = "
         // + String.format(Locale.UK, "%.2f", totalTime / 1E9) + " s");
-        statsCollector.stop(processName, SaturationStatColumns.TIME);
         // App.logger.info("Subsumed elements : "
                 // + (fullTGDSubsumer.getNumberSubsumed() + fullTGDSubsumer.getNumberSubsumed()));
         statsCollector.put(processName, SaturationStatColumns.SUBSUMED, (fullTGDSubsumer.getNumberSubsumed()));
@@ -164,9 +168,6 @@ class SimpleSat implements SaturationAlgorithm {
         // App.logger.info("ouptput full TGDs not contained in the input: " + outputCopy.size());
         statsCollector.put(processName, SaturationStatColumns.NEW_OUTPUT_SIZE, outputCopy.size());
 
-        if (timeoutReached)
-            App.logger.info("!!! TIME OUT !!!");
-        
         return fullTGDs;
     }
 

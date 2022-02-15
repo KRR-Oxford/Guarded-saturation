@@ -6,6 +6,7 @@ import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Set;
 import java.util.TreeSet;
+import java.util.concurrent.TimeoutException;
 
 import uk.ac.ox.cs.gsat.App;
 import uk.ac.ox.cs.gsat.api.SaturationStatColumns;
@@ -47,16 +48,13 @@ public abstract class EvolveBasedSat<Q extends GTGD> extends AbstractSaturation<
     protected void process(Set<Q> leftTGDsSet, Set<Q> rightTGDsSet, Collection<Q> newLeftTGDs,
             Collection<Q> newRightTGDs, UnificationIndex<Q> leftIndex, UnificationIndex<Q> rightIndex,
             Subsumer<Q> leftTGDsSubsumer, Subsumer<Q> rightTGDsSubsumer, Set<Predicate> bodyPredicates,
-            String processName) {
+            String processName) throws TimeoutException {
 
         int counter = 100;
 
         while (!newRightTGDs.isEmpty() || !newLeftTGDs.isEmpty()) {
 
-            if (isTimeout(statsCollector.total(processName))) {
-                statsCollector.put(processName, SaturationStatColumns.TIME, "TIMEOUT");
-                break;
-            }
+            checkTimeout(statsCollector.total(processName));
 
             App.logger.fine("# new TGDs: " + newRightTGDs.size() + " , " + newLeftTGDs.size());
 

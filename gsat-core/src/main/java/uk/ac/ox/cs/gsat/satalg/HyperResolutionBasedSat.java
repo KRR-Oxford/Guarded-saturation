@@ -9,6 +9,7 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.TimeoutException;
 import java.util.logging.Level;
 
 import uk.ac.ox.cs.gsat.App;
@@ -42,14 +43,11 @@ public class HyperResolutionBasedSat extends AbstractSaturation<SkGTGD> {
     protected void process(Set<SkGTGD> leftTGDsSet, Set<SkGTGD> rightTGDsSet, Collection<SkGTGD> newLeftTGDs,
             Collection<SkGTGD> newRightTGDs, UnificationIndex<SkGTGD> leftIndex, UnificationIndex<SkGTGD> rightIndex,
             Subsumer<SkGTGD> leftTGDsSubsumer, Subsumer<SkGTGD> rightTGDsSubsumer, Set<Predicate> bodyPredicates,
-            String processName) {
+            String processName) throws TimeoutException {
 
         while (!newLeftTGDs.isEmpty() || !newRightTGDs.isEmpty()) {
 
-            if (isTimeout(statsCollector.total(processName))) {
-                statsCollector.put(processName, SaturationStatColumns.TIME, "TIMEOUT");
-                break;
-            }
+            checkTimeout(statsCollector.total(processName));
 
             Collection<SkGTGD> resolved = new HashSet<>();
 

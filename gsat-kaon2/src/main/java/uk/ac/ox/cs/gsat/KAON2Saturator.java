@@ -6,27 +6,22 @@ public class KAON2Saturator extends Saturator {
 
     KAON2Saturator(String[] args) throws Exception {
         super(args);
-
-        saturationProcess = new KAON2SaturationProcess(saturationConfig);
-        saturationProcess.setStatisticCollector(statisticsCollector);
     }
 
     KAON2Saturator(String configPath, String inputPath, String outputPath) throws Exception {
         super(configPath, inputPath, outputPath);
+    }
 
+    @Override
+    protected void setConfiguration(String currentDirectoryPath) throws Exception {
+        SaturationProcessConfiguration saturationConfig = getConfiguration(currentDirectoryPath);
         saturationProcess = new KAON2SaturationProcess(saturationConfig);
         saturationProcess.setStatisticCollector(statisticsCollector);
     }
 
-    public static void main(String[] args) {
+    public static void main(String[] args) throws Exception {
         KAON2Saturator saturator;
-        try {
-            saturator = new KAON2Saturator(args);
-            saturator.run();
-
-        } catch (Exception e) {
-            // TODO Auto-generated catch block
-            e.printStackTrace();
-        }
+        saturator = new KAON2Saturator(args);
+        saturator.run();
     }
 }

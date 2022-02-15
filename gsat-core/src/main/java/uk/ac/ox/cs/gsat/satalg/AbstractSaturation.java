@@ -9,8 +9,10 @@ import java.util.Map;
 import java.util.Set;
 import java.util.Stack;
 import java.util.TreeSet;
+import java.util.concurrent.TimeoutException;
 
 import uk.ac.ox.cs.gsat.App;
+import uk.ac.ox.cs.gsat.Log;
 import uk.ac.ox.cs.gsat.api.SaturationAlgorithm;
 import uk.ac.ox.cs.gsat.api.SaturationStatColumns;
 import uk.ac.ox.cs.gsat.fol.GTGD;
@@ -173,22 +175,24 @@ public abstract class AbstractSaturation<Q extends GTGD> implements SaturationAl
         statsCollector.put(processName, SaturationStatColumns.NFTGD_NB, newLeftTGDs.size());
         statsCollector.put(processName, SaturationStatColumns.FTGD_NB, rightTGDsSet.size());
 
-        // running the saturation process using the structures
-        process(leftTGDsSet, rightTGDsSet, newLeftTGDs, newRightTGDs, leftIndex, rightIndex, leftTGDsSubsumer,
-                rightTGDsSubsumer, bodyPredicates, processName);
+        try {
+            // running the saturation process using the structures
+            process(leftTGDsSet, rightTGDsSet, newLeftTGDs, newRightTGDs, leftIndex, rightIndex, leftTGDsSubsumer,
+                    rightTGDsSubsumer, bodyPredicates, processName);
+            statsCollector.stop(processName, SaturationStatColumns.TIME);
+        } catch (TimeoutException e) {
+            statsCollector.put(processName, SaturationStatColumns.TIME, "TIMEOUT");
+        }
 
         // filter the outputed (full) TGD from the right ones
         Collection<Q> output = getOutput(rightTGDsSubsumer.getAll());
 
-        statsCollector.stop(processName, SaturationStatColumns.TIME);
         statsCollector.put(processName, SaturationStatColumns.OUTPUT_SIZE, output.size());
         Collection<Q> outputCopy = new ArrayList<>(output);
         outputCopy.removeAll(initialRightTGDs);
-        // App.logger.info("ouptput full TGDs not contained in the input: " + outputCopy.size());
+
         statsCollector.put(processName, SaturationStatColumns.NEW_OUTPUT_SIZE, outputCopy.size());
         statsCollector.put(processName, SaturationStatColumns.SUBSUMED, (leftTGDsSubsumer.getNumberSubsumed() + rightTGDsSubsumer.getNumberSubsumed()));
-        if (rightTGDsSubsumer instanceof SimpleSubsumer)
-            ((SimpleSubsumer<Q>)leftTGDsSubsumer).printIndex();
 
         return output;
     }
@@ -211,7 +215,7 @@ public abstract class AbstractSaturation<Q extends GTGD> implements SaturationAl
     protected abstract void process(Set<Q> leftTGDsSet, Set<Q> rightTGDsSet, Collection<Q> newLeftTGDs,
                                     Collection<Q> newRightTGDs, UnificationIndex<Q> leftIndex, UnificationIndex<Q> rightIndex,
                                     Subsumer<Q> leftTGDsSubsumer, Subsumer<Q> rightTGDsSubsumer, Set<Predicate> bodyPredicates,
-                                    String processName);
+                                    String processName) throws TimeoutException;
 
     /**
      * select the ouput from the final right TGDs
@@ -368,13 +372,10 @@ public abstract class AbstractSaturation<Q extends GTGD> implements SaturationAl
         return substitution;
     }
 
-    protected boolean isTimeout(long startTime) {
-        // from seconds to nano seconds
-        Long timeout = (config.getTimeout() != null) ? (long) (1000 * 1000 * 1000 * config.getTimeout()) : null;
-
-        if (timeout != null && timeout < (System.nanoTime() - startTime))
-            return true;
-        return false;
+    protected void checkTimeout(long currentDurationInMS) throws TimeoutException {
+        if (config.getTimeout() != null && (1000 * config.getTimeout()) < currentDurationInMS) {
+            throw new TimeoutException();
+        }
     }
 
     public void setStatsCollector(StatisticsCollector<SaturationStatColumns> statsCollector) {
