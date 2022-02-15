@@ -3,8 +3,6 @@ package uk.ac.ox.cs.gsat.io;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.apache.commons.lang3.NotImplementedException;
-
 import fr.lirmm.graphik.graal.api.core.Atom;
 import fr.lirmm.graphik.graal.api.core.Predicate;
 import fr.lirmm.graphik.graal.api.core.Rule;
@@ -51,7 +49,7 @@ class GraalFactory {
         if (term.isVariable()) {
             return DefaultTermFactory.instance().createVariable(term);
         } else {
-            throw new NotImplementedException(String.format("no graal factory is defined for the term %s of class %s", term, term.getClass()));
+            return DefaultTermFactory.instance().createConstant(term);
         }
     }
 }

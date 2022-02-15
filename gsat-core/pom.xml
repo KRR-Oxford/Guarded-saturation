@@ -12,7 +12,6 @@
   <groupId>uk.ac.ox.cs.gsat</groupId>
   <artifactId>gsat-core</artifactId>
   <name>gsat-core</name>
-  <url>https://github.com/stefanogermano/Guarded-saturation/</url>
 
   <dependencies>
     <dependency>

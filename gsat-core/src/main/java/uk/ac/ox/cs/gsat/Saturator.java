@@ -75,7 +75,7 @@ public class Saturator {
 
     private boolean initialized = false;
 
-    Saturator(String configPath, String inputPath, String outputPath) throws Exception {
+    public Saturator(String configPath, String inputPath, String outputPath) throws Exception {
 
         this.configFile = configPath;
         this.inputPath = inputPath;
@@ -112,7 +112,7 @@ public class Saturator {
         this.initialized = true;
     }
     
-    void run() throws Exception {
+    public void run() throws Exception {
 
         if (!this.initialized)
             return;
@@ -179,6 +179,8 @@ public class Saturator {
     }
 
     protected void runSingleFile(String input, String output) throws Exception {
+        Log.GLOBAL.info("Saturation of " + input);
+        
         String rowName = getRowName(input);
         Collection<? extends TGD> saturationFullTGDs = saturationProcess.saturate(rowName, input);
         writeTGDsToFile(output, saturationFullTGDs);

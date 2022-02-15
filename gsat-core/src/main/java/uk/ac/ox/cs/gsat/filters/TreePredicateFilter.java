@@ -18,6 +18,7 @@ import java.util.Stack;
 import java.util.TreeMap;
 import java.util.TreeSet;
 
+import uk.ac.ox.cs.gsat.Log;
 import uk.ac.ox.cs.gsat.fol.TGD;
 import uk.ac.ox.cs.gsat.satalg.SaturationAlgorithmConfiguration;
 import uk.ac.ox.cs.pdq.fol.Atom;
@@ -311,8 +312,8 @@ public class TreePredicateFilter<Q extends TGD> implements FormulaFilter<Q> {
                 ? Math.max(Double.valueOf(Math.pow(formulas.size() / predicateMax, 1 / length)).intValue(), 1)
                 : 0;
 
-        System.out.println("length of the formulas: " + length);
-        System.out.println("number of bags: " + bagNumber);
+        Log.GLOBAL.fine("length of the formulas: " + length);
+        Log.GLOBAL.fine("number of bags: " + bagNumber);
 
 
         init(formulas, true, bagNumber);

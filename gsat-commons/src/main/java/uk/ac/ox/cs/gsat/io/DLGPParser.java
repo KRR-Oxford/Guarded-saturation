@@ -17,6 +17,7 @@ import fr.lirmm.graphik.graal.api.io.ParseException;
 import fr.lirmm.graphik.graal.io.dlp.DlgpParser;
 import fr.lirmm.graphik.util.Prefix;
 import fr.lirmm.graphik.util.stream.IteratorException;
+import uk.ac.ox.cs.gsat.Log;
 import uk.ac.ox.cs.gsat.api.io.Parser;
 import uk.ac.ox.cs.gsat.api.io.ParserResult;
 import uk.ac.ox.cs.gsat.fol.TGD;
@@ -101,7 +102,7 @@ public class DLGPParser implements Parser {
 
             parser.close();
 
-            System.out.println("# Rules: " + rules.size() + "; # Atoms: " + atoms.size() + "; # AtomSets: "
+            Log.GLOBAL.fine("# Rules: " + rules.size() + "; # Atoms: " + atoms.size() + "; # AtomSets: "
                                + atomSets.size() + "; # Queries: " + queries.size() + "; # Constraints: "
                                + rules.stream().filter(r -> r instanceof NegativeConstraint).count());
 

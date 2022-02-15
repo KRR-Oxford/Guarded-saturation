@@ -88,7 +88,7 @@ public abstract class AbstractSaturation<Q extends GTGD> implements SaturationAl
      */
     public Collection<Q> run(String processName, Collection<? extends Dependency> allDependencies) {
 
-        System.out.println(String.format("Running %s...", this.saturationName));
+        Log.GLOBAL.info(String.format("Running %s...", this.saturationName));
 
         int discarded = 0;
 
@@ -101,7 +101,7 @@ public abstract class AbstractSaturation<Q extends GTGD> implements SaturationAl
             }
         }
 
-        App.logger.info(this.saturationName + " discarded rules : " + discarded + "/" + allDependencies.size() + " = "
+        Log.GLOBAL.info(this.saturationName + " discarded rules : " + discarded + "/" + allDependencies.size() + " = "
                         + String.format(Locale.UK, "%.3f", (float) discarded / allDependencies.size() * 100) + "%");
 
         // we start the time watch
@@ -154,7 +154,7 @@ public abstract class AbstractSaturation<Q extends GTGD> implements SaturationAl
         Set<Q> rightTGDsSet = new HashSet<>();
         Set<Q> leftTGDsSet = new HashSet<>();
 
-        App.logger.info("Subsumption method : " + config.getSubsumptionMethod());
+        App.logger.fine("Subsumption method : " + config.getSubsumptionMethod());
 
         // creation of the right and left subsumers storing both the checked and unchecked TGDs
         Subsumer<Q> rightTGDsSubsumer = SaturationUtils.createSubsumer(initialTGDs, config);

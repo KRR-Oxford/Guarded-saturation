@@ -7,7 +7,7 @@ import uk.ac.ox.cs.gsat.fol.TGD;
 /**
  * A saturator watcher reports the single action and results executed by the saturator.
  */
-interface SaturatorWatcher {
+public interface SaturatorWatcher {
 
     public void changeDirectory(String inputDirectoryPath, String outputDirectoryPath) throws Exception;
         
