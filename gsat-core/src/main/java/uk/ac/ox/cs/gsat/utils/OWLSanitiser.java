@@ -69,9 +69,9 @@ import fr.lirmm.graphik.graal.io.owl.OWL2ParserException;
 import fr.lirmm.graphik.util.Prefix;
 import fr.lirmm.graphik.util.stream.IteratorException;
 import uk.ac.ox.cs.gsat.Log;
-import uk.ac.ox.cs.gsat.io.DLGPIO;
+import uk.ac.ox.cs.gsat.fol.TGD;
+import uk.ac.ox.cs.gsat.io.GraalConvertor;
 import uk.ac.ox.cs.pdq.fol.Dependency;
-import uk.ac.ox.cs.pdq.fol.TGD;
 
 /**
  * OWLSanitiser
@@ -377,7 +377,7 @@ public class OWLSanitiser {
             if (rules.isEmpty()) {
                 return dropAxiom("OWL axiom, which is not translated by Graal parser", a, null, null);
             }
-            Collection<Dependency> pdqtgDsFromGraalRules = DLGPIO.getPDQTGDsFromGraalRules(rules, new HashMap<>());
+            Collection<TGD> pdqtgDsFromGraalRules = GraalConvertor.getPDQTGDsFromGraalRules(rules, new HashMap<>());
 
             // a rule have been discarded during the translation
             if (pdqtgDsFromGraalRules.size() != rules.size()) {
@@ -414,7 +414,7 @@ public class OWLSanitiser {
     }
 
     private static boolean dropAxiom(String message, OWLAxiom a, Set<Rule> rules,
-            Collection<Dependency> pdqtgDsFromGraalRules) {
+            Collection<TGD> pdqtgDsFromGraalRules) {
 
         System.out.println("\n---------------------------------------------------------");
         System.out.println("Message: '" + message + "'\n\nDropped axiom: " + a

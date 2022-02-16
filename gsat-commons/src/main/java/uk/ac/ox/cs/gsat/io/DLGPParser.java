@@ -34,10 +34,11 @@ public class DLGPParser implements Parser {
 
     @Override
     public ParserResult parse(String file) throws Exception {
-        return new DLGPParserResult(file);
+        fr.lirmm.graphik.graal.api.io.Parser<Object> parser = new DlgpParser(new File(file));
+        return new DefaultParserResult(parser);
     }
 
-    class DLGPParserResult implements ParserResult {
+    protected class DefaultParserResult implements ParserResult {
         protected String path;
         protected HashSet<Atom> atoms;
         protected HashSet<AtomSet> atomSets;
@@ -45,8 +46,8 @@ public class DLGPParser implements Parser {
         protected HashSet<ConjunctiveQuery> queries;
         protected Map<String, String> prefixes = new HashMap<>();
 
-        public DLGPParserResult(String path) throws ParseException, FileNotFoundException {
-            parseInput(new DlgpParser(new File(path)));
+        public DefaultParserResult(fr.lirmm.graphik.graal.api.io.Parser<Object> parser) throws ParseException, FileNotFoundException {
+            parseInput(parser);
         }
         
         @Override

@@ -13,10 +13,8 @@ import java.util.logging.Logger;
 import uk.ac.ox.cs.gsat.api.ExecutionSteps;
 import uk.ac.ox.cs.gsat.api.io.Serializer;
 import uk.ac.ox.cs.gsat.io.ChaseBenchIO;
-import uk.ac.ox.cs.gsat.io.DLGPIO;
 import uk.ac.ox.cs.gsat.io.DLGPSerializer;
 import uk.ac.ox.cs.gsat.io.DatalogSerializer;
-import uk.ac.ox.cs.gsat.io.OWLIO;
 import uk.ac.ox.cs.gsat.mat.SolverOutput;
 import uk.ac.ox.cs.gsat.mat.Utils;
 import uk.ac.ox.cs.gsat.satalg.SaturationAlgorithmConfiguration;
@@ -62,7 +60,7 @@ public class App {
 						printHelp("Wrong number of parameters for cb");
 				else if (args[0].equals("dlgp"))
 					if (args.length == 2) {
-						fromDLGP(args[1]);
+						// fromDLGP(args[1]);
 					} else
 						printHelp("Wrong number of parameters for dlgp");
 				else if (args[0].equals("owl")) {
@@ -71,7 +69,7 @@ public class App {
                     // } else {
                         if (args.length == 2 || args.length == 3) {
                             String query = args.length == 2 ? "" : args[2]; // Optional argument
-                            fromOWL(args[1], query);
+                            // fromOWL(args[1], query);
                         } else
                             printHelp("Wrong number of parameters for owl");
                     // }
@@ -141,13 +139,13 @@ public class App {
 	 * @param path the path of the DLGP file we want to process
 	 * @return the results of `executeAllSteps`
 	 */
-	public static ExecutionOutput fromDLGP(String path) {
+	// public static ExecutionOutput fromDLGP(String path) {
 
-		System.out.println("Executing from DLGP files");
+	// 	System.out.println("Executing from DLGP files");
 
-		return executeAllSteps(new DLGPIO(path, Configuration.isSaturationOnly(), Configuration.includeNegativeConstraint()));
+	// 	return executeAllSteps(new DLGPIO(path, Configuration.isSaturationOnly(), Configuration.includeNegativeConstraint()));
 
-	}
+	// }
 
 	// public static ExecutionOutput fromOWLWithStructuralTransformation(String path) {
 
@@ -163,13 +161,13 @@ public class App {
 	 * @param path the path of the OWL file we want to process
 	 * @return the results of `executeAllSteps`
 	 */
-	public static ExecutionOutput fromOWL(String path, String query) {
+	// public static ExecutionOutput fromOWL(String path, String query) {
 
-		System.out.println("Executing from OWL files");
+	// 	System.out.println("Executing from OWL files");
 
-		return executeAllSteps(new OWLIO(path, query, Configuration.isSaturationOnly(), Configuration.includeNegativeConstraint()));
+	// 	return executeAllSteps(new OWLIO(path, query, Configuration.isSaturationOnly(), Configuration.includeNegativeConstraint()));
 
-	}
+	// }
 
 	/**
 	 * Runs all the steps needed in order to get the saturation, the full

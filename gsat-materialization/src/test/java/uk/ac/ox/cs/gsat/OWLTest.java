@@ -11,6 +11,8 @@ import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 
+import uk.ac.ox.cs.gsat.api.SaturationProcess;
+
 /**
  * Unit tests for the GSat class from the ISG Ontology Repository
  * http://www.cs.ox.ac.uk/isg/ontologies
@@ -20,6 +22,8 @@ import org.junit.jupiter.api.Test;
 public class OWLTest {
 
 	private static final String baseOWL = "test" + File.separator + "OWL" + File.separator;
+    private static final SaturationProcess saturationProcess = new CoreSaturationProcess(
+            new SaturationProcessConfiguration());
 
 	@BeforeAll
 	static void initAll() {
@@ -33,47 +37,38 @@ public class OWLTest {
 
 	@Disabled("Disabled because it is too slow")
 	@Test
-	public void galenModule1NoFunctionality() {
+	public void galenModule1NoFunctionality() throws Exception {
 
 		String path = baseOWL + "00033.owl";
 
-		ExecutionOutput executeChaseBenchScenario = App.fromOWL(path, "");
-
-		assertEquals(12, executeChaseBenchScenario.getFullTGDSaturation().size());
+		assertEquals(12, saturationProcess.saturate(path).size());
 
 	}
 
 	@Test
-	public void vicodiTimeDeleted() {
+	public void vicodiTimeDeleted() throws Exception {
 
 		String path = baseOWL + "00780.owl";
 
-		ExecutionOutput executeChaseBenchScenario = App.fromOWL(path, "");
-
-		assertEquals(223, executeChaseBenchScenario.getFullTGDSaturation().size());
+		assertEquals(223, saturationProcess.saturate(path).size());
 
 	}
 
 	@Test
-	public void GardinerCorpusHttp___www_daml_ecs_soton_ac_uk_ont_currency_daml() {
+	public void GardinerCorpusHttp___www_daml_ecs_soton_ac_uk_ont_currency_daml() throws Exception {
 
 		String path = baseOWL + "00198.owl";
 
-		ExecutionOutput executeChaseBenchScenario = App.fromOWL(path, "");
-
-		assertEquals(86, executeChaseBenchScenario.getFullTGDSaturation().size());
+		assertEquals(86, saturationProcess.saturate(path).size());
 
 	}
 
 	@Test
-	public void GardinerCorpus_http___protege_stanford_edu_plugins_owl_owl_library_travel_owl_2009_02_13() {
+	public void GardinerCorpus_http___protege_stanford_edu_plugins_owl_owl_library_travel_owl_2009_02_13() throws Exception {
 
 		String path = baseOWL + "00120.owl";
 
-		ExecutionOutput executeChaseBenchScenario = App.fromOWL(path, "");
-
-		assertEquals(72, executeChaseBenchScenario.getFullTGDSaturation().size());
-
+		assertEquals(72, saturationProcess.saturate(path).size());
 
 	}
 

@@ -10,6 +10,8 @@ import java.util.logging.Level;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
+import uk.ac.ox.cs.gsat.api.SaturationProcess;
+
 /**
  * Unit tests for the GSat class from the ISG Ontology Repository
  * http://www.cs.ox.ac.uk/isg/ontologies
@@ -19,6 +21,7 @@ import org.junit.jupiter.api.Test;
 public class DLGPTest {
 
 	private static final String baseChaseBench = "test" + File.separator + "DLGP" + File.separator;
+    private static final SaturationProcess saturationProcess = new CoreSaturationProcess(new SaturationProcessConfiguration());
 
 	@BeforeAll
 	static void initAll() {
@@ -31,29 +34,29 @@ public class DLGPTest {
 	}
 
 	@Test
-	public void animals() {
+	public void animals() throws Exception {
 
 		String path = baseChaseBench + "animals.dlp";
 
-		assertEquals(16, App.fromDLGP(path).getFullTGDSaturation().size());
+		assertEquals(16, saturationProcess.saturate(path).size());
 
 	}
 
 	@Test
-	public void A() {
+	public void A() throws Exception {
 
 		String path = baseChaseBench + "A.dlp";
 
-		assertEquals(95, App.fromDLGP(path).getFullTGDSaturation().size());
+		assertEquals(95, saturationProcess.saturate(path).size());
 
 	}
 
 	@Test
-	public void IMDB() {
+	public void IMDB() throws Exception {
 
 		String path = baseChaseBench + "imdb.dlgp";
 
-		assertEquals(89, App.fromDLGP(path).getFullTGDSaturation().size());
+		assertEquals(89, saturationProcess.saturate(path).size());
 
 	}
 

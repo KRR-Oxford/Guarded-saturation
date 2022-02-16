@@ -21,6 +21,7 @@ public class ParserFactory {
         case DLGP:
             return new DLGPParser(skipFacts, includeNegativeConstraints);
         case OWL:
+            return new OWLParser(skipFacts, includeNegativeConstraints);
         default:
             String message = String.format("Unsupported format to parse: %s", format);
             throw new NotImplementedException(message);

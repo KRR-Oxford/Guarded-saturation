@@ -12,68 +12,67 @@ import java.util.logging.Logger;
 import uk.ac.ox.cs.gsat.Log;
 import uk.ac.ox.cs.gsat.fol.GTGD;
 import uk.ac.ox.cs.gsat.io.DatalogSerializer;
-import uk.ac.ox.cs.gsat.io.OWLIO;
 import uk.ac.ox.cs.pdq.fol.Dependency;
 import uk.ac.ox.cs.pdq.fol.TGD;
 
 public class Converter {
 
-	private static final Level level = Level.INFO;
-	static final Logger logger = Logger.getLogger("Global Saturation");
+	// private static final Level level = Level.INFO;
+	// static final Logger logger = Logger.getLogger("Global Saturation");
 
-	public static void main(String[] args) throws Exception {
-		Handler handlerObj = new ConsoleHandler();
-		handlerObj.setLevel(level);
-		logger.addHandler(handlerObj);
-		logger.setLevel(level);
-		logger.setUseParentHandlers(false);
+	// public static void main(String[] args) throws Exception {
+	// 	Handler handlerObj = new ConsoleHandler();
+	// 	handlerObj.setLevel(level);
+	// 	logger.addHandler(handlerObj);
+	// 	logger.setLevel(level);
+	// 	logger.setUseParentHandlers(false);
 
-		System.out.println("Starting the OWL2TGD Converter...");
+	// 	System.out.println("Starting the OWL2TGD Converter...");
 
-		try {
-			Class.forName("uk.ac.ox.cs.pdq.fol.TGD");
-		} catch (ClassNotFoundException e) {
-			System.err.println("PDQ library not found. The system will now terminate.");
-			System.exit(1);
-		}
+	// 	try {
+	// 		Class.forName("uk.ac.ox.cs.pdq.fol.TGD");
+	// 	} catch (ClassNotFoundException e) {
+	// 		System.err.println("PDQ library not found. The system will now terminate.");
+	// 		System.exit(1);
+	// 	}
 
-		try {
+	// 	try {
 
-			if (args.length > 0)
-				// if (args[0].equals("dlgp"))
-				// if (args.length == 3) {
-				// toDLGP(args[1], args[2]);
-				// } else
-				// printHelp("Wrong number of parameters for dlgp");
-				// else
-				if (args[0].equals("cb"))
-					if (args.length == 3) {
-						toChaseBench(args[1], args[2]);
-					} else
-						printHelp("Wrong number of parameters for cb");
-				else
-					printHelp("Wrong command (i.e. first argument)");
-			else
-				printHelp("No arguments provided");
+	// 		if (args.length > 0)
+	// 			// if (args[0].equals("dlgp"))
+	// 			// if (args.length == 3) {
+	// 			// toDLGP(args[1], args[2]);
+	// 			// } else
+	// 			// printHelp("Wrong number of parameters for dlgp");
+	// 			// else
+	// 			if (args[0].equals("cb"))
+	// 				if (args.length == 3) {
+	// 					toChaseBench(args[1], args[2]);
+	// 				} else
+	// 					printHelp("Wrong number of parameters for cb");
+	// 			else
+	// 				printHelp("Wrong command (i.e. first argument)");
+	// 		else
+	// 			printHelp("No arguments provided");
 
-		} catch (Throwable t) {
-			System.err.println("Unknown error. The system will now terminate.");
-			logger.severe(t.getLocalizedMessage());
-			System.exit(1);
-		}
+	// 	} catch (Throwable t) {
+	// 		System.err.println("Unknown error. The system will now terminate.");
+	// 		logger.severe(t.getLocalizedMessage());
+	// 		System.exit(1);
+	// 	}
 
-	}
+	// }
 
-	private static void toChaseBench(String input_path, String output_path) {
-		OWLIO owlio = new OWLIO(input_path, true, false);
-		try {
-			Collection<Dependency> rules = owlio.getRules();
-			Collection<GTGD> TGDRules = discardNonTGDRules(rules);
-			DatalogSerializer.writeDatalogRules(TGDRules, output_path);
-		} catch (Exception e) {
-			e.printStackTrace();
-		}
-	}
+	// private static void toChaseBench(String input_path, String output_path) {
+	// 	OWLIO owlio = new OWLIO(input_path, true, false);
+	// 	try {
+	// 		Collection<Dependency> rules = owlio.getRules();
+	// 		Collection<GTGD> TGDRules = discardNonTGDRules(rules);
+	// 		DatalogSerializer.writeDatalogRules(TGDRules, output_path);
+	// 	} catch (Exception e) {
+	// 		e.printStackTrace();
+	// 	}
+	// }
 
 	private static Collection<GTGD> discardNonTGDRules(Collection<Dependency> allDependencies) {
 
