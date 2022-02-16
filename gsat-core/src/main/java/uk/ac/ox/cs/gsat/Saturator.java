@@ -62,6 +62,9 @@ public class Saturator {
             "--queries" }, required = false, description = "Path to the queries file used to filter the input.")
     protected String queriesPath;
 
+    @Parameter(names = { "-cb", "--chaseBench" }, required = false, description = "Chase bench input")
+    protected boolean chaseBenchInput;
+
     // collector of the satistics of saturation algorithm
     protected StatisticsCollector<SaturationStatColumns> statisticsCollector;
 
@@ -312,7 +315,7 @@ public class Saturator {
         if (!inputFile.exists())
             throw new IllegalArgumentException("The input file or directory do not exists.");
 
-        if (inputFile.isDirectory()) {
+        if (inputFile.isDirectory() && !chaseBenchInput) {
             if (outputFile.exists() && !outputFile.isDirectory()) {
                 throw new IllegalArgumentException(
                         "Since the input is a directory the output should also be a directory.");

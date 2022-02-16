@@ -1,5 +1,6 @@
 package uk.ac.ox.cs.gsat;
 
+import java.io.File;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -7,6 +8,7 @@ import java.util.List;
 
 public enum TGDFileFormat {
     DLGP(List.of("dlgp", "dlp")),
+    CHASE_BENCH(List.of()),
     OWL("owl");
 
     private final Collection<String> fileExts;
@@ -28,6 +30,9 @@ public enum TGDFileFormat {
             if (format.getFileExts().stream().anyMatch(f -> path.matches(".*\\." + f)))
                 return format;
         }
+        if (new File(path).isDirectory())
+            return TGDFileFormat.CHASE_BENCH;
+        
         return null;
     }
 
