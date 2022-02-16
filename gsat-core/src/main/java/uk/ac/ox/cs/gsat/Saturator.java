@@ -152,7 +152,8 @@ public class Saturator {
             saturationConfig = new SaturationProcessConfiguration();
         saturationProcess = new CoreSaturationProcess(saturationConfig, getTransformations());
         saturationProcess.setStatisticCollector(statisticsCollector);
-        watcher.changeConfiguration(saturationConfigPath);
+        if (watcher != null)
+            watcher.changeConfiguration(saturationConfigPath);
     }
     
     protected String getConfigurationPath(String currentDirectoryPath) throws IOException  {
