@@ -11,7 +11,6 @@ import java.util.Stack;
 import java.util.TreeSet;
 import java.util.concurrent.TimeoutException;
 
-import uk.ac.ox.cs.gsat.App;
 import uk.ac.ox.cs.gsat.Log;
 import uk.ac.ox.cs.gsat.api.SaturationAlgorithm;
 import uk.ac.ox.cs.gsat.api.SaturationStatColumns;
@@ -154,7 +153,7 @@ public abstract class AbstractSaturation<Q extends GTGD> implements SaturationAl
         Set<Q> rightTGDsSet = new HashSet<>();
         Set<Q> leftTGDsSet = new HashSet<>();
 
-        App.logger.fine("Subsumption method : " + config.getSubsumptionMethod());
+        Log.GLOBAL.fine("Subsumption method : " + config.getSubsumptionMethod());
 
         // creation of the right and left subsumers storing both the checked and unchecked TGDs
         Subsumer<Q> rightTGDsSubsumer = SaturationUtils.createSubsumer(initialTGDs, config);
@@ -340,7 +339,7 @@ public abstract class AbstractSaturation<Q extends GTGD> implements SaturationAl
         for (Q tgd : TGDs)
             for (String symbol : tgd.getAllTermSymbols())
                 if (symbol.startsWith(uVariable) || symbol.startsWith(eVariable) || symbol.startsWith(zVariable)) {
-                    App.logger.info("Found rename variable: " + symbol);
+                    Log.GLOBAL.info("Found rename variable: " + symbol);
                     return true;
                 }
 

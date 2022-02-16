@@ -8,7 +8,7 @@ import java.util.Map;
 import org.semanticweb.kaon2.api.logic.Literal;
 import org.semanticweb.kaon2.api.logic.Rule;
 
-import uk.ac.ox.cs.gsat.App;
+import uk.ac.ox.cs.gsat.Log;
 import uk.ac.ox.cs.gsat.fol.Logic;
 import uk.ac.ox.cs.gsat.io.DatalogSerializer;
 import uk.ac.ox.cs.pdq.fol.Atom;
@@ -47,7 +47,7 @@ public class Kaon2IO {
             Atom atom = getPDQAtomFromKAON2Literal(literal);
             Atom renameVariablesAndConstantsDatalog = DatalogSerializer.renameVariablesAndConstantsDatalog(
                     (Atom) Logic.applySubstitution(atom, substitution));
-            App.logger.fine("Atom:" + renameVariablesAndConstantsDatalog);
+            Log.GLOBAL.fine("Atom:" + renameVariablesAndConstantsDatalog);
             body.append(renameVariablesAndConstantsDatalog.toString());
         }
         body.append(".");
@@ -65,7 +65,7 @@ public class Kaon2IO {
                 Atom atom = getPDQAtomFromKAON2Literal(literal);
                 Atom renameVariablesAndConstantsDatalog = DatalogSerializer.renameVariablesAndConstantsDatalog(
                         (Atom) Logic.applySubstitution(atom, substitution));
-                App.logger.fine("Atom:" + renameVariablesAndConstantsDatalog);
+                Log.GLOBAL.fine("Atom:" + renameVariablesAndConstantsDatalog);
                 rules.add(renameVariablesAndConstantsDatalog.toString() + bodyString);
             }
 

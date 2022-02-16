@@ -17,6 +17,7 @@
     <module>gsat-core</module>
     <module>gsat-commons</module>
     <module>gsat-kaon2</module>
+    <module>gsat-materialization</module>
     <module>gsat-regression</module>
   </modules>
 

@@ -10,7 +10,6 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
 
-import uk.ac.ox.cs.gsat.App;
 import uk.ac.ox.cs.gsat.Log;
 import uk.ac.ox.cs.gsat.api.SaturationAlgorithm;
 import uk.ac.ox.cs.gsat.api.SaturationStatColumns;
@@ -70,7 +69,7 @@ class SimpleSat implements SaturationAlgorithm {
             else
                 discarded++;
 
-        App.logger.info("Simple Sat discarded rules : " + discarded + "/" + allDependencies.size() + " = "
+        Log.GLOBAL.info("Simple Sat discarded rules : " + discarded + "/" + allDependencies.size() + " = "
                 + String.format(Locale.UK, "%.3f", (float) discarded / allDependencies.size() * 100) + "%");
 
         statsCollector.start(processName);
@@ -99,7 +98,7 @@ class SimpleSat implements SaturationAlgorithm {
             }
         }
 
-        // App.logger.info("# initial TGDs: " + fullTGDs.size() + " , " + nonfullTGDs.size());
+        // Log.GLOBAL.info("# initial TGDs: " + fullTGDs.size() + " , " + nonfullTGDs.size());
         statsCollector.put(processName, SaturationStatColumns.NFTGD_NB, nonfullTGDs.size());
         statsCollector.put(processName, SaturationStatColumns.FTGD_NB, fullTGDs.size());
         Log.GLOBAL.info("Simple Sat width : " + width);
@@ -128,14 +127,14 @@ class SimpleSat implements SaturationAlgorithm {
             resultingFullTDGs = filterFullTGDByBodyPredicate(resultingFullTDGs, nfTGDHeadPredicate);
             res = resultingFullTDGs.size() - res;
 
-            // App.logger.finer("step " + step + " COMPOSITION results " + res);
+            // Log.GLOBAL.finer("step " + step + " COMPOSITION results " + res);
 
             resultingFullTDGs.addAll(applyOriginal(nonfullTGDs, fullTGDs, fullTGDSubsumer, startTime));
             res = resultingFullTDGs.size() -res;
-			// App.logger.finer("step "+ step +" ORIGINAL results " + res);
+			// Log.GLOBAL.finer("step "+ step +" ORIGINAL results " + res);
 
 
-            // App.logger.fine("step "+ step +" full TGDs " + (fullTGDs.size() + resultingFullTDGs.size()));
+            // Log.GLOBAL.fine("step "+ step +" full TGDs " + (fullTGDs.size() + resultingFullTDGs.size()));
 
             newFullCount += resultingFullTDGs.size();
             step++;
@@ -149,15 +148,15 @@ class SimpleSat implements SaturationAlgorithm {
             statsCollector.stop(processName, SaturationStatColumns.TIME);
 
         // long totalTime = System.nanoTime() - startTime;
-        // App.logger.info("Simple Sat total time : " + String.format(Locale.UK, "%.0f", totalTime / 1E6) + " ms = "
+        // Log.GLOBAL.info("Simple Sat total time : " + String.format(Locale.UK, "%.0f", totalTime / 1E6) + " ms = "
         // + String.format(Locale.UK, "%.2f", totalTime / 1E9) + " s");
-        // App.logger.info("Subsumed elements : "
+        // Log.GLOBAL.info("Subsumed elements : "
                 // + (fullTGDSubsumer.getNumberSubsumed() + fullTGDSubsumer.getNumberSubsumed()));
         statsCollector.put(processName, SaturationStatColumns.SUBSUMED, (fullTGDSubsumer.getNumberSubsumed()));
-        // App.logger.info("Filter discarded elements : "
+        // Log.GLOBAL.info("Filter discarded elements : "
                 // + (fullTGDSubsumer.getFilterDiscarded() + fullTGDSubsumer.getFilterDiscarded()));
         
-        // App.logger.info("Derived full/non full TGDs: " + newFullCount + " , " + 0);
+        // Log.GLOBAL.info("Derived full/non full TGDs: " + newFullCount + " , " + 0);
         statsCollector.put(processName, SaturationStatColumns.NEW_FTGD_NB, newFullCount);
         statsCollector.put(processName, SaturationStatColumns.NEW_NFTGD_NB, 0);
 
@@ -165,7 +164,7 @@ class SimpleSat implements SaturationAlgorithm {
 
         Collection<TGD> outputCopy = new ArrayList<>(fullTGDs);
         outputCopy.removeAll(inputFullTGD);
-        // App.logger.info("ouptput full TGDs not contained in the input: " + outputCopy.size());
+        // Log.GLOBAL.info("ouptput full TGDs not contained in the input: " + outputCopy.size());
         statsCollector.put(processName, SaturationStatColumns.NEW_OUTPUT_SIZE, outputCopy.size());
 
         return fullTGDs;
@@ -235,7 +234,7 @@ class SimpleSat implements SaturationAlgorithm {
     
         ftgd = renameTgd(ftgd);
     
-        // App.logger.fine("apply original on:\n" + nftgd + "\nand\n" + ftgd);
+        // Log.GLOBAL.fine("apply original on:\n" + nftgd + "\nand\n" + ftgd);
     
     
         Collection<TGD> results = new ArrayList<>();
@@ -300,11 +299,11 @@ class SimpleSat implements SaturationAlgorithm {
                         continue;
                     }
     
-                    App.logger.fine("Shead:" + Shead.toString());
+                    Log.GLOBAL.fine("Shead:" + Shead.toString());
     
                     for (List<Atom> S : SaturationUtils.getProduct(Shead)) {
     
-                        App.logger.fine("Non-Full:" + new_nftgd.toString() + "\nFull:" + new_ftgd.toString() + "\nSbody:"
+                        Log.GLOBAL.fine("Non-Full:" + new_nftgd.toString() + "\nFull:" + new_ftgd.toString() + "\nSbody:"
                                         + Sbody + "\nS:" + S);
     
                         Map<Term, Term> mgu = Logic.getVariableSubstitution(S, Sbody);

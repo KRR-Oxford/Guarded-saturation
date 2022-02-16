@@ -12,7 +12,7 @@ import java.util.Set;
 import java.util.concurrent.TimeoutException;
 import java.util.logging.Level;
 
-import uk.ac.ox.cs.gsat.App;
+import uk.ac.ox.cs.gsat.Log;
 import uk.ac.ox.cs.gsat.api.SaturationStatColumns;
 import uk.ac.ox.cs.gsat.fol.Logic;
 import uk.ac.ox.cs.gsat.fol.SkGTGD;
@@ -58,8 +58,8 @@ public class HyperResolutionBasedSat extends AbstractSaturation<SkGTGD> {
                 iterator.remove();
                 addRightTGD(rightTGD, rightIndex, rightTGDsSet);
 
-                if (App.logger.isLoggable(Level.FINE))
-                    App.logger.fine("picked full TGD: " + rightTGD);
+                if (Log.GLOBAL.isLoggable(Level.FINE))
+                    Log.GLOBAL.fine("picked full TGD: " + rightTGD);
 
                 statsCollector.tick(processName, SaturationStatColumns.OTHER_TIME);
                 resolved.addAll(hyperresolveWithNewFullTGD(leftTGDsSet, leftIndex, rightTGD, processName));
@@ -70,8 +70,8 @@ public class HyperResolutionBasedSat extends AbstractSaturation<SkGTGD> {
                 iterator.remove();
                 addLeftTGD(leftTGD, leftIndex, leftTGDsSet);
 
-                if (App.logger.isLoggable(Level.FINE))
-                    App.logger.fine("picked non-full TGD: " + leftTGD);
+                if (Log.GLOBAL.isLoggable(Level.FINE))
+                    Log.GLOBAL.fine("picked non-full TGD: " + leftTGD);
 
                 statsCollector.tick(processName, SaturationStatColumns.OTHER_TIME);
                 resolved.addAll(hyperresolveWithNewNonFullTGD(leftTGDsSet, leftIndex, rightIndex, leftTGD, processName));
@@ -80,8 +80,8 @@ public class HyperResolutionBasedSat extends AbstractSaturation<SkGTGD> {
 
             // we update the structures with the TGDs to add
             for (SkGTGD newTGD : resolved) {
-                if (App.logger.isLoggable(Level.FINE))
-                    App.logger.fine("newTGD: " + newTGD);
+                if (Log.GLOBAL.isLoggable(Level.FINE))
+                    Log.GLOBAL.fine("newTGD: " + newTGD);
 
                 if (isRightTGD(newTGD)) {
                     reportNewRightTGD(processName, newTGD);
@@ -94,7 +94,7 @@ public class HyperResolutionBasedSat extends AbstractSaturation<SkGTGD> {
                 }
 
             }
-            App.logger.fine("======================== \n");
+            Log.GLOBAL.fine("======================== \n");
 
         }
 
@@ -181,8 +181,8 @@ public class HyperResolutionBasedSat extends AbstractSaturation<SkGTGD> {
                                                    SkGTGD fullTGD, Atom fullTGDGuard, String processName) {
         Collection<SkGTGD> resolvedTGDs = new HashSet<>();
         SkGTGD resolvedRightTGD = resolveOn(nonFullTGD, fullTGD, fullTGDGuard);
-        if (App.logger.isLoggable(Level.FINE)) {
-            App.logger.fine("first resolved TGD: " + "\nnon full: " + nonFullTGD + "\nfull: " + fullTGD + "\nresolved: " + resolvedRightTGD);
+        if (Log.GLOBAL.isLoggable(Level.FINE)) {
+            Log.GLOBAL.fine("first resolved TGD: " + "\nnon full: " + nonFullTGD + "\nfull: " + fullTGD + "\nresolved: " + resolvedRightTGD);
         }
 
         if (resolvedRightTGD != null) {
@@ -193,8 +193,8 @@ public class HyperResolutionBasedSat extends AbstractSaturation<SkGTGD> {
                 // the resolved TGD contains Skolem functions in its body 
 
                 List<List<SkGTGD>> nonFullTGDcandidatesForSkolemAtoms = computeCandidatesForSkolemAtoms(nonFullTGDsIndex, skolemAtoms);
-                if (App.logger.isLoggable(Level.FINE)) {
-                    App.logger.fine("skolem atom candidates: " + nonFullTGDcandidatesForSkolemAtoms);
+                if (Log.GLOBAL.isLoggable(Level.FINE)) {
+                    Log.GLOBAL.fine("skolem atom candidates: " + nonFullTGDcandidatesForSkolemAtoms);
                 }
 
                 for (List<SkGTGD> candidateList : nonFullTGDcandidatesForSkolemAtoms) {
@@ -288,8 +288,8 @@ public class HyperResolutionBasedSat extends AbstractSaturation<SkGTGD> {
 
         leftTGD = renamingCache.get(leftTGD);
 
-        if (App.logger.isLoggable(Level.FINE))
-            App.logger.fine("mgu of " + B + " and " + H + ": " + mgu);
+        if (Log.GLOBAL.isLoggable(Level.FINE))
+            Log.GLOBAL.fine("mgu of " + B + " and " + H + ": " + mgu);
 
         if (mgu != null) {
             Set<Atom> new_body = new HashSet<>();

@@ -15,7 +15,7 @@ import java.util.logging.Level;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
-import uk.ac.ox.cs.gsat.App;
+import uk.ac.ox.cs.gsat.Log;
 import uk.ac.ox.cs.gsat.fol.GTGD;
 import uk.ac.ox.cs.gsat.fol.TGD;
 import uk.ac.ox.cs.gsat.fol.TGDFactory;
@@ -87,9 +87,9 @@ public class GSatTest {
 	static void initAll() {
 		Handler handlerObj = new ConsoleHandler();
 		handlerObj.setLevel(Level.WARNING);
-		App.logger.addHandler(handlerObj);
-		App.logger.setLevel(Level.WARNING);
-		App.logger.setUseParentHandlers(false);
+		Log.GLOBAL.addHandler(handlerObj);
+		Log.GLOBAL.setLevel(Level.WARNING);
+		Log.GLOBAL.setUseParentHandlers(false);
 
 	}
 

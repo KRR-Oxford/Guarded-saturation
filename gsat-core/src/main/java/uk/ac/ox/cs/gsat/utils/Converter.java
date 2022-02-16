@@ -9,7 +9,7 @@ import java.util.logging.Handler;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-import uk.ac.ox.cs.gsat.App;
+import uk.ac.ox.cs.gsat.Log;
 import uk.ac.ox.cs.gsat.fol.GTGD;
 import uk.ac.ox.cs.gsat.io.DatalogSerializer;
 import uk.ac.ox.cs.gsat.io.OWLIO;
@@ -89,14 +89,14 @@ public class Converter {
 			else
 				discarded++;
 
-		App.logger.info("GSat discarded rules : " + discarded + "/" + allDependencies.size() + " = "
+		Log.GLOBAL.info("GSat discarded rules : " + discarded + "/" + allDependencies.size() + " = "
 				+ String.format(Locale.UK, "%.3f", (float) discarded / allDependencies.size() * 100) + "%");
 
 		final long stopTime = System.nanoTime();
 
 		long totalTime = stopTime - startTime;
 
-		App.logger.info("GSat total time : " + String.format(Locale.UK, "%.0f", totalTime / 1E6) + " ms = "
+		Log.GLOBAL.info("GSat total time : " + String.format(Locale.UK, "%.0f", totalTime / 1E6) + " ms = "
 				+ String.format(Locale.UK, "%.2f", totalTime / 1E9) + " s");
 
 		return selectedTGDs;

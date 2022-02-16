@@ -8,7 +8,7 @@ import java.util.Set;
 import java.util.TreeSet;
 import java.util.concurrent.TimeoutException;
 
-import uk.ac.ox.cs.gsat.App;
+import uk.ac.ox.cs.gsat.Log;
 import uk.ac.ox.cs.gsat.api.SaturationStatColumns;
 import uk.ac.ox.cs.gsat.fol.GTGD;
 import uk.ac.ox.cs.gsat.fol.TGDFactory;
@@ -56,7 +56,7 @@ public abstract class EvolveBasedSat<Q extends GTGD> extends AbstractSaturation<
 
             checkTimeout(statsCollector.total(processName));
 
-            App.logger.fine("# new TGDs: " + newRightTGDs.size() + " , " + newLeftTGDs.size());
+            Log.GLOBAL.fine("# new TGDs: " + newRightTGDs.size() + " , " + newLeftTGDs.size());
 
             if (config.isVerbose())
                 if (counter == 100) {
@@ -77,7 +77,7 @@ public abstract class EvolveBasedSat<Q extends GTGD> extends AbstractSaturation<
                 Q currentTGD = iterator.next();
                 iterator.remove();
 
-                App.logger.fine("current TGD: " + currentTGD);
+                Log.GLOBAL.fine("current TGD: " + currentTGD);
 
                 boolean added = addLeftTGD(currentTGD, leftIndex, leftTGDsSet);
                 if (added)
@@ -97,7 +97,7 @@ public abstract class EvolveBasedSat<Q extends GTGD> extends AbstractSaturation<
                 Iterator<Q> iterator = newRightTGDs.iterator();
                 Q currentTGD = iterator.next();
                 iterator.remove();
-                App.logger.fine("current TGD: " + currentTGD);
+                Log.GLOBAL.fine("current TGD: " + currentTGD);
 
                 boolean added = addRightTGD(currentTGD, rightIndex, rightTGDsSet);
 
@@ -148,18 +148,18 @@ public abstract class EvolveBasedSat<Q extends GTGD> extends AbstractSaturation<
                         toAdd.add(newTGD);
                         subsumed = subsumed || SaturationUtils.subsumed(currentTGD, newTGD);
                         if (subsumed) {
-                            App.logger.fine("stop because sub :\n" + leftTGD + "\n + \n" + rightTGD + "\n = \n" + newTGD
+                            Log.GLOBAL.fine("stop because sub :\n" + leftTGD + "\n + \n" + rightTGD + "\n = \n" + newTGD
                                     + "\n");
                             toAdd.clear();
                             toAdd.add(newTGD);
                             break;
                         }
                     } else {
-                        App.logger.fine(
+                        Log.GLOBAL.fine(
                                 "evolve useless :\n" + leftTGD + "\n + \n" + rightTGD + "\n = \n" + newTGD + "\n");
                     }
                 } else {
-                    App.logger.fine("evolve equals :\n" + leftTGD + "\n + \n" + rightTGD + "\n = \n" + newTGD + "\n");
+                    Log.GLOBAL.fine("evolve equals :\n" + leftTGD + "\n + \n" + rightTGD + "\n = \n" + newTGD + "\n");
                     statsCollector.incr(processName, SaturationStatColumns.EVOL_STOPPED_BECAUSE_EQUAL);
                 }
             }

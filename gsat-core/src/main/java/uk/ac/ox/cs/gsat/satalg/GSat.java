@@ -10,7 +10,7 @@ import java.util.Map.Entry;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-import uk.ac.ox.cs.gsat.App;
+import uk.ac.ox.cs.gsat.Log;
 import uk.ac.ox.cs.gsat.fol.GTGD;
 import uk.ac.ox.cs.gsat.fol.Logic;
 import uk.ac.ox.cs.gsat.fol.TGDFactory;
@@ -61,7 +61,7 @@ class GSat extends EvolveBasedSat<GTGD> {
 
         ftgd = renameVariable(ftgd);
 
-        App.logger.fine("Composing:\n" + nftgd + "\nand\n" + ftgd);
+        Log.GLOBAL.fine("Composing:\n" + nftgd + "\nand\n" + ftgd);
 
         Atom guard = GTGD.create(ftgd.getBodySet(), ftgd.getHeadSet()).getGuard();
         Collection<GTGD> results = new HashSet<>();
@@ -109,11 +109,11 @@ class GSat extends EvolveBasedSat<GTGD> {
                     continue;
                 }
 
-                App.logger.fine("Shead:" + Shead.toString());
+                Log.GLOBAL.fine("Shead:" + Shead.toString());
 
                 for (List<Atom> S : SaturationUtils.getProduct(Shead)) {
 
-                    App.logger.fine("Non-Full:" + new_nftgd.toString() + "\nFull:" + new_ftgd.toString() + "\nSbody:"
+                    Log.GLOBAL.fine("Non-Full:" + new_nftgd.toString() + "\nFull:" + new_ftgd.toString() + "\nSbody:"
                                     + Sbody + "\nS:" + S);
 
                     Map<Term, Term> mgu = Logic.getVariableSubstitution(S, Sbody);

@@ -68,7 +68,7 @@ import fr.lirmm.graphik.graal.io.owl.OWL2Parser;
 import fr.lirmm.graphik.graal.io.owl.OWL2ParserException;
 import fr.lirmm.graphik.util.Prefix;
 import fr.lirmm.graphik.util.stream.IteratorException;
-import uk.ac.ox.cs.gsat.App;
+import uk.ac.ox.cs.gsat.Log;
 import uk.ac.ox.cs.gsat.io.DLGPIO;
 import uk.ac.ox.cs.pdq.fol.Dependency;
 import uk.ac.ox.cs.pdq.fol.TGD;
@@ -205,7 +205,7 @@ public class OWLSanitiser {
 
         long totalTime = stopTime - startTime;
 
-        App.logger.info("Sanitiser total time : " + String.format(Locale.UK, "%.0f", totalTime / 1E6) + " ms = "
+        Log.GLOBAL.info("Sanitiser total time : " + String.format(Locale.UK, "%.0f", totalTime / 1E6) + " ms = "
                 + String.format(Locale.UK, "%.2f", totalTime / 1E9) + " s");
 
     }
@@ -355,7 +355,7 @@ public class OWLSanitiser {
             while (parser.hasNext()) {
                 Object o = parser.next();
                 if (o instanceof Rule) {
-                    App.logger.fine("Rule: " + ((Rule) o));
+                    Log.GLOBAL.fine("Rule: " + ((Rule) o));
                     rules.add((Rule) o);
                 } else if (o instanceof NegativeConstraint) {
                     rules.add((NegativeConstraint) o);

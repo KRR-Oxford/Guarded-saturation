@@ -10,14 +10,19 @@
   </parent>
   
   <groupId>uk.ac.ox.cs.gsat</groupId>
-  <artifactId>gsat-core</artifactId>
-  <name>gsat-core</name>
+  <artifactId>gsat-materialization</artifactId>
+  <name>gsat-materialization</name>
 
   <dependencies>
     <dependency>
       <groupId>uk.ac.ox.cs.gsat</groupId>
-      <artifactId>gsat-commons</artifactId>
+      <artifactId>gsat-kaon2</artifactId>
       <version>${project.parent.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>tech.oxfordsemantic.jrdfox</groupId>
+      <artifactId>jrdfox</artifactId>
+      <version>1.0</version>
     </dependency>
   </dependencies>
   <build>
@@ -27,7 +32,6 @@
         <artifactId>maven-clean-plugin</artifactId>
         <version>3.1.0</version>
       </plugin>
-      <!-- default lifecycle, jar packaging: see https://maven.apache.org/ref/current/maven-core/default-bindings.html#Plugin_bindings_for_jar_packaging -->
       <plugin>
         <artifactId>maven-resources-plugin</artifactId>
         <version>3.2.0</version>
@@ -35,21 +39,10 @@
       <plugin>
         <artifactId>maven-compiler-plugin</artifactId>
         <version>3.8.1</version>
-        <!-- <configuration>
-             <forceJavacCompilerUse>true</forceJavacCompilerUse>
-             </configuration> -->
       </plugin>
       <plugin>
         <artifactId>maven-surefire-plugin</artifactId>
         <version>3.0.0-M5</version>
-        <!-- <configuration>
-             <systemProperties>
-             <property>
-             <name>java.util.logging.config.file</name>
-             <value>src/test/resources/logging.properties</value>
-             </property>
-             </systemProperties>
-             </configuration> -->
       </plugin>
       <plugin>
         <artifactId>maven-jar-plugin</artifactId>
@@ -60,36 +53,17 @@
         <version>3.3.0</version>
         <executions>
           <execution>
-            <id>jar-with-dependencies-App</id>
+            <id>jar-with-dependencies-Materialization</id>
             <configuration>
-              <!-- <appendAssemblyId>false</appendAssemblyId> -->
               <archive>
                 <manifest>
-                  <mainClass>uk.ac.ox.cs.gsat.App</mainClass>
+                  <mainClass>uk.ac.ox.cs.gsat.Materialization</mainClass>
                 </manifest>
               </archive>
               <descriptorRefs>
                 <descriptorRef>jar-with-dependencies</descriptorRef>
               </descriptorRefs>
-              <!-- <finalName>foobar_a.jar</finalName> -->
-            </configuration>
-            <phase>package</phase>
-            <goals>
-              <goal>single</goal>
-            </goals>
-          </execution>
-          <execution>
-            <id>jar-with-dependencies-Saturator</id>
-            <configuration>
-              <archive>
-                <manifest>
-                  <mainClass>uk.ac.ox.cs.gsat.Saturator</mainClass>
-                </manifest>
-              </archive>
-              <descriptorRefs>
-                <descriptorRef>jar-with-dependencies</descriptorRef>
-              </descriptorRefs>
-              <finalName>Saturator-${project.version}</finalName>
+              <finalName>Materialization-${project.version}</finalName>
             </configuration>
             <phase>package</phase>
             <goals>
@@ -145,11 +119,6 @@
         <artifactId>maven-javadoc-plugin</artifactId>
         <version>3.2.0</version>
       </plugin>
-      <!-- jar-with-dependencies did NOT work without this 
-           <plugin>
-           <groupId>org.apache.maven.plugins</groupId>
-           <artifactId>maven-assembly-plugin</artifactId>
-           </plugin> -->
     </plugins>
   </build>
 </project>
