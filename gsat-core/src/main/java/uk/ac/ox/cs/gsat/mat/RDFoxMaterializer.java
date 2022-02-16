@@ -20,12 +20,14 @@ import tech.oxfordsemantic.jrdfox.Prefixes;
 import tech.oxfordsemantic.jrdfox.client.ConnectionFactory;
 import tech.oxfordsemantic.jrdfox.client.Cursor;
 import tech.oxfordsemantic.jrdfox.client.DataStoreConnection;
+import tech.oxfordsemantic.jrdfox.client.RuleInfo;
 import tech.oxfordsemantic.jrdfox.client.ServerConnection;
 import tech.oxfordsemantic.jrdfox.client.TransactionType;
 import tech.oxfordsemantic.jrdfox.client.UpdateType;
 import tech.oxfordsemantic.jrdfox.exceptions.JRDFoxException;
 import tech.oxfordsemantic.jrdfox.logic.datalog.Rule;
 import tech.oxfordsemantic.jrdfox.logic.sparql.pattern.TriplePattern;
+import uk.ac.ox.cs.gsat.Log;
 import uk.ac.ox.cs.gsat.MaterializationConfiguration;
 import uk.ac.ox.cs.gsat.api.MaterializationStatColumns;
 import uk.ac.ox.cs.gsat.api.Materializer;
@@ -77,7 +79,10 @@ class RDFoxMaterializer implements Materializer {
     @Override
     public long materialize(ParserResult parsedData, Collection<? extends TGD> fullTGDs, String outputFile)
             throws IOException, Exception {
-        return materialize(parsedData, fullTGDs, new BufferedOutputStream(new FileOutputStream(outputFile)));
+        OutputStream stream = new BufferedOutputStream(new FileOutputStream(outputFile));
+        long size = materialize(parsedData, fullTGDs, stream);
+        stream.close();
+        return size;
     }
 
     /**
@@ -91,7 +96,7 @@ class RDFoxMaterializer implements Materializer {
         // write the data to the input data file
         String inputDataFile = DEFAULT_DATA_PATH;
         writeData(parsedData.getAtoms(), inputDataFile);
-    
+
         // import the data file
         InputStream dataStream = new BufferedInputStream(new FileInputStream(inputDataFile));
         dsConn.importData(UpdateType.ADDITION, prefixes, dataStream);
@@ -154,6 +159,10 @@ class RDFoxMaterializer implements Materializer {
         try {
             String[] warnings = ConnectionFactory.startLocalServer(serverParameters);
         } catch (JRDFoxException e) {
+            if (!e.getMessage().contains("A local server instance has already been started.")) {
+                Log.GLOBAL.severe(e.getMessage());
+                e.printStackTrace();
+            }
         }
     
         if (ConnectionFactory.getNumberOfLocalServerRoles() == 0) {

@@ -21,7 +21,6 @@ import uk.ac.ox.cs.gsat.api.io.ParserResult;
 import uk.ac.ox.cs.gsat.fol.TGD;
 import uk.ac.ox.cs.gsat.io.ParserFactory;
 import uk.ac.ox.cs.gsat.mat.MaterializerFactory;
-import uk.ac.ox.cs.gsat.mat.MaterializerType;
 import uk.ac.ox.cs.gsat.statistics.DefaultStatisticsCollector;
 import uk.ac.ox.cs.gsat.statistics.StatisticsCollector;
 import uk.ac.ox.cs.gsat.statistics.StatisticsColumn;

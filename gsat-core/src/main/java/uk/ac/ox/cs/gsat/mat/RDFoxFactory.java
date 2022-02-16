@@ -3,8 +3,6 @@ package uk.ac.ox.cs.gsat.mat;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.apache.commons.lang3.NotImplementedException;
-
 import tech.oxfordsemantic.jrdfox.logic.datalog.BodyFormula;
 import tech.oxfordsemantic.jrdfox.logic.datalog.Rule;
 import tech.oxfordsemantic.jrdfox.logic.datalog.TupleTableAtom;
@@ -18,6 +16,8 @@ import uk.ac.ox.cs.pdq.fol.TGD;
 
 public class RDFoxFactory {
 
+    protected final static String DEFAULT_PREFIX = "http://oxfordsemantic.tech/RDFox/";
+    
     /**
      * translate a full TDG into a set of datalog rules:
      * one rule for each TGD head atom.
@@ -79,14 +79,22 @@ public class RDFoxFactory {
     }
     
     protected static IRI predicateAsIRI(Predicate predicate) {
-        return IRI.create(predicate.getName());
+        String name = predicate.getName();
+        if (name.startsWith("http://") || name.startsWith("https://") || name.startsWith("file://"))
+            return IRI.create(name);
+        else
+            return IRI.create(DEFAULT_PREFIX + name);
     }
 
     protected static Term pdqTermAsRDFoxTerm(uk.ac.ox.cs.pdq.fol.Term term) {
         if (term.isVariable()) {
             return Variable.create(((uk.ac.ox.cs.pdq.fol.Variable) term).getSymbol());
         } else if (term.isUntypedConstant()) {
-            return IRI.create(term.toString());
+            String value = term.toString();
+            if (value.startsWith("http://") || value.startsWith("https://") || value.startsWith("file://"))
+                return IRI.create(value);
+            else
+                return IRI.create(DEFAULT_PREFIX + value);
         } else {
             String message = String.format("The term %s seems to be neither a variable nor a constant, so it can not be translated as a RDFox object", term);
             throw new IllegalStateException(message);
