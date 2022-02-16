@@ -141,6 +141,7 @@ class SimpleSat implements SaturationAlgorithm {
             step++;
         } while (fullTGDs.addAll(resultingFullTDGs));
 
+        fullTGDs = fullTGDSubsumer.getAll();
 
         if (timeoutReached)
             statsCollector.put(processName, SaturationStatColumns.TIME, "TIMEOUT");
