@@ -36,6 +36,8 @@ import uk.ac.ox.cs.pdq.fol.Variable;
  */
 public class IRISPMTest {
 
+    private static final MaterializationConfiguration config = new MaterializationConfiguration();
+
 	private static final Atom IMP_xy = Atom.create(Predicate.create("IMP", 2), Variable.create("x"),
 			Variable.create("y"));
 	private static final Atom DIP_yz = Atom.create(Predicate.create("DIP", 2), Variable.create("y"),
@@ -104,10 +106,9 @@ public class IRISPMTest {
 
                 new File(queryPath).delete();
 				DatalogSerializer.writeDatalogQueries(Arrays.asList(q), queryPath);
-				SolverOutput output = Utils.invokeSolver(Configuration.getSolverPath(),
-						Configuration.getSolverOptionsQuery(), Arrays.asList(rulesPath,
+				SolverOutput output = Utils.invokeSolver(config.getSolverPath(),
+						config.getSolverOptionsQuery(), Arrays.asList(rulesPath,
 								dataPath, queryPath));
-				System.out.println(output);
 
 				int expectedLines = queryLenghts[count++];
 				if (expectedLines != -1) { // -1 disable the check

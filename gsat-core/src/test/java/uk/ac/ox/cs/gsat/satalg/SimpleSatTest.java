@@ -1,6 +1,7 @@
 package uk.ac.ox.cs.gsat.satalg;
 
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -60,8 +61,10 @@ public class SimpleSatTest {
 		GTGD nonFull = GTGD.create(Set.of(Ax1), Set.of(Rx1x2));
 		GTGD full = GTGD.create(Set.of(Rx1x2), Set.of(Ux2));
 		GTGD full1 = GTGD.create(Set.of(Rx1x2, Ux2), Set.of(Px1));
+        
 
         TGD expected = TGD.create(Set.of(Ax1), Set.of(Px1));
+        GTGD expected1 = GTGD.create(Set.of(Rx1x2), Set.of(Px1));
 
 		Collection<Dependency> input = new ArrayList<>();
 		input.add(nonFull);
@@ -69,10 +72,12 @@ public class SimpleSatTest {
 		input.add(full1);
 
 		Collection<TGD> result = sgsat.run(input);
-
+        
         assertTrue(result.contains(FACTORY.computeVNF(full, sgsat.eVariable, sgsat.uVariable)));
-        assertTrue(result.contains(FACTORY.computeVNF(full1, sgsat.eVariable, sgsat.uVariable)));
+        // full1 is subsumed by expected1
+        assertFalse(result.contains(FACTORY.computeVNF(full1, sgsat.eVariable, sgsat.uVariable)));
         assertTrue(result.contains(FACTORY.computeVNF(expected, sgsat.eVariable, sgsat.uVariable)));
+        assertTrue(result.contains(FACTORY.computeVNF(expected1, sgsat.eVariable, sgsat.uVariable)));
         checkWidth(input, result);
 	}
 
@@ -107,9 +112,6 @@ public class SimpleSatTest {
 		input.add(full1);
 
 		Collection<TGD> result = sgsat.run(input);
-
-		// for (TGD tgd : result)
-		// 	System.out.println(tgd);
 
         assertTrue(result.contains(FACTORY.computeVNF(full, sgsat.eVariable, sgsat.uVariable)));
         assertTrue(result.contains(FACTORY.computeVNF(full1, sgsat.eVariable, sgsat.uVariable)));

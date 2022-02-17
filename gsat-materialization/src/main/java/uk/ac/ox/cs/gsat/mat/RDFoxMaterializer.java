@@ -20,7 +20,6 @@ import tech.oxfordsemantic.jrdfox.Prefixes;
 import tech.oxfordsemantic.jrdfox.client.ConnectionFactory;
 import tech.oxfordsemantic.jrdfox.client.Cursor;
 import tech.oxfordsemantic.jrdfox.client.DataStoreConnection;
-import tech.oxfordsemantic.jrdfox.client.RuleInfo;
 import tech.oxfordsemantic.jrdfox.client.ServerConnection;
 import tech.oxfordsemantic.jrdfox.client.TransactionType;
 import tech.oxfordsemantic.jrdfox.client.UpdateType;
@@ -68,10 +67,12 @@ class RDFoxMaterializer implements Materializer {
         HashMap<String, String> exportParameters = new HashMap<String, String>();
         exportParameters.put("fact-domain", "IDB");
         dsConn.exportData(prefixes, outputStream, exportFormat, exportParameters);
-        statsCollector.tick(statsRowName, MaterializationStatColumns.MAT_WRITING_TIME);
+        if (statsCollector != null)
+            statsCollector.tick(statsRowName, MaterializationStatColumns.MAT_WRITING_TIME);
 
         long materializationSize = getTripleCount(dsConn, "IDB");
-        statsCollector.put(statsRowName, MaterializationStatColumns.MAT_SIZE, materializationSize);
+        if (statsCollector != null)
+            statsCollector.put(statsRowName, MaterializationStatColumns.MAT_SIZE, materializationSize);
 
         return materializationSize;
     }
@@ -100,7 +101,8 @@ class RDFoxMaterializer implements Materializer {
         // import the data file
         InputStream dataStream = new BufferedInputStream(new FileInputStream(inputDataFile));
         dsConn.importData(UpdateType.ADDITION, prefixes, dataStream);
-        statsCollector.tick(statsRowName, MaterializationStatColumns.MAT_DATA_LOAD_TIME);
+        if (statsCollector != null)
+            statsCollector.tick(statsRowName, MaterializationStatColumns.MAT_DATA_LOAD_TIME);
     
         // import the rules generated from the fullTGDs
         Collection<Rule> rules = new ArrayList<>();
@@ -110,7 +112,8 @@ class RDFoxMaterializer implements Materializer {
             }
         }
         dsConn.addRules(rules);
-        statsCollector.tick(statsRowName, MaterializationStatColumns.MAT_TIME);
+        if (statsCollector != null)
+            statsCollector.tick(statsRowName, MaterializationStatColumns.MAT_TIME);
     }
     
     protected void reset() throws JRDFoxException {
@@ -176,8 +179,9 @@ class RDFoxMaterializer implements Materializer {
         }
     
         dsConn = sConn.newDataStoreConnection(dataStoreName);
-    
-        statsCollector.tick(statsRowName, MaterializationStatColumns.MAT_INIT_TIME);
+
+        if (statsCollector != null)
+            statsCollector.tick(statsRowName, MaterializationStatColumns.MAT_INIT_TIME);
     }
     
     /**

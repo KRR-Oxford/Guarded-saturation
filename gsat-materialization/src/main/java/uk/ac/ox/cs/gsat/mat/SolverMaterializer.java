@@ -44,28 +44,36 @@ class SolverMaterializer implements Materializer {
 
         // write the data in datalog format
         this.datalogSerializer.writeAtoms(parsedData.getAtoms());
-        statsCollector.tick(statsRowName, MaterializationStatColumns.MAT_DATA_LOAD_TIME);
-
+        if (statsCollector != null)
+            statsCollector.tick(statsRowName, MaterializationStatColumns.MAT_DATA_LOAD_TIME);
         
         // run the solver on the datalog file
         SolverOutput solverOutput = Utils.invokeSolver(config.getSolverPath(), config.getSolverOptionsGrounding(),
                 Arrays.asList(DATALOG_PATH));
-        statsCollector.tick(statsRowName, MaterializationStatColumns.MAT_TIME);
+        if (statsCollector != null)
+            statsCollector.tick(statsRowName, MaterializationStatColumns.MAT_TIME);
 
         long materializationSize = solverOutput.getNumberOfLinesOutput();
-        statsCollector.put(statsRowName, MaterializationStatColumns.MAT_SIZE, materializationSize);
+        if (statsCollector != null)
+            statsCollector.put(statsRowName, MaterializationStatColumns.MAT_SIZE, materializationSize);
 
         Utils.writeSolverOutput(solverOutput, outputFile);
-        statsCollector.tick(statsRowName, MaterializationStatColumns.MAT_WRITING_TIME);
+        if (statsCollector != null)
+            statsCollector.tick(statsRowName, MaterializationStatColumns.MAT_WRITING_TIME);
 
-        
+        if (solverOutput.getErrors().length() != 0) {
+            String message = String.format("The solver %s fails with the message:\n%s", config.getSolverName(), solverOutput.getErrors());
+            throw new Exception(message);
+        }
+
         return materializationSize;
     }
 
     @Override
     public void init() throws Exception {
         this.datalogSerializer.open(DATALOG_PATH);
-        this.statsCollector.tick(statsRowName, MaterializationStatColumns.MAT_INIT_TIME);
+        if (statsCollector != null)
+            statsCollector.tick(statsRowName, MaterializationStatColumns.MAT_INIT_TIME);
     }
 
     @Override

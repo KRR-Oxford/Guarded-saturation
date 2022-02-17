@@ -84,11 +84,11 @@ class SimpleSat implements SaturationAlgorithm {
             for (TGD hnf : factory.computeHNF(tgd)) {
 				TGD currentTGD = factory.computeVNF(hnf, eVariable, uVariable);
                 width = Math.max(currentTGD.getWidth(), width);
-                if (Logic.isFull(currentTGD) && !fullTGDSubsumer.subsumed(tgd)) {
-                    Collection<TGD> subsumedFullTGDs = fullTGDSubsumer.subsumesAny(tgd);
+                if (Logic.isFull(currentTGD) && !fullTGDSubsumer.subsumed(currentTGD)) {
+                    Collection<TGD> subsumedFullTGDs = fullTGDSubsumer.subsumesAny(currentTGD);
                     fullTGDs.removeAll(subsumedFullTGDs);
                     fullTGDs.add(currentTGD);
-                    fullTGDSubsumer.add(tgd);
+                    fullTGDSubsumer.add(currentTGD);
                 } else {
                     nonfullTGDs.add(currentTGD);
                     for (Atom a : currentTGD.getHeadAtoms()) {

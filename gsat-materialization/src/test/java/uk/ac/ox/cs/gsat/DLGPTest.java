@@ -57,7 +57,6 @@ public class DLGPTest {
 		String path = baseChaseBench + "imdb.dlgp";
 
 		assertEquals(89, saturationProcess.saturate(path).size());
-
 	}
 
 }

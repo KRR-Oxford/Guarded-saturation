@@ -7,20 +7,28 @@ import java.util.Properties;
 
 import uk.ac.ox.cs.gsat.mat.MaterializerType;
 
+import org.apache.commons.lang3.SystemUtils;
+
 public class MaterializationConfiguration {
 
     protected final Properties prop = new Properties();
     private String solverName = "idlv";
-    private String solverPath = "executables" + File.separator + "idlv";
+    private String solverPath;
     private String solverOptionsGrounding = "--t --check-edb-duplication";
     private String solverOptionsQuery = "--query";
     private boolean fullGrounding = true;
     private MaterializerType materializerType = MaterializerType.SOLVER;
 
     public MaterializationConfiguration() {
+        if (SystemUtils.IS_OS_WINDOWS) {
+            solverPath = "executables" + File.separator + "idlv_1.1.6_windows_x86-64.exe";
+        } else {
+            solverPath = "executables" + File.separator + "idlv_1.1.6_linux_x86-64";
+        }
     }
     
     public MaterializationConfiguration(String configurationPath) throws IOException {
+        super();
         FileInputStream inStream = new FileInputStream(configurationPath);
         prop.load(inStream);
 
