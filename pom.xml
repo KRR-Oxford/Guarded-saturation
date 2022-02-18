@@ -19,6 +19,7 @@
     <module>gsat-kaon2</module>
     <module>gsat-materialization</module>
     <module>gsat-regression</module>
+    <module>gsat-utils</module>
   </modules>
 
   <dependencies>

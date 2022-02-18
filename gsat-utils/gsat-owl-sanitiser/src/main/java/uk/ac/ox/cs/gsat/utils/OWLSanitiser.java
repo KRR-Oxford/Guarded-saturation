@@ -74,7 +74,7 @@ import uk.ac.ox.cs.gsat.io.GraalConvertor;
 import uk.ac.ox.cs.pdq.fol.Dependency;
 
 /**
- * OWLSanitiser
+ * OWL Sanitiser simplifies each axiom parsed from a OWL file in order to maximize the number of extracted {@link TGD}. 
  */
 public class OWLSanitiser {
 
