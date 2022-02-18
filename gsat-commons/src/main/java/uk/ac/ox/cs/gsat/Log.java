@@ -5,6 +5,9 @@ import java.io.InputStream;
 import java.util.logging.LogManager;
 import java.util.logging.Logger;
 
+/**
+ * This class holds the logger of the project.
+ */
 public class Log {
     public static final Logger GLOBAL = Logger.getLogger("GSAT");
 

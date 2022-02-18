@@ -5,7 +5,7 @@ import java.util.Collection;
 import uk.ac.ox.cs.gsat.fol.TGD;
 
 /**
- * A TGD processor parses TGD files and apply a set of transformations to them such as filtering.
+ * A TGD processor parses TGD files (see {@link Parser}) and apply a set of transformations to them such as filtering (see {@link TGDTransformation}).
  */
 public interface TGDProcessor {
 

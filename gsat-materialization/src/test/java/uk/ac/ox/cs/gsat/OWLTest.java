@@ -29,9 +29,9 @@ public class OWLTest {
 	static void initAll() {
 		Handler handlerObj = new ConsoleHandler();
 		handlerObj.setLevel(Level.WARNING);
-		App.logger.addHandler(handlerObj);
-		App.logger.setLevel(Level.WARNING);
-		App.logger.setUseParentHandlers(false);
+		Log.GLOBAL.addHandler(handlerObj);
+		Log.GLOBAL.setLevel(Level.WARNING);
+		Log.GLOBAL.setUseParentHandlers(false);
 
 	}
 
@@ -59,7 +59,7 @@ public class OWLTest {
 
 		String path = baseOWL + "00198.owl";
 
-		assertEquals(86, saturationProcess.saturate(path).size());
+		assertEquals(85, saturationProcess.saturate(path).size());
 
 	}
 
@@ -68,7 +68,7 @@ public class OWLTest {
 
 		String path = baseOWL + "00120.owl";
 
-		assertEquals(72, saturationProcess.saturate(path).size());
+		assertEquals(61, saturationProcess.saturate(path).size());
 
 	}
 

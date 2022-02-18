@@ -65,9 +65,9 @@ public class IRISPMTest {
 	static void initAll() {
 		Handler handlerObj = new ConsoleHandler();
 		handlerObj.setLevel(Level.WARNING);
-		App.logger.addHandler(handlerObj);
-		App.logger.setLevel(Level.WARNING);
-		App.logger.setUseParentHandlers(false);
+		Log.GLOBAL.addHandler(handlerObj);
+		Log.GLOBAL.setLevel(Level.WARNING);
+		Log.GLOBAL.setUseParentHandlers(false);
 	}
 
 	private void fromIRISPM(Collection<Dependency> allTGDs, Collection<Atom> allFacts,

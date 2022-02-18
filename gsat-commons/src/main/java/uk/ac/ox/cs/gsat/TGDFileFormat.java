@@ -6,6 +6,9 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
 
+/**
+ * This class describes the kind of files or directories that can be used as input or output.
+ */
 public enum TGDFileFormat {
     DLGP(List.of("dlgp", "dlp")),
     CHASE_BENCH(List.of()),

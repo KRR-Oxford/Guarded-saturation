@@ -10,7 +10,7 @@ import uk.ac.ox.cs.gsat.api.io.Serializer;
 import uk.ac.ox.cs.gsat.fol.TGD;
 import uk.ac.ox.cs.pdq.fol.Atom;
 
-public class DLGPSerializer implements Serializer {
+class DLGPSerializer implements Serializer {
 
     protected String filePath;
     protected DlgpWriter writer;

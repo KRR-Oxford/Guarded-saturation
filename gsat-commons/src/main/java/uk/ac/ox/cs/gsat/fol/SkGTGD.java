@@ -8,6 +8,9 @@ import uk.ac.ox.cs.pdq.fol.Atom;
 import uk.ac.ox.cs.pdq.fol.FunctionTerm;
 import uk.ac.ox.cs.pdq.fol.Term;
 
+/**
+ * Skolemized guarded {@link TGD}.
+ */
 public class SkGTGD extends GTGD {
 
 

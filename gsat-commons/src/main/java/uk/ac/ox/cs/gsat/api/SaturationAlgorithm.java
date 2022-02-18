@@ -6,6 +6,9 @@ import uk.ac.ox.cs.gsat.fol.TGD;
 import uk.ac.ox.cs.gsat.statistics.StatisticsCollector;
 import uk.ac.ox.cs.pdq.fol.Dependency;
 
+/**
+ * Interface of the saturation algorithm
+ */
 public interface SaturationAlgorithm {
 
 

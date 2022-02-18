@@ -2,6 +2,9 @@ package uk.ac.ox.cs.gsat.api;
 
 import uk.ac.ox.cs.gsat.statistics.StatisticsColumn;
 
+/**
+ * Column names of the statistics of a {@link SaturationAlgorithm}.
+ */
 public enum SaturationStatColumns implements StatisticsColumn {
     /**
      * initial number of axioms (for OWL files) 

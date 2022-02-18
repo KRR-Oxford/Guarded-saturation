@@ -2,6 +2,9 @@ package uk.ac.ox.cs.gsat.api;
 
 import uk.ac.ox.cs.gsat.statistics.StatisticsColumn;
 
+/**
+ * Column names of the statistics of the {@link Materializer} process
+ */
 public enum MaterializationStatColumns implements StatisticsColumn {
 
     // number of full tgds used for the materialization  

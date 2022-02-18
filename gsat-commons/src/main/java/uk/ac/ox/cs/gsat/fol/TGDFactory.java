@@ -18,6 +18,9 @@ import uk.ac.ox.cs.pdq.fol.Predicate;
 import uk.ac.ox.cs.pdq.fol.Term;
 import uk.ac.ox.cs.pdq.fol.Variable;
 
+/**
+ * Factory of the {@link TGD}.
+ */
 public class TGDFactory<Q extends TGD> {
     private static final String SKOLEM_PREFIX = "f";
     private static int skolemIndex = 0;

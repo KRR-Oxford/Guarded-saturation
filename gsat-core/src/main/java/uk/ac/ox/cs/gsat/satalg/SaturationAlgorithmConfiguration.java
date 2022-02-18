@@ -188,5 +188,9 @@ public class SaturationAlgorithmConfiguration {
     public void setVerbose(boolean verbose) {
         this.verbose = verbose;
     }
+
+    public void setSubsumptionMethod(String subsumptionMethod) {
+        this.subsumptionMethod = subsumptionMethod;
+    }
     
 }

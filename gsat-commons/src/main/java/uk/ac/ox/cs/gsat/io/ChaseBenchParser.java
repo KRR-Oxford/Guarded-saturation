@@ -19,7 +19,10 @@ import uk.ac.ox.cs.pdq.fol.Atom;
 import uk.ac.ox.cs.pdq.fol.Dependency;
 import uk.ac.ox.cs.pdq.io.CommonToPDQTranslator;
 
-public class ChaseBenchParser implements Parser {
+/**
+ * {@link Parser} of ChaseBench directory.
+ */
+class ChaseBenchParser implements Parser {
 
     /**
      * parse a chase bench scenario

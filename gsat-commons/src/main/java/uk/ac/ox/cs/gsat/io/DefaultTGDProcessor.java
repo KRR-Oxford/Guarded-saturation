@@ -11,6 +11,9 @@ import uk.ac.ox.cs.gsat.api.io.TGDTransformation;
 import uk.ac.ox.cs.gsat.api.io.TGDProcessor;
 import uk.ac.ox.cs.gsat.fol.TGD;
 
+/**
+ * Default {@link TGDProcessor} that is able to parse the files from {@link TGDFileFormat} and apply a set of {@link TGDTransformation}.
+ */
 public class DefaultTGDProcessor implements TGDProcessor {
 
     protected final List<TGDTransformation<TGD>> transformations;

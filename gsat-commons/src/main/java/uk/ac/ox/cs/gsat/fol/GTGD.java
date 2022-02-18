@@ -8,7 +8,7 @@ import uk.ac.ox.cs.pdq.fol.Atom;
 import uk.ac.ox.cs.pdq.fol.Variable;
 
 /**
- * GTGD
+ * Guarded TGD
  */
 public class GTGD extends TGD {
 

@@ -27,7 +27,7 @@ import uk.ac.ox.cs.pdq.fol.UntypedConstant;
 import uk.ac.ox.cs.pdq.fol.Variable;
 
 /**
- * Datalog helper functions for I/O operations
+ * Serializer to Datalog format in which the URL are encoded using base64
  * 
  * @author Stefano
  */

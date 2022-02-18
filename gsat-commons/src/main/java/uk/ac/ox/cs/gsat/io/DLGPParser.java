@@ -22,7 +22,10 @@ import uk.ac.ox.cs.gsat.api.io.Parser;
 import uk.ac.ox.cs.gsat.api.io.ParserResult;
 import uk.ac.ox.cs.gsat.fol.TGD;
 
-public class DLGPParser implements Parser {
+/**
+ * {@link Parser} of DLGP file
+ */
+class DLGPParser implements Parser {
 
     protected final boolean skipFacts;
     protected final boolean includeNegativeConstraints;

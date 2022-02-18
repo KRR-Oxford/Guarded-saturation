@@ -4,6 +4,9 @@ import java.util.Objects;
 
 import uk.ac.ox.cs.pdq.ClassManager;
 
+/**
+ * Cache manager of the different kind of {@link TGD}.
+ */
 public class Cache {
 
 	protected static ClassManager<TGD> tgd = null;
