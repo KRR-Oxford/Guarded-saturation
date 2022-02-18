@@ -16,7 +16,7 @@ public class SaturationAlgorithmConfiguration {
     protected final Properties prop = new Properties();
     
     protected boolean verbose = false;
-    protected boolean simpleSatPredicateFilter = true;
+    protected boolean simpleSatPredicateFilter = false;
     protected Long timeout = null;
     protected String subsumptionMethod = "tree_predicate";
     protected boolean evolvingTGDOrdering = true;
