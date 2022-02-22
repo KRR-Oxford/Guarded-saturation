@@ -33,6 +33,7 @@ import uk.ac.ox.cs.gsat.io.ParserFactory;
 import uk.ac.ox.cs.gsat.io.PredicateDependenciesBasedFilter;
 import uk.ac.ox.cs.gsat.io.SerializerFactory;
 import uk.ac.ox.cs.gsat.kaon2.KAON2SaturationProcess;
+import uk.ac.ox.cs.gsat.kaon2.KAON2StructuralTransformation;
 import uk.ac.ox.cs.gsat.statistics.DefaultStatisticsCollector;
 import uk.ac.ox.cs.gsat.statistics.StatisticsCollector;
 import uk.ac.ox.cs.gsat.statistics.StatisticsColumn;
@@ -63,7 +64,7 @@ public class Saturator {
             "--queries" }, required = false, description = "Path to the queries file used to filter the input.")
     protected String queriesPath;
 
-    @Parameter(names = { "-cb", "--chaseBench" }, required = false, description = "Chase bench input")
+    @Parameter(names = { "-cb", "--chaseBench" }, required = false, description = "Indicate that the input is a Chase bench scenario")
     protected boolean chaseBenchInput;
 
     @Parameter(names = { "--kaon2" }, required = false, description = "Perform the saturation using KAON2 (support only OWL inputs)")
@@ -158,10 +159,15 @@ public class Saturator {
         else
             saturationConfig = new SaturationProcessConfiguration();
 
-        if (kaon2Saturation)
+        if (kaon2Saturation) {
             saturationProcess = new KAON2SaturationProcess(saturationConfig);
-        else
-            saturationProcess = new CoreSaturationProcess(saturationConfig, getTransformations());
+        } else {
+            if (saturationConfig.doApplyStructuralTransformation()) {
+                saturationProcess = new CoreSaturationProcess(saturationConfig, new KAON2StructuralTransformation());
+            } else {
+                saturationProcess = new CoreSaturationProcess(saturationConfig, getTransformations());
+            }
+        }
 
         saturationProcess.setStatisticCollector(statisticsCollector);
         if (watcher != null)

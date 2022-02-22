@@ -19,6 +19,11 @@ public class SaturationProcessConfiguration extends SaturationAlgorithmConfigura
      * It has no impact on the saturation, it only concerns the loading performance
      */
     protected boolean skipingFacts = true;
+
+    /**
+     * true, if the structuration transformation of KAON2 must be applied as a preproccessing step.
+     */
+    private boolean applyStructuralTransformation = false;
     
     protected SaturationProcessConfiguration() {
     }
@@ -33,6 +38,11 @@ public class SaturationProcessConfiguration extends SaturationAlgorithmConfigura
         if (prop.containsKey("saturation_only")) {
             skipingFacts = Boolean.parseBoolean(prop.getProperty("saturation_only"));
         }
+
+        if (prop.containsKey("optimization.apply_structural_transformation"))
+            applyStructuralTransformation = Boolean
+                .parseBoolean(prop.getProperty("optimization.apply_structural_transformation"));
+
     }
 
     public boolean isNegativeConstraint() {
@@ -51,5 +61,12 @@ public class SaturationProcessConfiguration extends SaturationAlgorithmConfigura
         this.skipingFacts = skipingFacts;
     }
 
+    public boolean doApplyStructuralTransformation() {
+        return applyStructuralTransformation;
+    }
+
+    public void setApplyStructuralTransformation(boolean applyStructuralTransformation) {
+        this.applyStructuralTransformation = applyStructuralTransformation;
+    }
 
 } 

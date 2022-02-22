@@ -37,19 +37,15 @@ public class Materialization {
     @Parameter(names = { "-c", "--config" }, required = false, description = "Path to the configuration file.")
     private String configFile;
 
-    @Parameter(names = { "-t", "--tgds" }, required = true, description = "Path to the tgds file.")
+    @Parameter(names = { "-i", "--input" }, required = true, description = "Path to the tgds file.")
     private String tgdsPath;
 
     @Parameter(names = { "-d",
-            "--data" }, required = false, description = "Path to the input data file.\n Need to be in a format compatible with the materializer: NTriple for RDFox and datalog facts for DLV")
+            "--data" }, required = false, description = "Path to an input data file.")
     private String dataPath;
 
     @Parameter(names = { "-o", "--output" }, required = true, description = "Path to the output directory.")
     private String materializationPath;
-
-    @Parameter(names = { "-q",
-            "--queries" }, required = false, description = "Path to the queries file used to filter the input.")
-    private String queriesFile;
 
     private Saturator saturator;
     private StatisticsCollector<MaterializationStatColumns> statsCollector;
