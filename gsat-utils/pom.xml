@@ -19,9 +19,4 @@
     <module>tgd-viz</module>
   </modules>
   
-  <dependencies>
-  </dependencies>
-
-  <build>
-  </build>
 </project>

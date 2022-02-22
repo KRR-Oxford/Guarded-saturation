@@ -32,6 +32,7 @@ import uk.ac.ox.cs.gsat.fol.TGD;
 import uk.ac.ox.cs.gsat.io.ParserFactory;
 import uk.ac.ox.cs.gsat.io.PredicateDependenciesBasedFilter;
 import uk.ac.ox.cs.gsat.io.SerializerFactory;
+import uk.ac.ox.cs.gsat.kaon2.KAON2SaturationProcess;
 import uk.ac.ox.cs.gsat.statistics.DefaultStatisticsCollector;
 import uk.ac.ox.cs.gsat.statistics.StatisticsCollector;
 import uk.ac.ox.cs.gsat.statistics.StatisticsColumn;
@@ -52,7 +53,7 @@ public class Saturator {
     @Parameter(names = { "-c", "--config" }, required = false, description = "Path to the configuration file.")
     protected String configFile;
 
-    @Parameter(names = { "-t", "--tgds" }, required = true, description = "Path to the input file.")
+    @Parameter(names = { "-i", "--input" }, required = true, description = "Path to the input file or directory.")
     protected String inputPath;
 
     @Parameter(names = { "-o", "--output" }, required = true, description = "Path to the output file.")
@@ -64,6 +65,9 @@ public class Saturator {
 
     @Parameter(names = { "-cb", "--chaseBench" }, required = false, description = "Chase bench input")
     protected boolean chaseBenchInput;
+
+    @Parameter(names = { "--kaon2" }, required = false, description = "Perform the saturation using KAON2 (support only OWL inputs)")
+    protected boolean kaon2Saturation;
 
     // collector of the satistics of saturation algorithm
     protected StatisticsCollector<SaturationStatColumns> statisticsCollector;
@@ -153,7 +157,12 @@ public class Saturator {
             saturationConfig = new SaturationProcessConfiguration(saturationConfigPath);
         else
             saturationConfig = new SaturationProcessConfiguration();
-        saturationProcess = new CoreSaturationProcess(saturationConfig, getTransformations());
+
+        if (kaon2Saturation)
+            saturationProcess = new KAON2SaturationProcess(saturationConfig);
+        else
+            saturationProcess = new CoreSaturationProcess(saturationConfig, getTransformations());
+
         saturationProcess.setStatisticCollector(statisticsCollector);
         if (watcher != null)
             watcher.changeConfiguration(saturationConfigPath);
@@ -322,6 +331,13 @@ public class Saturator {
             }
             return true;
         }
+
+        if (chaseBenchInput && outputFile.isDirectory())
+            throw new IllegalArgumentException("The output must be a file for Chase Bench input");
+
+        if (outputFile.isDirectory() && !outputFile.exists())
+            outputFile.mkdirs();
+        
         return false;
     }
 

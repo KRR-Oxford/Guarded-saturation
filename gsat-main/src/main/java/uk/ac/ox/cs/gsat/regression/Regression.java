@@ -8,7 +8,7 @@ import com.beust.jcommander.ParameterException;
 
 import uk.ac.ox.cs.gsat.Saturator;
 
-public class App {
+public class Regression {
 
     @Parameter(names = { "-h", "--help" }, help = true, description = "Displays this help message.")
     private boolean help;
@@ -30,7 +30,7 @@ public class App {
 
     private Saturator saturator;
 
-    App(String... args) throws Exception {
+    Regression(String... args) throws Exception {
         JCommander jc = new JCommander(this);
 
         try {
@@ -79,6 +79,6 @@ public class App {
     }
     
     public static void main(String[] args) throws Exception {
-        new App(args);
+        new Regression(args);
     }
 }
