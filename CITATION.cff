@@ -11,6 +11,6 @@ authors:
   given-names: "Kevin"
 - family-names: "Motik"
   given-names: "Boris"
-title: "GSat - Rewriting the Infinite Chase"
+title: "Rewriting the Infinite Chase"
 version: 1.0.0
 url: "https://github.com/KRR-Oxford/Guarded-saturation"
