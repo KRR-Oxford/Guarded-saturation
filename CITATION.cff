@@ -1,0 +1,16 @@
+cff-version: 1.2.0
+message: "If you use this software, please cite it as below."
+authors:
+- family-names: "Benedikt"
+  given-names: "Michael"
+- family-names: "Buron"
+  given-names: "Maxime"
+- family-names: "Germano"
+  given-names: "Stefano"
+- family-names: "Kappelmann"
+  given-names: "Kevin"
+- family-names: "Motik"
+  given-names: "Boris"
+title: "GSat - Rewriting the Infinite Chase"
+version: 1.0.0
+url: "https://github.com/KRR-Oxford/Guarded-saturation"
