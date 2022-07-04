@@ -58,6 +58,11 @@ jobs:
         wget https://github.com/ProofDrivenQuerying/pdq/releases/download/v1.0.0/pdq-common-1.0.0.jar
         mvn org.apache.maven.plugins:maven-install-plugin:2.5.2:install-file -Dfile="pdq-common-1.0.0.jar"
         
+    - name: Installing KAON2
+      run: |
+        echo "Installing KAON2 in Maven"
+        mvn install:install-file -Dfile=./src/main/resources/kaon2.jar -DgroupId=org.semanticweb.kaon2 -DartifactId=kaon2 -Dversion=2008-06-29 -Dpackaging=jar -DgeneratePom=true
+        
     # Autobuild attempts to build any compiled languages  (C/C++, C#, or Java).
     # If this step fails, then you should remove it and run the build manually (see below)
     - name: Autobuild
