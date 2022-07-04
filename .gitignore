@@ -236,3 +236,5 @@ TSWLatexianTemp*
 *~[0-9]*
 
 old
+
+!src/main/resources/kaon2.jar
