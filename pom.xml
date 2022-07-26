@@ -15,7 +15,7 @@
     <dependency>
       <groupId>org.junit.jupiter</groupId>
       <artifactId>junit-jupiter-engine</artifactId>
-      <version>5.8.2</version>
+      <version>5.9.0</version>
       <scope>test</scope>
     </dependency>
     <dependency>
@@ -64,7 +64,7 @@
       <!-- default lifecycle, jar packaging: see https://maven.apache.org/ref/current/maven-core/default-bindings.html#Plugin_bindings_for_jar_packaging -->
       <plugin>
         <artifactId>maven-resources-plugin</artifactId>
-        <version>3.2.0</version>
+        <version>3.3.0</version>
       </plugin>
       <plugin>
         <artifactId>maven-compiler-plugin</artifactId>
@@ -91,7 +91,7 @@
       </plugin>
       <plugin>
         <artifactId>maven-assembly-plugin</artifactId>
-        <version>3.4.1</version>
+        <version>3.4.2</version>
         <executions>
           <execution>
             <id>jar-with-dependencies-App</id>
@@ -186,7 +186,7 @@
       </plugin>
       <plugin>
         <artifactId>maven-install-plugin</artifactId>
-        <version>3.0.0-M1</version>
+        <version>3.0.1</version>
       </plugin>
       <plugin>
         <artifactId>maven-deploy-plugin</artifactId>
@@ -224,7 +224,7 @@
       <plugin>
         <groupId>com.github.spotbugs</groupId>
         <artifactId>spotbugs-maven-plugin</artifactId>
-        <version>4.7.1.0</version>
+        <version>4.7.1.1</version>
       </plugin>
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
