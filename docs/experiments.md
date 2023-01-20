@@ -15,3 +15,7 @@ If you did not clone the repository with the `--recurse-submodules` option, you 
 ```sh
 git submodule init
 ```
+
+For reproducibility purposes, the exact versions of the files used in our experiments are stored in our repository.
+In this way, our results can be reproduced even if the original data sources are no longer available.
+You can find them [here](https://github.com/mburon/guarded-saturation-experiments/releases/tag/0.0.1).
