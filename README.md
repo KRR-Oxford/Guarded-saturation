@@ -82,7 +82,7 @@ Kaon2 is only relevant for some experiments, and is not part of the delivered pr
 Install the JAR of KAON2 using:
 
 ```
-mvn install:install-file -Dfile=./src/main/resources/kaon2.jar -DgroupId=org.semanticweb.kaon2 -DartifactId=kaon2 -Dversion=2008-06-29 -Dpackaging=jar -DgeneratePom=true
+mvn install:install-file -Dfile=./gsat-kaon2/src/main/resources/kaon2.jar -DgroupId=org.semanticweb.kaon2 -DartifactId=kaon2 -Dversion=2008-06-29 -Dpackaging=jar -DgeneratePom=true
 ```
 
 ### Installing

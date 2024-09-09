@@ -1,0 +1,371 @@
+<!DOCTYPE>
+
+<html>
+
+  <head>
+    <title>GRD visualizer</title>
+
+    <meta name="viewport" content="width=device-width, user-scalable=no, initial-scale=1, maximum-scale=1">
+
+
+    <!-- for testing with local version of cytoscape.js -->
+    <!--<script src="../cytoscape.js/build/cytoscape.js"></script>-->
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/bluebird/3.5.2/bluebird.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/fetch/2.0.3/fetch.min.js"></script>
+    <script src="https://unpkg.com/cytoscape/dist/cytoscape.min.js"></script>
+    <script src="https://unpkg.com/weaverjs@1.2.0/dist/weaver.min.js"></script>
+    <script src="https://unpkg.com/dagre@0.7.4/dist/dagre.js"></script>
+    <script src="https://unpkg.com/webcola/WebCola/cola.min.js"></script>
+    <script src="cytoscape-euler.js"></script>
+    <style>
+      body {
+          font-family: helvetica;
+          font-size: 14px;
+      }
+
+      #cy {
+          width: 100%;
+          height: 100%;
+          position: absolute;
+          left: 0;
+          top: 0;
+          z-index: 10;
+      }
+
+      aside {
+          z-index: 10;
+          background: white;
+          position: absolute;
+      }
+      h1 {
+          opacity: 0.5;
+          font-size: 1em;
+      }
+    </style>
+
+    <script>
+      const GREY_CLASS = "grey"
+      let showHighlighted
+
+      window.addEventListener('DOMContentLoaded', function(){
+
+        const urlParams = new URLSearchParams(window.location.search);
+        const path = urlParams.get('path');
+        const isFullRules = {}
+        const containsProjection = {}
+        const ruleDefinitions = {}
+
+        function isFull(v) {
+          return isFullRules[v]
+          //.substring(2, v.length) < 672 //125//672
+        }
+
+        function addNode(v, nodes, nodesSet) {
+          if (!nodesSet[v]) {
+            const node = {
+              data: { id: v, label: v }
+            }
+
+            node.classes = []
+
+            if (isFull(v))
+              node.classes.push('full')
+            else
+              node.classes.push('non-full')
+
+            if (containsProjection[v])
+              node.classes.push('projection')
+
+            nodes.push(node)
+            nodesSet[v] = true
+          }
+        }
+
+        function addEdge(source, target, edges) {
+          edges.push({
+            data: { source: source, target: target }
+          })
+        }
+
+        function initFullAndNonFullRules(lines) {
+          for (let line of lines) {
+            if (line.startsWith('|')) {
+              // first value is empty, the value is the rule label
+              let values = line.split('|')
+              let label = values[values.length -1].trim().substring(1)
+
+              // first value is full or non-full
+              if (values[1].trim() === '-') {
+                isFullRules[label] = false
+              }
+              if (values[1].trim() === 'X') {
+                isFullRules[label] = true
+              }
+              // second value indicates whether the rule contains a projection
+              if (values.length >= 4 && values[2].trim() === '-') {
+                containsProjection[label] = false
+              }
+              if (values.length >= 4 && values[2].trim() === 'X') {
+                containsProjection[label] = true
+              }
+            }
+          }
+        }
+
+        function initRuleDefinitions(lines) {
+          for (let line of lines) {
+            if (line.startsWith('[')) {
+              const index = line.indexOf(']')
+              const label = line.substring(2, index)
+              const definition = line.substring(index + 1, line.length)
+              ruleDefinitions[label] = definition
+            }
+          }
+        }
+
+        
+        fetch(path)
+          .then(res => res.text())
+          .then(text => {
+
+            const lines = text.split('\n')
+            const edgesLines = lines.filter(line => line[0] === '_')
+            const nodes = []
+            const nodesSet = {}
+            const edges = []
+            const elts = {
+              nodes: nodes,
+              edges: edges
+            }
+
+            initFullAndNonFullRules(lines)
+
+            initRuleDefinitions(lines)
+
+            for (let edge of edgesLines) {
+              let vertices = edge.split('-->')
+              if (vertices.length > 1) {
+                let source = vertices[0].trim().substring(1, vertices[0].length)
+                let target = vertices[1].trim().substring(1, vertices[1].length)
+                addNode(source, nodes, nodesSet)
+                addNode(target, nodes, nodesSet)
+                addEdge(source, target, edges)
+              }
+            }
+
+            console.log(elts)
+            loadGraph(elts)
+          })
+
+        function loadGraph(graph) {
+          var cy = window.cy = cytoscape({
+            container: document.getElementById('cy'),
+
+            boxSelectionEnabled: true,
+            autounselectify: false,
+            layout: {
+	      name: 'euler',
+              maxSimulationTime: 90000, // max length in ms to run the layout
+              randomize: true,
+              springCoeff: edge => 0.00008,
+
+	    },
+
+            style: [
+              {
+                selector: 'node',
+                style: {
+                  'label': 'data(label)',
+                  'background-color': '#11479e'
+                }
+              },
+              {
+                selector: ':selected',
+                style: {
+                  // 'overlay-color': "blue",
+                  // 'overlay-opacity': "0.5",
+                  // 'overlay-padding': "5"
+                  opacity: 1
+                }
+              },
+              {
+                selector: ".full",
+                style: {
+                  "background-color": "red"
+                }
+              },
+              {
+                selector: ".projection",
+                style: {
+                  "shape": "triangle",
+                }
+              },
+              {
+                selector: ":unselected",
+                style: {
+                  "opacity": ".2"
+                }
+              },
+              {
+                selector: 'edge',
+                style: {
+                  'width': 4,
+                  'target-arrow-shape': 'triangle',
+                  'line-color': '#9dbaea',
+                  'target-arrow-color': '#9dbaea',
+                  'curve-style': 'bezier'
+                }
+              }
+            ],
+
+            elements: graph
+          });
+
+          document.getElementById('highlighted-number').innerText = cy.nodes().size()
+          function initGrey() {
+            console.log("init")
+            document.getElementById('selected-rule').innerText = ''
+            document.getElementById('highlighted-number').innerText = cy.nodes().size()
+            document.querySelector('textarea').style.display = 'none'
+            cy.nodes().selectify()
+              .unselect()
+
+            cy.edges().selectify()
+              .unselect()
+
+
+            let elts = cy.filter('.non-full').union(cy.filter('.non-full').successors()).intersection(cy.filter('.projection').union(cy.filter('.projection').predecessors()))
+                .selectify()
+                .select()
+
+
+            document.getElementById('highlighted-number').innerText = elts.nodes().size()
+
+          }
+
+          initGrey();
+
+          let isShiftHold = false
+
+          window.addEventListener('keydown', event => {
+            isShiftHold = event.shiftKey
+          })
+
+          window.addEventListener('keyup', event => {
+            isShiftHold = event.shiftKey
+          }, true)
+
+          window.addEventListener('keydown', event => {
+            cy.nodes().selectify().unselect()
+          })
+
+          window.addEventListener('keyup', event => {
+            if (cy.nodes().filter(':selected').size() === 0) {
+              initGrey()
+            } else {
+              cy.nodes().unselectify()
+              document.getElementById('highlighted-number').innerText = cy.nodes().filter(':selected').size()
+            }
+
+
+          }, true)
+
+          // cy.on('select', function(event){
+          // console.log("selection")
+          // initGrey()
+          //   cy.nodes().addClass(GREY_CLASS)
+          //   cy.edges().addClass(GREY_CLASS)
+          //   let elts= cy.filter(':selected').removeClass(GREY_CLASS)
+          //   document.getElementById('highlighted-number').innerText = elts.nodes().size()
+          // })
+
+          cy.on('tap', 'node', function(evt){
+            console.log('tap')
+            cy.nodes().selectify()
+              .unselect()
+              .unselectify()
+            cy.edges().selectify()
+              .unselect()
+              .unselectify()
+            var node = evt.target;
+
+            document.getElementById('selected-rule').innerText = '[' + node.data('id') + ']' + ruleDefinitions[node.data('id')]
+            
+            node.selectify()
+              .select()
+              .unselectify()
+            let elts = (!isShiftHold) ? node.successors() : getPredecessors(node)
+
+            elts.selectify()
+              .select()
+              .unselectify()
+            document.getElementById('highlighted-number').innerText = elts.nodes().size()
+          })
+
+          cy.on('tap', evt => {
+            if (evt.target === cy) {
+              initGrey()
+            }
+          })
+        }
+
+        getPredecessors = function(result) {
+          let size = result.size()
+
+          result = result.union(result.incomers('.full, edge'))
+
+          // add the non full incoming nodes before returning the result
+          if (result.size() === size) {
+            result = result.union(result.incomers('.non-full'))
+            non_full_descendant = result.filter('.non-full').union(result.filter('.non-full').successors())
+            result = result.intersection(non_full_descendant)
+
+            return result
+          } else {
+            return getPredecessors(result)
+          }
+        }
+        
+        showHighlighted = function() {
+          const highlighted = window.cy.nodes().filter(':selected')
+
+          let dlgp = ''
+          let nodes = []
+          highlighted.forEach(node => {
+            nodes.push(node)
+          })
+
+          nodes = nodes.sort((n1, n2) => parseInt(n1.data('label').substring(1)) - parseInt(0+n2.data('label').substring(1)))
+
+          for(let node of nodes) {
+            dlgp += '%' + node.data('id')+ '\r\n'
+            dlgp += ruleDefinitions[node.data('id')] + '\r\n\r\n'
+          }
+          
+          document.querySelector('textarea').value = dlgp
+          document.querySelector('textarea').style.display = 'initial'
+        }
+      });
+
+      
+    </script>
+  </head>
+
+  <body>
+    <h1>Graph of Rule Dependencies</h1>
+
+    <div id="cy"></div>
+
+    <aside>
+      <p>
+        number of highlighted rules: <span id="highlighted-number"></span>
+        <input type="button" onclick="showHighlighted()" value="show them"/>
+      </p>
+      <pre id="selected-rule">
+      </pre>
+      <textarea style="display:none">
+      </textarea>
+  </body>
+
+</html>

@@ -62,6 +62,11 @@ jobs:
       run: |
         echo "Installing KAON2 in Maven"
         mvn install:install-file -Dfile=./src/main/resources/kaon2.jar -DgroupId=org.semanticweb.kaon2 -DartifactId=kaon2 -Dversion=2008-06-29 -Dpackaging=jar -DgeneratePom=true
+         
+    - name: Installing JRDFox
+      run: |
+        echo "Installing JRDFox in Maven"
+        mvn install:install-file -Dfile=./src/main/resources/JRDFox.jar -DgroupId=tech.oxfordsemantic.jrdfox -DartifactId=jrdfox -Dversion=1.0 -Dpackaging=jar -DgeneratePom=true
         
     # Autobuild attempts to build any compiled languages  (C/C++, C#, or Java).
     # If this step fails, then you should remove it and run the build manually (see below)

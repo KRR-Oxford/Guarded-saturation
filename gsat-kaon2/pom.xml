@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+  <modelVersion>4.0.0</modelVersion>
+
+  <parent>
+    <groupId>uk.ac.ox.cs.gsat</groupId>
+    <artifactId>gsat</artifactId>
+    <version>1.0.0</version>
+    <relativePath>..</relativePath>
+  </parent>
+  
+  <groupId>uk.ac.ox.cs.gsat</groupId>
+  <artifactId>gsat-kaon2</artifactId>
+  <name>gsat-kaon2</name>
+  <url>https://github.com/stefanogermano/Guarded-saturation/</url>
+
+  <dependencies>
+    <dependency>
+      <groupId>uk.ac.ox.cs.gsat</groupId>
+      <artifactId>gsat-core</artifactId>
+      <version>${project.parent.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>org.semanticweb.kaon2</groupId>
+      <artifactId>kaon2</artifactId>
+      <version>2008-06-29</version>
+    </dependency>
+  </dependencies>
+
+</project>

@@ -2,20 +2,31 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
   <modelVersion>4.0.0</modelVersion>
   <groupId>uk.ac.ox.cs.gsat</groupId>
-  <artifactId>guarded-saturation</artifactId>
+  <artifactId>gsat</artifactId>
   <version>1.0.0</version>
+  <packaging>pom</packaging>
   <name>guarded-saturation</name>
-  <url>https://github.com/stefanogermano/Guarded-saturation/</url>
+  <url>https://github.com/KRR-Oxford/Guarded-saturation</url>
   <properties>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     <maven.compiler.source>11</maven.compiler.source>
     <maven.compiler.target>11</maven.compiler.target>
   </properties>
+
+  <modules>
+    <module>gsat-core</module>
+    <module>gsat-commons</module>
+    <module>gsat-kaon2</module>
+    <module>gsat-materialization</module>
+    <module>gsat-main</module>
+    <module>gsat-utils</module>
+  </modules>
+
   <dependencies>
     <dependency>
       <groupId>org.junit.jupiter</groupId>
       <artifactId>junit-jupiter-engine</artifactId>
-      <version>5.11.0</version>
+      <version>5.7.0</version>
       <scope>test</scope>
     </dependency>
     <dependency>
@@ -23,219 +34,51 @@
       <artifactId>pdq-common</artifactId>
       <version>2.0.0</version>
     </dependency>
-    <dependency>
-      <groupId>net.sourceforge.owlapi</groupId>
-      <artifactId>owlapi-apibinding</artifactId>
-      <version>4.0.1</version>
-    </dependency>
-    <dependency>
-      <groupId>fr.lirmm.graphik</groupId>
-      <artifactId>graal-io-owl</artifactId>
-      <version>1.3.1</version>
-    </dependency>
-    <dependency>
-      <groupId>fr.lirmm.graphik</groupId>
-      <artifactId>graal-io-dlgp</artifactId>
-      <version>1.3.1</version>
-    </dependency>
-    <dependency>
-      <groupId>fr.lirmm.graphik</groupId>
-      <artifactId>graal-io-rdf</artifactId>
-      <version>1.3.1</version>
-    </dependency>
-    <dependency>
-      <groupId>fr.lirmm.graphik</groupId>
-      <artifactId>graal-io-sparql</artifactId>
-      <version>1.3.1</version>
-    </dependency>
-    <dependency>
-      <groupId>org.semanticweb.kaon2</groupId>
-      <artifactId>kaon2</artifactId>
-      <version>2008-06-29</version>
-    </dependency>
   </dependencies>
   <build>
     <plugins>
-      <!-- clean lifecycle, see https://maven.apache.org/ref/current/maven-core/lifecycles.html#clean_Lifecycle -->
       <plugin>
         <artifactId>maven-clean-plugin</artifactId>
-        <version>3.4.0</version>
+        <version>3.1.0</version>
       </plugin>
-      <!-- default lifecycle, jar packaging: see https://maven.apache.org/ref/current/maven-core/default-bindings.html#Plugin_bindings_for_jar_packaging -->
       <plugin>
         <artifactId>maven-resources-plugin</artifactId>
-        <version>3.3.1</version>
+        <version>3.2.0</version>
       </plugin>
       <plugin>
         <artifactId>maven-compiler-plugin</artifactId>
-        <version>3.13.0</version>
-        <!-- <configuration>
-            <forceJavacCompilerUse>true</forceJavacCompilerUse>
-          </configuration> -->
+        <version>3.8.1</version>
       </plugin>
       <plugin>
         <artifactId>maven-surefire-plugin</artifactId>
-        <version>3.5.0</version>
-        <!-- <configuration>
-            <systemProperties>
-              <property>
-                <name>java.util.logging.config.file</name>
-                <value>src/test/resources/logging.properties</value>
-              </property>
-            </systemProperties>
-          </configuration> -->
+        <version>3.0.0-M5</version>
       </plugin>
       <plugin>
         <artifactId>maven-jar-plugin</artifactId>
-        <version>3.4.2</version>
-      </plugin>
-      <plugin>
-        <artifactId>maven-assembly-plugin</artifactId>
-        <version>3.7.1</version>
-        <executions>
-          <execution>
-            <id>jar-with-dependencies-App</id>
-            <configuration>
-              <!-- <appendAssemblyId>false</appendAssemblyId> -->
-              <archive>
-                <manifest>
-                  <mainClass>uk.ac.ox.cs.gsat.App</mainClass>
-                </manifest>
-              </archive>
-              <descriptorRefs>
-                <descriptorRef>jar-with-dependencies</descriptorRef>
-              </descriptorRefs>
-              <!-- <finalName>foobar_a.jar</finalName> -->
-            </configuration>
-            <phase>package</phase>
-            <goals>
-              <goal>single</goal>
-            </goals>
-          </execution>
-          <execution>
-            <id>jar-with-dependencies-Executor</id>
-            <configuration>
-              <!-- <appendAssemblyId>false</appendAssemblyId> -->
-              <archive>
-                <manifest>
-                  <mainClass>uk.ac.ox.cs.gsat.Executor</mainClass>
-                </manifest>
-              </archive>
-              <descriptorRefs>
-                <descriptorRef>jar-with-dependencies</descriptorRef>
-              </descriptorRefs>
-              <finalName>Executor</finalName>
-              <!-- <fileSets>
-                <fileSet>
-                  <directory>${project.build.directory}</directory>
-                  <outputDirectory>/</outputDirectory>
-                  <includes>
-                    <include>*.jar</include>
-                  </includes>
-                </fileSet>
-              </fileSets> -->
-            </configuration>
-            <!-- <phase>package</phase>
-            <goals>
-              <goal>single</goal>
-            </goals> -->
-          </execution>
-          <execution>
-            <id>jar-with-dependencies-ExecutorOWL</id>
-            <configuration>
-              <archive>
-                <manifest>
-                  <mainClass>uk.ac.ox.cs.gsat.ExecutorOWL</mainClass>
-                </manifest>
-              </archive>
-              <descriptorRefs>
-                <descriptorRef>jar-with-dependencies</descriptorRef>
-              </descriptorRefs>
-              <finalName>ExecutorOWL-${project.version}</finalName>
-            </configuration>
-            <phase>package</phase>
-            <goals>
-              <goal>single</goal>
-            </goals>
-          </execution>
-          <execution>
-            <id>jar-with-dependencies-OWLSanitiser</id>
-            <configuration>
-              <archive>
-                <manifest>
-                  <mainClass>uk.ac.ox.cs.gsat.OWLSanitiser</mainClass>
-                </manifest>
-              </archive>
-              <descriptorRefs>
-                <descriptorRef>jar-with-dependencies</descriptorRef>
-              </descriptorRefs>
-              <finalName>OWLSanitiser</finalName>
-            </configuration>
-            <!-- <phase>package</phase>
-            <goals>
-              <goal>single</goal>
-            </goals> -->
-          </execution>
-          <!-- <execution>
-            <phase>package</phase>
-            <goals>
-              <goal>single</goal>
-            </goals>
-          </execution> -->
-        </executions>
+        <version>3.2.0</version>
       </plugin>
       <plugin>
         <artifactId>maven-install-plugin</artifactId>
-        <version>3.1.3</version>
+        <version>3.0.0-M1</version>
       </plugin>
       <plugin>
         <artifactId>maven-deploy-plugin</artifactId>
-        <version>3.1.3</version>
-      </plugin>
-      <!-- site lifecycle, see https://maven.apache.org/ref/current/maven-core/lifecycles.html#site_Lifecycle -->
-      <plugin>
-        <artifactId>maven-site-plugin</artifactId>
-        <version>3.20.0</version>
+        <version>3.0.0-M1</version>
       </plugin>
       <plugin>
         <artifactId>maven-project-info-reports-plugin</artifactId>
-        <version>3.7.0</version>
-      </plugin>
-      <plugin>
-        <groupId>org.apache.maven.plugins</groupId>
-        <artifactId>maven-enforcer-plugin</artifactId>
-        <version>3.5.0</version>
-        <executions>
-          <execution>
-            <id>enforce-maven</id>
-            <goals>
-              <goal>enforce</goal>
-            </goals>
-            <configuration>
-              <rules>
-                <requireMavenVersion>
-                  <version>3.2.5</version>
-                </requireMavenVersion>
-              </rules>
-            </configuration>
-          </execution>
-        </executions>
+        <version>3.1.1</version>
       </plugin>
       <plugin>
         <groupId>com.github.spotbugs</groupId>
         <artifactId>spotbugs-maven-plugin</artifactId>
-        <version>4.8.6.2</version>
+        <version>4.1.4</version>
       </plugin>
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-javadoc-plugin</artifactId>
-        <version>3.10.0</version>
+        <version>3.2.0</version>
       </plugin>
-      <!-- jar-with-dependencies did NOT work without this 
-      <plugin>
-        <groupId>org.apache.maven.plugins</groupId>
-        <artifactId>maven-assembly-plugin</artifactId>
-      </plugin> -->
     </plugins>
   </build>
 </project>

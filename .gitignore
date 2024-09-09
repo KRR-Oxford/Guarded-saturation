@@ -236,5 +236,9 @@ TSWLatexianTemp*
 *~[0-9]*
 
 old
+.classpath
+.factorypath
+.project
+.settings
 
-!src/main/resources/kaon2.jar
+!gsat-kaon2/src/main/resources/kaon2.jar

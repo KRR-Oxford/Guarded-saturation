@@ -1,0 +1,117 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+  
+  <modelVersion>4.0.0</modelVersion>
+  
+  <groupId>fr.lirmm.graphik</groupId>
+  <artifactId>owl2dlgp</artifactId>
+  <name>owl2dlgp</name>
+  <packaging>jar</packaging>
+  <version>1.1.0-SNAPSHOT</version>
+
+  <properties>
+    <graal.version>1.3.1</graal.version>
+    <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+    <jdk.version>1.8</jdk.version>
+  </properties>
+
+  <inceptionYear>2014</inceptionYear>
+  
+  <scm>
+    <developerConnection>scm:git:git@gite.lirmm.fr:graphik/graal.git</developerConnection>
+  </scm>
+  
+  <organization>
+    <name>GraphIK (INRIA - LIRMM)</name>
+    <url>https://team.inria.fr/graphik/</url>
+  </organization>
+
+  <developers>
+    <developer>
+      <name>Clément SIPIETER</name>
+      <email>clement@6pi.fr</email>
+      <organization>INRIA</organization>
+    </developer>
+  </developers>
+
+  <dependencies>
+    <dependency>
+      <groupId>fr.lirmm.graphik</groupId>
+      <artifactId>graal-util</artifactId>
+      <version>${graal.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>fr.lirmm.graphik</groupId>
+      <artifactId>graal-io-dlgp</artifactId>
+      <version>${graal.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>fr.lirmm.graphik</groupId>
+      <artifactId>graal-io-owl</artifactId>
+      <version>${graal.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>com.beust</groupId>
+      <artifactId>jcommander</artifactId>
+      <version>1.35</version>
+    </dependency>
+    <dependency>
+      <groupId>ch.qos.logback</groupId>
+      <artifactId>logback-classic</artifactId>
+      <version>1.1.1</version>
+    </dependency>
+  </dependencies>
+
+  <build>
+    <plugins>
+      <plugin>
+	<groupId>org.apache.maven.plugins</groupId>
+	<artifactId>maven-compiler-plugin</artifactId>
+	<version>3.1</version>
+	<configuration>
+	  <source>${jdk.version}</source>
+	  <target>${jdk.version}</target>
+	</configuration>
+      </plugin>
+      <plugin>
+	<artifactId>maven-release-plugin</artifactId>
+	<version>2.1</version>
+	<configuration>
+	  <preparationGoals>clean install</preparationGoals>
+	</configuration>
+      </plugin>
+      <plugin>
+	<groupId>org.apache.maven.plugins</groupId>
+	<artifactId>maven-shade-plugin</artifactId>
+	<version>3.0.0</version>
+	<executions>
+	  <!-- Run shade goal on package phase -->
+	  <execution>
+	    <phase>package</phase>
+	    <goals>
+	      <goal>shade</goal>
+	    </goals>
+	    <configuration>
+	      <transformers>
+		<!-- add Main-Class to manifest file -->
+		<transformer
+		    implementation="org.apache.maven.plugins.shade.resource.ManifestResourceTransformer">
+		  <mainClass>fr.lirmm.graphik.graal.apps.OWL2DLGP</mainClass>
+		  <manifestEntries>
+		    <Built-On>${maven.build.timestamp}</Built-On>
+		    <Specification-Vendor>${project.organization.name}</Specification-Vendor>
+		    <Specification-Title>${project.name}</Specification-Title>
+		    <Specification-Version>${project.version}</Specification-Version>
+		    <Graal-version>${graal.version}</Graal-version>
+		    <JDK-Target-Version>${jdk.version}</JDK-Target-Version>
+		  </manifestEntries>
+		</transformer>
+	      </transformers>
+	      <minimizeJar>false</minimizeJar>
+	    </configuration>
+	  </execution>
+	</executions>
+      </plugin>
+    </plugins>
+  </build>
+
+</project>

@@ -5,12 +5,10 @@
 The main functionality of GSat is to compute the saturation of a set of GTGDs. To do this, download the JAR file available with the [releases](https://github.com/KRR-Oxford/Guarded-saturation/releases) and use the command line:
 
 ```shell
-java -jar guarded-saturation-1.0.0-jar-with-dependencies.jar <syntax> <TGD file>
+java -jar GSat-1.0-SNAPSHOT-jar-with-dependencies.jar -i <TGD file> -o <saturation file>
 ```
 
-where `<syntax>` is the one of the syntax `dlgp`, `owl` and `<TGD file>` is a file containing the input GTGDs in the syntax `<syntax>`.
-
-By default, the output saturation is printed in the console, it can be written to a file instead by setting `write_output` to `true` in the file `config.properties`.
+`<TGD file>` is a file containing the input GTGDs and `<saturation file>` is the file in which saturation will be written.
 
 ### Example
 
@@ -24,7 +22,7 @@ d(X) :- b(X, Y), c(Y).
 Calling:
 
 ```shell
-java -jar guarded-saturation-1.0.0-jar-with-dependencies.jar dlgp example.dlgp
+java -jar GSat-1.0-SNAPSHOT-jar-with-dependencies.jar -i example.dlgp -o example-sat.dlgp
 ```
 
 returns the saturation containing:
@@ -52,20 +50,12 @@ This project implements different saturation algorithms. You can set the algorit
 Additionally, KAON2 can be used to get the saturation of the set of TGDs in an OWL file using the following command:
 
 ```shell
-java -cp guarded-saturation-1.0.0-jar-with-dependencies.jar 'uk.ac.ox.cs.gsat.ExecutorOWL' <OWL file> <timeout>
+java -jar GSat-1.0-SNAPSHOT-jar-with-dependencies.jar -i example.owl -o example-sat.dlgp --kaon2
 ```
-
-where the `<timeout>` is expressed in seconds.
 
 ### Running the saturation on Chase Bench
 
-Moreover, the [ChaseBench](https://dbunibas.github.io/chasebench) format can also be used for the input.
+```shell
+java -jar GSat-1.0-SNAPSHOT-jar-with-dependencies.jar -i <scenario directory> -o example-sat.dlgp -cb
+```
 
-To run on a ChaseBench scenario, you need to specify the `cb` option and add:
-
-- `<NAME OF THE SCENARIO>` the name of the scenario as in the ChaseBench format
-  - example: `doctors`
-- `<PATH OF THE BASE FOLDER>` the directory that contains this scenario
-  - example: `test/ChaseBench/scenarios/doctors`
-- `[<FACT/QUERY SIZE>]` (optional) the size of the scenario that you want to test
-  - example: `100k`
