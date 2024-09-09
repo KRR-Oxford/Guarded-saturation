@@ -240,3 +240,5 @@ old
 .factorypath
 .project
 .settings
+
+!gsat-kaon2/src/main/resources/kaon2.jar

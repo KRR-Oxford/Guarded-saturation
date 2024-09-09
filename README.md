@@ -149,6 +149,8 @@ Experiments are available in a submodule, which may be large. You can initialize
 git submodule init
 ```
 
+[Here](https://github.com/mburon/guarded-saturation-experiments/releases/tag/0.0.1) you can download the files used in our experiments.
+
 ## Credits
 
 **[Information Systems Group](https://www.cs.ox.ac.uk/isg) — [Department of Computer Science](http://www.cs.ox.ac.uk) — [University of Oxford](https://www.ox.ac.uk)**

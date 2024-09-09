@@ -8,7 +8,7 @@ Resolution-based rewriting algorithm from Guarded Tuple Generating Dependencies 
 
 ## [🧪 Experiments](experiments.md)
 
-## [📄 Tech report](files/gsatwithsupp.pdf)
+## [📄 Tech report](files/p2537-benedikt-long.pdf)
 
 ## Credits
 
