@@ -3,14 +3,21 @@ message: "If you use this software, please cite it as below."
 authors:
 - family-names: "Benedikt"
   given-names: "Michael"
+  orcid: "https://orcid.org/0000-0003-2964-0880"
 - family-names: "Buron"
   given-names: "Maxime"
+  orcid: "https://orcid.org/0000-0002-8227-4771"
 - family-names: "Germano"
   given-names: "Stefano"
+  orcid: "https://orcid.org/0000-0001-6993-0618"
 - family-names: "Kappelmann"
   given-names: "Kevin"
+  orcid: "https://orcid.org/0000-0003-1421-6497"
 - family-names: "Motik"
   given-names: "Boris"
-title: "Rewriting the Infinite Chase"
+  orcid: "https://orcid.org/0000-0003-2506-4118"
+title: "Guarded Saturation: Rewriting the Infinite Chase for Guarded TGDs"
 version: 1.0.0
+doi: 10.5281/zenodo.13742500
+date-released: 2024-09-10
 url: "https://github.com/KRR-Oxford/Guarded-saturation"
