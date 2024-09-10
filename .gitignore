@@ -242,3 +242,4 @@ old
 .settings
 
 !gsat-kaon2/src/main/resources/kaon2.jar
+!gsat-materialization/src/main/resources/JRDFox.jar
